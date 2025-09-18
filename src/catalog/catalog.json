@@ -1,0 +1,46 @@
+{
+  "ems": {
+    "smartmeterHardwareToTypes": {
+      "CarloGavazzi": [
+        "EM24"
+      ],
+      "Phoenix": [
+        "EM375"
+      ],
+      "Janitza": [
+        "UMG 96 PA",
+        "UMG 96 RM",
+        "UMG 509 Pro"
+      ],
+      "Beckhoff": [
+        "El34x3"
+      ],
+      "Virtual": [
+        "Virtual"
+      ]
+    }
+  },
+  "main": {
+    "smartmeterMainHardwareToTypes": {
+      "Virtual": [
+        "Virtual"
+      ],
+      "Beckhoff": [
+        "El34x3"
+      ]
+    }
+  },
+  "batteryInverter": {
+    "inverterTypes": [
+      "TerraInverter",
+      "InverterKaco"
+    ],
+    "batteryTypes": [
+      "TerraBattery",
+      "BatteryPylontechM1xBms"
+    ],
+    "modbusTypes": [
+      "TerraModbus"
+    ]
+  }
+}
