@@ -6,6 +6,10 @@ export type IPv4 = string;
 export const ui = { typeFirst: true } as const;
 
 export const enums = {
+  global: {
+    libVersion: ['0.0.3', '0.0.2', '0.0.1'],
+    hardwareVariant: ['Terra', 'BlokkV3']
+  },
   ems: {
     smartmeterHardwareToTypes: {
       CarloGavazzi: ['EM24'],
