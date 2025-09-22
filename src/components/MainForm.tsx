@@ -1,8 +1,7 @@
 
 import React from 'react';
 import { SelectField, TextField, GuidField } from './Fields';
-import { v4 as uuid } from 'uuid';
-import { getInverterTypes, getBatteryTypes, getModbusTypes, getMainSmartmeterHardwares, getMainSmartmeterModels, getInverterHardwareTypes, getBatteryHardwareTypes } from '@/spec/builder';
+import { createByKey, nextIndexForType, getInverterTypes, getBatteryTypes, getModbusTypes, getMainSmartmeterHardwares, getMainSmartmeterModels, getInverterHardwareTypes, getBatteryHardwareTypes } from '@/spec/builder';
 import { errorAt } from '@/utils/errors';
 
 function BatteryInverterCard(props: { cfg: any; biIndex: number; setCfg: (c: any) => void; errorIndex: any })
@@ -26,7 +25,12 @@ function BatteryInverterCard(props: { cfg: any; biIndex: number; setCfg: (c: any
         <button className="ghost" onClick={remove}>Entfernen</button>
       </div>
 
-      <SelectField leftIsType options={['BatteryInverter']} value="BatteryInverter" onChange={() => {}} />
+      <SelectField
+        leftIsType
+        options={['BatteryInverter']}
+        value="BatteryInverter"
+        onChange={() => {}}
+      />
       <TextField leftLabel="Name" value={bi.Name} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Main.Equipment[listIndex].Name = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Main','Equipment', listIndex, 'Name'])} />
 
       <div className="card">
@@ -40,7 +44,18 @@ function BatteryInverterCard(props: { cfg: any; biIndex: number; setCfg: (c: any
 
       <div className="card">
         <h3>Battery</h3>
-        <SelectField leftIsType options={getBatteryTypes()} value={bi.Battery.Type} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Main.Equipment[listIndex].Battery.Type = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Main','Equipment', listIndex, 'Battery','Type'])} />
+        <SelectField
+          leftIsType
+          options={getBatteryTypes()}
+          value={bi.Battery.Type}
+          onChange={(v: string) => 
+          {
+            const c = structuredClone(cfg);
+            c.Units.Main.Equipment[listIndex].Battery.Type = v;
+            setCfg(c);
+          }}
+          error={errorAt(errorIndex, ['Units','Main','Equipment', listIndex, 'Battery','Type'])}
+        />
         <TextField leftLabel="Name" value={bi.Battery.Name} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Main.Equipment[listIndex].Battery.Name = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Main','Equipment', listIndex, 'Battery','Name'])} />
         <GuidField value={bi.Battery.Guid} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Main.Equipment[listIndex].Battery.Guid = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Main','Equipment', listIndex, 'Battery','Guid'])} />
         <SelectField label="BatteryType" options={getBatteryHardwareTypes()} value={bi.Battery.Config.BatteryType} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Main.Equipment[listIndex].Battery.Config.BatteryType = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Main','Equipment', listIndex, 'Battery','Config','BatteryType'])} />
@@ -50,15 +65,47 @@ function BatteryInverterCard(props: { cfg: any; biIndex: number; setCfg: (c: any
 
       <div className="card">
         <h3>Modbus</h3>
-        <SelectField leftIsType options={['(kein)', ...getModbusTypes()]} value={bi.Modbus ? 'TerraModbus' : '(kein)'} onChange={(v: string) => {
-          const c = structuredClone(cfg);
-          if (v === '(kein)') { delete c.Units.Main.Equipment[listIndex].Modbus; }
-          else { c.Units.Main.Equipment[listIndex].Modbus = { Name: '', Type: 'TerraModbus', Guid: bi.Modbus?.Guid ?? '' }; }
-          setCfg(c);
-        }} error={errorAt(errorIndex, ['Units','Main','Equipment', listIndex, 'Modbus'])} />
+        <SelectField 
+          leftIsType 
+          options={getModbusTypes()} 
+          value={bi.Modbus?.Type ?? getModbusTypes()[0]} 
+          onChange=
+          {(v: string) => 
+            {
+              const c = structuredClone(cfg);
+              if (v === getModbusTypes()[0]) { delete c.Units.Main.Equipment[listIndex].Modbus; }
+              else { c.Units.Main.Equipment[listIndex].Modbus = { Name: bi.Modbus?.Name ?? '', Type: bi.Modbus?.Type ?? 'TerraModbus', Guid: bi.Modbus?.Guid ?? '' }; }
+              setCfg(c);
+            }
+          }
+          error={errorAt(errorIndex, ['Units','Main','Equipment', listIndex, 'Modbus'])}
+        />
         {bi.Modbus && (<>
-          <TextField leftLabel="Name" value={bi.Modbus.Name} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Main.Equipment[listIndex].Modbus.Name = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Main','Equipment', listIndex, 'Modbus','Name'])} />
-          <GuidField value={bi.Modbus.Guid} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Main.Equipment[listIndex].Modbus.Guid = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Main','Equipment', listIndex, 'Modbus','Guid'])} />
+          <TextField 
+            leftLabel="Name" 
+            value={bi.Modbus.Name} 
+            onChange=
+            {(v: string) => 
+              { 
+                const c = structuredClone(cfg); 
+                c.Units.Main.Equipment[listIndex].Modbus.Name = v; 
+                setCfg(c); 
+              }
+            }
+            error={errorAt(errorIndex, ['Units','Main','Equipment', listIndex, 'Modbus','Name'])} 
+          />
+          <GuidField 
+            value={bi.Modbus.Guid}
+            onChange=
+            {(v: string) => 
+              {
+                const c = structuredClone(cfg);
+                c.Units.Main.Equipment[listIndex].Modbus.Guid = v;
+                setCfg(c); 
+              }
+            }
+            error={errorAt(errorIndex, ['Units','Main','Equipment', listIndex, 'Modbus','Guid'])}
+          />
         </>)}
       </div>
     </div>
@@ -76,7 +123,7 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; er
     {
       return;
     }
-    const sm = { Name: 'Smartmeter', DisplayName: '', Type: 'SmartmeterMain', HardwareType: 'Virtual', HardwareModel: 'Virtual', Guid: uuid() };
+    const sm = createByKey('SmartmeterMain',{n:1});
     const c = structuredClone(cfg);
     c.Units.Main.Equipment.unshift(sm);
     setCfg(c);
@@ -84,12 +131,9 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; er
 
   const addBatteryInv = (): void =>
   {
-    const bi = {
-      Name: 'BatteryInverter',
-      Type: 'BatteryInverter',
-      Inverter: { Name: '', Type: 'InverterKaco', Guid: uuid(), Config: { InverterType: 'Kaco', NominalInverterPower: '0' } },
-      Battery: { Name: '', Type: 'BatteryPylontechM1xBms', Guid: uuid(), Config: { BatteryType: 'PylontechM1C', BatteryCabinetCount: '1', BatteryCabinetModuleCount: '1' } }
-    };
+    const list = cfg.Units.Main.Equipment;
+    const n = nextIndexForType(list,'BatteryInverter');
+    const bi = createByKey('BatteryInverter',{n});
     const c = structuredClone(cfg);
     c.Units.Main.Equipment.push(bi);
     setCfg(c);
@@ -110,7 +154,34 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; er
       {smMain && (
         <div className="card">
           <span className="badge">SmartmeterMain</span>
-          <SelectField leftIsType options={['SmartmeterMain']} value="SmartmeterMain" onChange={() => {}} />
+          <SelectField 
+            leftIsType 
+            options={['SmartmeterMain']} 
+            value="SmartmeterMain" 
+            onChange={() => {}}
+          />
+          <TextField 
+            leftLabel="Name"
+            value={smMain.Name}
+            onChange={(v: string) => 
+            { 
+              const c = structuredClone(cfg);
+              c.Units.Main.Equipment[smMainIndex].Name = v;
+              setCfg(c);
+            }}
+            error={errorAt(errorIndex, ['Units','Main','Equipment', smMainIndex, 'Name'])}
+          />
+          <TextField
+            leftLabel="DisplayName"
+            value={smMain.DisplayName ?? ''}
+            onChange={(v: string) => 
+            {
+              const c = structuredClone(cfg);
+              c.Units.Main.Equipment[smMainIndex].DisplayName = v;
+              setCfg(c);
+            }}
+            error={errorAt(errorIndex, ['Units','Main','Equipment', smMainIndex, 'DisplayName'])}
+          />
           <SelectField
             label="HardwareType"
             options={getMainSmartmeterHardwares()}
@@ -137,9 +208,16 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; er
             }}
             error={errorAt(errorIndex, ['Units','Ems','Equipment', smMainIndex, 'HardwareModel'])}
           />
-          <TextField leftLabel="Name" value={smMain.Name} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Main.Equipment[smMainIndex].Name = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Main','Equipment', smMainIndex, 'Name'])} />
-          <TextField leftLabel="DisplayName" value={smMain.DisplayName ?? ''} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Main.Equipment[smMainIndex].DisplayName = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Main','Equipment', smMainIndex, 'DisplayName'])} />
-          <GuidField value={smMain.Guid} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Main.Equipment[smMainIndex].Guid = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Main','Equipment', smMainIndex, 'Guid'])} />
+          <GuidField
+            value={smMain.Guid}
+            onChange={(v: string) => 
+            {
+              const c = structuredClone(cfg);
+              c.Units.Main.Equipment[smMainIndex].Guid = v;
+              setCfg(c);
+            }}
+            error={errorAt(errorIndex, ['Units','Main','Equipment', smMainIndex, 'Guid'])}
+          />
         </div>
       )}
 
