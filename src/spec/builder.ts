@@ -3,21 +3,39 @@ import { z, ZodIssue } from 'zod';
 import { ui, enums, components } from './catalog';
 import { applyCrossRules, applyCardinality } from './rules';
 
-export const getEmsSmartmeterHardwares = (): string[] =>
+export type EmsHardwareKey = keyof typeof enums.ems.smartmeterHardwareToTypes;
+export type MainHardwareKey = keyof typeof enums.main.smartmeterHardwareToTypes;
+
+
+export const getEmsSmartmeterHardwares = (): EmsHardwareKey[] =>
 {
-  return Object.keys(enums.ems.smartmeterHardwareToTypes);
+  return Object.keys(enums.ems.smartmeterHardwareToTypes) as EmsHardwareKey[];
 };
-export const getEmsSmartmeterTypes = (hw: string): string[] =>
+export const getEmsSmartmeterModels = (hw: string): string[] =>
 {
-  return enums.ems.smartmeterHardwareToTypes[hw] ?? [];
+  const map = enums.ems.smartmeterHardwareToTypes as Record<string, readonly string[]>;
+  const list = map[hw];
+  if (Array.isArray(list))
+  {
+    return [ ...list ];
+  }
+  return [];
 };
-export const getMainSMHardwares = (): string[] =>
+
+
+export const getMainSmartmeterHardwares = (): MainHardwareKey[] =>
 {
-  return Object.keys(enums.main.smartmeterMainHardwareToTypes);
+  return Object.keys(enums.main.smartmeterHardwareToTypes) as MainHardwareKey[];
 };
-export const getMainSMTypes = (hw: string): string[] =>
+export const getMainSmartmeterModels = (hw: string): string[] =>
 {
-  return enums.main.smartmeterMainHardwareToTypes[hw] ?? [];
+  const map = enums.main.smartmeterHardwareToTypes as Record<string, readonly string[]>;
+  const list = map[hw];
+  if (Array.isArray(list))
+  {
+    return [ ...list ];
+  }
+  return [];
 };
 
 

@@ -17,7 +17,7 @@ export const enums = {
     smartmeterUseCaseTypes: ['Undefined', 'GridConnectionPointControl']
   },
   main: {
-    smartmeterMainHardwareToTypes: {
+    smartmeterHardwareToTypes: {
       Virtual: ['Virtual'],
       Beckhoff: ['El34x3']
     }
@@ -37,7 +37,8 @@ export const components = {
       Name: { type: 'string', required: true },
       Displayname: { type: 'string', required: true },
       Type: { const: 'Smartmeter' },
-      Hardware: { enumRef: ['ems', 'smartmeterHardwareToTypes'], required: true },
+      HardwareType: { enumRef: ['ems', 'smartmeterHardwareToTypes'], required: true },
+      HardwareModel: { type: 'string', required: true },
       Guid: { type: 'uuid', required: true },
       Config: {
         group: {
@@ -69,7 +70,8 @@ export const components = {
       Name: { type: 'string', required: true },
       Displayname: { type: 'string', required: true },
       Type: { const: 'SmartmeterMain' },
-      Hardware: { enumRef: ['main', 'smartmeterMainHardwareToTypes'], required: true },
+      HardwareType: { enumRef: ['main', 'smartmeterHardwareToTypes'], required: true },
+      HardwareModel: { type: 'string', required: true },
       Guid: { type: 'uuid', required: true }
     }
   },

@@ -71,9 +71,12 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; er
 
   const addSmartMain = (): void =>
   {
-    const has = cfg.Units.Main.Equipment.some((e: any) => { return e.Type === 'SmartmeterMain'; });
-    if (has) { return; }
-    const sm = { Name: 'Smartmeter', Displayname: '', Type: 'SmartmeterMain', Hardware: 'Virtual', Guid: uuid() };
+    const alreadyConfigured = cfg.Units.Main.Equipment.some((e: any) => { return e.Type === 'SmartmeterMain'; });
+    if (alreadyConfigured) 
+    {
+      return;
+    }
+    const sm = { Name: 'Smartmeter', DisplayName: '', Type: 'SmartmeterMain', HardwareType: 'Virtual', HardwareModel: 'Virtual', Guid: uuid() };
     const c = structuredClone(cfg);
     c.Units.Main.Equipment.unshift(sm);
     setCfg(c);
@@ -119,8 +122,32 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; er
         <div className="card">
           <span className="badge">SmartmeterMain</span>
           <SelectField leftIsType options={['SmartmeterMain']} value="SmartmeterMain" onChange={() => {}} />
-          <SelectField label="Hardware" options={getMainSMHardwares()} value={smMain.Hardware} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Main.Equipment[smMainIndex].Hardware = v; setCfg(c); }} />
-          <SelectField label="Modell (aus Hardware)" options={getMainSMTypes(smMain.Hardware)} value={getMainSMTypes(smMain.Hardware)[0] ?? ''} onChange={() => {}} disabled />
+          <SelectField
+            label="HardwareType"
+            options={getMainSmartmeterHardwares()}
+            value={smMain.HardwareType}
+            onChange={(v: string) =>
+            {
+              const c = structuredClone(cfg);
+              const models = getMainSmartmeterModels(v);
+              c.Units.Main.Equipment[smMainIndex].HardwareType = v;
+              c.Units.Main.Equipment[smMainIndex].HardwareModel = models[0] ?? '';
+              setCfg(c);
+            }}
+            error={errorAt(errorIndex, ['Units','Ems','Equipment', smMainIndex, 'HardwareType'])}
+          />
+          <SelectField
+            label="HardwareModel"
+            options={getMainSmartmeterModels(smMain.HardwareType)}
+            value={smMain.HardwareModel ?? ''}
+            onChange={(v: string) =>
+            {
+              const c = structuredClone(cfg);
+              c.Units.Main.Equipment[smMainIndex].HardwareModel = v;
+              setCfg(c);
+            }}
+            error={errorAt(errorIndex, ['Units','Ems','Equipment', smMainIndex, 'HardwareModel'])}
+          />
           <TextField leftLabel="Name" value={smMain.Name} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Main.Equipment[smMainIndex].Name = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Main','Equipment', smMainIndex, 'Name'])} />
           <TextField leftLabel="Displayname" value={smMain.Displayname ?? ''} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Main.Equipment[smMainIndex].Displayname = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Main','Equipment', smMainIndex, 'Displayname'])} />
           <GuidField value={smMain.Guid} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Main.Equipment[smMainIndex].Guid = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Main','Equipment', smMainIndex, 'Guid'])} />

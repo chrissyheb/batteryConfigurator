@@ -2,7 +2,7 @@
 import React from 'react';
 import { SelectField, TextField, GuidField } from './Fields';
 import { v4 as uuid } from 'uuid';
-import { getEmsSmartmeterHardwares, getEmsSmartmeterTypes } from '@/spec/builder';
+import { getEmsSmartmeterHardwares, getEmsSmartmeterModels, getEmsSmartmeterUseCaseTypes } from '@/spec/builder';
 import { errorAt } from '@/utils/errors';
 
 export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; errorIndex: any })
@@ -55,8 +55,33 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; err
             {e.Type === 'Smartmeter' && (
               <>
                 <SelectField leftIsType options={['Smartmeter']} value={e.Type} onChange={() => {}} />
-                <SelectField label="Hardware" options={getEmsSmartmeterHardwares()} value={e.Hardware} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment[i].Hardware = v; c.Units.Ems.Equipment[i].Config ??= { Usecase: 'Undefined', Port: '502' }; setCfg(c); }} />
-                <SelectField label="Modell (aus Hardware)" options={getEmsSmartmeterTypes(e.Hardware)} value={getEmsSmartmeterTypes(e.Hardware)[0] ?? ''} onChange={() => {}} disabled />
+
+                <SelectField
+                  label="HardwareType"
+                  options={getEmsSmartmeterHardwares()}
+                  value={e.HardwareType}
+                  onChange={(v: string) =>
+                  {
+                    const c = structuredClone(cfg);
+                    const models = getEmsSmartmeterModels(v);
+                    c.Units.Ems.Equipment[i].HardwareType = v;
+                    c.Units.Ems.Equipment[i].HardwareModel = models[0] ?? '';
+                    setCfg(c);
+                  }}
+                  error={errorAt(errorIndex, ['Units','Ems','Equipment', i, 'HardwareType'])}
+                />
+                <SelectField
+                  label="HardwareModel"
+                  options={getEmsSmartmeterModels(e.HardwareType)}
+                  value={e.HardwareModel ?? ''}
+                  onChange={(v: string) =>
+                  {
+                    const c = structuredClone(cfg);
+                    c.Units.Ems.Equipment[i].HardwareModel = v;
+                    setCfg(c);
+                  }}
+                  error={errorAt(errorIndex, ['Units','Ems','Equipment', i, 'HardwareModel'])}
+                />
                 <TextField leftLabel="Name" value={e.Name} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment[i].Name = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment', i, 'Name'])} />
                 <TextField leftLabel="Displayname" value={e.Displayname ?? ''} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment[i].Displayname = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment', i, 'Displayname'])} />
                 <GuidField value={e.Guid ?? ''} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment[i].Guid = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment', i, 'Guid'])} />

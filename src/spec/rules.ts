@@ -1,4 +1,6 @@
 
+import { enums } from './catalog';
+
 export const cardinality = {
   ems: { smartmeterMax: 10, slaveLocalEq: 1, slaveRemoteMax: 9 },
   main: { smartmeterMainEq: 1, batteryInverterMin: 1 }
@@ -8,6 +10,44 @@ export type Issue = { message: string; path: (string | number)[]; };
 
 export function applyCrossRules(config: any, add: (i: Issue) => void): void
 {
+  // Validate Smartmeter HardwareType/HardwareModel dependency
+  const emsEq = config?.Units?.Ems?.Equipment ?? [];
+  emsEq.forEach((e: any, idx: number) =>
+  {
+    if (e?.Type !== 'Smartmeter')
+    {
+      return;
+    }
+
+    const type = e?.HardwareType;
+    const model = e?.HardwareModel;
+
+    if (!type)
+    {
+      add({ message: 'HardwareType erforderlich', path: ['Units','Ems','Equipment', idx, 'HardwareType'] });
+      return;
+    }
+
+    const allowed = (enums.ems.smartmeterHardwareToTypes as any)[type] as readonly string[] | undefined;
+
+    if (!Array.isArray(allowed) || allowed.length === 0)
+    {
+      add({ message: 'Unbekannter HardwareType', path: ['Units','Ems','Equipment', idx, 'HardwareType'] });
+      return;
+    }
+
+    if (!model)
+    {
+      add({ message: 'HardwareModel erforderlich', path: ['Units','Ems','Equipment', idx, 'HardwareModel'] });
+      return;
+    }
+
+    if (!allowed.includes(model))
+    {
+      add({ message: 'HardwareModel passt nicht zu HardwareType', path: ['Units','Ems','Equipment', idx, 'HardwareModel'] });
+    }
+  });
+
   // Main/HV Terra/Blokk cross rules
   const hv = config?.ModularPlc?.HardwareVariant;
   const main = config?.Units?.Main;
