@@ -1,4 +1,4 @@
-
+import { v4 as uuid } from 'uuid';
 import { z, ZodIssue } from 'zod';
 import { ui, enums, components } from './catalog';
 import { applyCrossRules, applyCardinality } from './rules';
@@ -81,6 +81,61 @@ export const getUiMeta = () =>
   return ui;
 };
 
+
+
+// Defaults Resolver
+type CreateCtx = { n: number };
+
+function isPlainObject(v: unknown): v is Record<string, unknown> { return typeof v==='object' && v!==null && !Array.isArray(v); }
+
+function resolveScalars(key: string, value: unknown, draft: Record<string, unknown>, ctx: CreateCtx, componentKey: keyof typeof components): unknown
+{
+  if (typeof value === 'string')
+  {
+    if (value === '@uuid') { return uuid(); }
+    if (value.includes('${n}')) { return value.replaceAll('${n}', String(ctx.n)); }
+    if (value.startsWith('@firstModelOf('))
+    {
+      const inside = value.slice('@firstModelOf('.length, -1).trim();
+      if (componentKey === 'Smartmeter' && inside === 'HardwareType')
+      {
+        const hw = String(draft['HardwareType'] ?? '');
+        const list = (enums.ems.smartmeterHardwareToTypes as Record<string, readonly string[]>)[hw] ?? [];
+        return Array.isArray(list) && list.length > 0 ? list[0] : '';
+      }
+    }
+    return value;
+  }
+  return value;
+}
+
+function deepResolveDefaults(defs: Record<string, unknown>, ctx: CreateCtx, componentKey: keyof typeof components): any
+{
+  const out: Record<string, unknown> = {};
+  for (const k of Object.keys(defs))
+  {
+    const v = (defs as any)[k];
+    if (isPlainObject(v)) { out[k] = deepResolveDefaults(v as Record<string, unknown>, ctx, componentKey); }
+    else { out[k] = resolveScalars(k, v, out, ctx, componentKey); }
+  }
+  return out;
+}
+
+export function createByKey(componentKey: keyof typeof components, ctx: CreateCtx): any
+{
+  const spec = components[componentKey] as any;
+  if (!spec?.defaults) { throw new Error(`No defaults for component ${String(componentKey)}`); }
+  return deepResolveDefaults(spec.defaults as Record<string, unknown>, ctx, componentKey);
+}
+
+export function nextIndexForType(list: any[], type: string): number 
+{ 
+  return list.filter((e) => e?.Type === type).length + 1; 
+}
+
+
+
+// Zod schema & validate
 function fieldSchema(f: any): z.ZodTypeAny
 {
   if (f?.const) 
@@ -194,6 +249,7 @@ export function validate(cfg: any): { issues: ZodIssue[] }
 {
   const parsed = configZ.safeParse(cfg);
   const issues: ZodIssue[] = parsed.success ? [] : parsed.error.issues;
+  
   const add = (i: any): void =>
   {
     issues.push({ code: 'custom', message: i.message, path: i.path } as any);
@@ -201,4 +257,11 @@ export function validate(cfg: any): { issues: ZodIssue[] }
   applyCardinality(cfg, add);
   applyCrossRules(cfg, add);
   return { issues };
+}
+
+export function getInitialConfig(): any
+{
+  const emsEq:any[] = []; emsEq.push(createByKey('Smartmeter',{n:1})); emsEq.push(createByKey('SlaveLocalUM',{n:1}));
+  const mainEq:any[] = []; mainEq.push(createByKey('SmartmeterMain',{n:1})); mainEq.push(createByKey('BatteryInverter',{n:1}));
+  return { Customer:'Company XYZ', ModularPlc:{ Version:'1.0.0', Hardwarevariante:'Variante1' }, Units:{ Ems:{ Equipment: emsEq }, Main:{ Type:'Blokk', Equipment: mainEq } } };
 }

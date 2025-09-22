@@ -14,7 +14,7 @@ export const enums = {
       Beckhoff: ['El34x3'],
       Virtual: ['Virtual']
     },
-    smartmeterUseCaseTypes: ['Undefined', 'GridConnectionPointControl']
+    smartmeterUseCaseTypes: ['GridConnectionPointControl']
   },
   main: {
     smartmeterHardwareToTypes: {
@@ -26,7 +26,7 @@ export const enums = {
   batteryInverter: {
     inverterTypes: ['TerraInverter', 'InverterKaco'],
     batteryTypes: ['TerraBattery', 'BatteryPylontechM1xBms'],
-    modbusTypes: ['TerraModbus']
+    modbusTypes: ['(not available)','TerraModbus']
   },
   inverterHardwareTypes: ['SofarTerra', 'Kaco'],
   batteryHardwareTypes: ['SofarTerra', 'PylontechM1C']
@@ -47,6 +47,18 @@ export const components = {
           Port: { type: 'integer-string', min: 1, max: 65535, required: true }
         }
       }
+    },
+    defaults:{
+      Name: 'Smartmeter ${n}', 
+      DisplayName: 'Smartmeter ${n}',
+      Type:'Smartmeter',
+      HardwareType:'Phoenix',
+      HardwareModel:'@firstModelOf(HardwareType)',
+      Guid:'@uuid',
+      Config:{ 
+        Usecase:'GridConnectionPointControl',
+        Port:'502' 
+      }
     }
   },
   SlaveLocalUM: {
@@ -55,6 +67,12 @@ export const components = {
       Name: { type: 'string', required: true },
       DisplayName: { type: 'string', required: true },
       Guid: { type: 'uuid', required: true }
+    },
+    defaults:{
+      Name: 'SlaveLocalUM ${n}',
+      DisplayName: 'SlaveLocalUM ${n}',
+      Type: 'SlaveLocalUM',
+      Guid: '@uuid'
     }
   },
   SlaveRemoteUM: {
@@ -64,6 +82,13 @@ export const components = {
       DisplayName: { type: 'string', required: true },
       Guid: { type: 'uuid', required: true },
       Ip: { type: 'ipv4', required: true }
+    },
+    defaults:{
+      Name: 'SlaveRemoteUM ${n}',
+      DisplayName: 'SlaveRemoteUM ${n}',
+      Type: 'SlaveRemoteUM',
+      Guid: '@uuid',
+      Ip: '192.168.0.10'
     }
   },
   MainType: { enum: ['main', 'types'] },
@@ -75,6 +100,13 @@ export const components = {
       HardwareType: { enumRef: ['main', 'smartmeterHardwareToTypes'], required: true },
       HardwareModel: { type: 'string', required: true },
       Guid: { type: 'uuid', required: true }
+    },
+    defaults:{
+      Name: 'SmartmeterMain ${n}',
+      DisplayName: 'SmartmeterMain ${n}',
+      Type: 'SmartmeterMain',
+      Hardware: 'Virtual',
+      Guid: '@uuid'
     }
   },
   BatteryInverter: {
@@ -115,6 +147,34 @@ export const components = {
           Name: { type: 'string', required: true },
           Guid: { type: 'uuid', required: true }
         }
+      }
+    },
+    defaults:{
+      Name: 'BatteryInverter ${n}',
+      Type:'BatteryInverter',
+      Inverter: {
+        Name:'Inverter ${n}',
+        Type:'TerraInverter',
+        Guid:'@uuid',
+        Config: {
+          InverterType:'SofarTerra',
+          NominalInverterPower:'125000'
+        }
+      },
+      Battery: {
+        Name:'Battery ${n}',
+        Type:'TerraBattery',
+        Guid:'@uuid',
+        Config: {
+          BatteryType:'SofarTerra',
+          BatteryCabinetCount:'1',
+          BatteryCabinetModuleCount:'6'
+        }
+      },
+      Modbus: {
+        Name:'Modbus ${n}',
+        Type:'TerraModbus',
+        Guid:'@uuid'
       }
     }
   }
