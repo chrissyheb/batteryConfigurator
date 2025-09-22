@@ -34,9 +34,9 @@ export const enums = {
 export const components = {
   Smartmeter: {
     fields: {
-      Name: { type: 'string', required: true },
-      Displayname: { type: 'string', required: true },
       Type: { const: 'Smartmeter' },
+      Name: { type: 'string', required: true },
+      DisplayName: { type: 'string', required: true },
       HardwareType: { enumRef: ['ems', 'smartmeterHardwareToTypes'], required: true },
       HardwareModel: { type: 'string', required: true },
       Guid: { type: 'uuid', required: true },
@@ -50,26 +50,26 @@ export const components = {
   },
   SlaveLocalUM: {
     fields: {
-      Name: { type: 'string', required: true },
-      Displayname: { type: 'string', required: true },
       Type: { const: 'SlaveLocalUM' },
+      Name: { type: 'string', required: true },
+      DisplayName: { type: 'string', required: true },
       Guid: { type: 'uuid', required: true }
     }
   },
   SlaveRemoteUM: {
     fields: {
-      Name: { type: 'string', required: true },
-      Displayname: { type: 'string', required: true },
       Type: { const: 'SlaveRemoteUM' },
+      Name: { type: 'string', required: true },
+      DisplayName: { type: 'string', required: true },
       Guid: { type: 'uuid', required: true },
       Ip: { type: 'ipv4', required: true }
     }
   },
   SmartmeterMain: {
     fields: {
-      Name: { type: 'string', required: true },
-      Displayname: { type: 'string', required: true },
       Type: { const: 'SmartmeterMain' },
+      Name: { type: 'string', required: true },
+      DisplayName: { type: 'string', required: true },
       HardwareType: { enumRef: ['main', 'smartmeterHardwareToTypes'], required: true },
       HardwareModel: { type: 'string', required: true },
       Guid: { type: 'uuid', required: true }
@@ -77,12 +77,12 @@ export const components = {
   },
   BatteryInverter: {
     fields: {
-      Name: { type: 'string', required: true },
       Type: { const: 'BatteryInverter' },
+      Name: { type: 'string', required: true },
       Inverter: {
         group: {
-          Name: { type: 'string', required: true },
           Type: { enumRef: ['batteryInverter', 'inverterTypes'], required: true },
+          Name: { type: 'string', required: true },
           Guid: { type: 'uuid', required: true },
           Config: {
             group: {
@@ -94,8 +94,8 @@ export const components = {
       },
       Battery: {
         group: {
-          Name: { type: 'string', required: true },
           Type: { enumRef: ['batteryInverter', 'batteryTypes'], required: true },
+          Name: { type: 'string', required: true },
           Guid: { type: 'uuid', required: true },
           Config: {
             group: {
@@ -109,8 +109,8 @@ export const components = {
       Modbus: {
         optional: true,
         group: {
-          Name: { type: 'string', required: true },
           Type: { enumRef: ['batteryInverter', 'modbusTypes'], required: true },
+          Name: { type: 'string', required: true },
           Guid: { type: 'uuid', required: true }
         }
       }
