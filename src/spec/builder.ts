@@ -116,8 +116,8 @@ const batteryInverterZ = groupSchema(components.BatteryInverter.fields);
 const configZ = z.object({
   Customer: z.string().min(1, 'Customer erforderlich'),
   ModularPlc: z.object({
-    Version: z.string().min(1, 'Version erforderlich'),
-    Hardwarevariante: z.string().min(1, 'Hardwarevariante erforderlich')
+    Version: z.string().min(1, 'Version required'),
+    HardwareVariant: z.string().min(1, 'HardwareVariant required')
   }),
   Units: z.object({
     Ems: z.object({

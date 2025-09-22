@@ -8,18 +8,20 @@ export type Issue = { message: string; path: (string | number)[]; };
 
 export function applyCrossRules(config: any, add: (i: Issue) => void): void
 {
-  const hv = config?.ModularPlc?.Hardwarevariante;
+  // Main/HV Terra/Blokk cross rules
+  const hv = config?.ModularPlc?.HardwareVariant;
   const main = config?.Units?.Main;
   if (!main) { return; }
   const eq = main.Equipment || [];
   const biList = eq.filter((e: any) => { return e?.Type === 'BatteryInverter'; });
 
   const isTerraHV = typeof hv === 'string' && /terra/i.test(hv);
-  const expectedMainType = isTerraHV ? 'Terra' : 'Blokk';
-  if (main.Type !== expectedMainType)
-  {
-    add({ message: `Main.Type muss ${expectedMainType} sein (wegen Hardwarevariante=${hv})`, path: ['Units','Main','Type'] });
-  }
+  main.Type = isTerraHV ? 'Terra' : 'Blokk';
+//  const expectedMainType = isTerraHV ? 'Terra' : 'Blokk';
+//  if (main.Type !== expectedMainType)
+//  {
+//    add({ message: `Main.Type must be ${expectedMainType} (HardwareVariant=${hv})`, path: ['Units','Main','Type'] });
+//  }
 
   biList.forEach((bi: any) =>
   {
