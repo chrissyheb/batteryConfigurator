@@ -25,60 +25,55 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
   {
     const idx = eq.indexOf(bi);
     const inv = bi?.Inverter?.Type;
+    const invType = bi?.Inverter?.Config?.InverterType;
     const bat = bi?.Battery?.Type;
+    const batType = bi?.Battery?.Config?.BatteryType;
     const hasModbus = !!bi?.Modbus;
-
-    if (inv === 'TerraInverter')
-    {
-      if (bat !== 'TerraBattery')
-      {
-        add({ message: 'Bei TerraInverter ist TerraBattery Pflicht', path: ['Units','Main','Equipment',idx,'Battery','Type'] });
-      }
-      if (!hasModbus)
-      {
-        add({ message: 'Bei TerraInverter ist Modbus Pflicht', path: ['Units','Main','Equipment',idx,'Modbus'] });
-      }
-    }
-    else
-    {
-      if (bat === 'TerraBattery')
-      {
-        add({ message: 'TerraBattery verboten wenn Inverter ≠ TerraInverter', path: ['Units','Main','Equipment',idx,'Battery','Type'] });
-      }
-      if (hasModbus && bi?.Modbus?.Type === 'TerraModbus')
-      {
-        add({ message: 'TerraModbus verboten wenn Inverter ≠ TerraInverter', path: ['Units','Main','Equipment',idx,'Modbus'] });
-      }
-    }
 
     if (isTerraHV)
     {
       if (inv !== 'TerraInverter')
       {
-        add({ message: 'HV=Terra ⇒ Inverter=TerraInverter', path: ['Units','Main','Equipment',idx,'Inverter','Type'] });
+        add({ message: 'Terra configured ⇒ TerraInverter required', path: ['Units','Main','Equipment',idx,'Inverter','Type'] });
+      }
+      if (invType !== 'SofarTerra')
+      {
+        add({ message: 'TerraInverter configured ⇒ InverterType SofarTerra required', path: ['Units','Main','Equipment',idx,'Inverter','Config','InverterType'] });
       }
       if (bat !== 'TerraBattery')
       {
-        add({ message: 'HV=Terra ⇒ Battery=TerraBattery', path: ['Units','Main','Equipment',idx,'Battery','Type'] });
+        add({ message: 'Terra configured ⇒ TerraBattery required', path: ['Units','Main','Equipment',idx,'Battery','Type'] });
+      }
+      if (batType !== 'SofarTerra')
+      {
+        add({ message: 'TerraBattery configured ⇒ BatteryType SofarTerra required', path: ['Units','Main','Equipment',idx,'Battery','Config','BatteryType'] });
       }
       if (!hasModbus)
       {
-        add({ message: 'HV=Terra ⇒ Modbus erforderlich', path: ['Units','Main','Equipment',idx,'Modbus'] });
+        add({ message: 'Terra configured ⇒ Modbus component required', path: ['Units','Main','Equipment',idx,'Modbus'] });
       }
     }
     else
     {
       if (inv === 'TerraInverter')
       {
-        add({ message: 'HV≠Terra ⇒ kein TerraInverter', path: ['Units','Main','Equipment',idx,'Inverter','Type'] });
+        add({ message: 'Terra not configured ⇒ TerraInverter not allowed', path: ['Units','Main','Equipment',idx,'Inverter','Type'] });
+      }
+      if (invType === 'SofarTerra')
+      {
+        add({ message: 'Terra not configured ⇒ InverterType SofarTerra not allowed', path: ['Units','Main','Equipment',idx,'Inverter','Config','InverterType'] });
       }
       if (bat === 'TerraBattery')
       {
-        add({ message: 'HV≠Terra ⇒ keine TerraBattery', path: ['Units','Main','Equipment',idx,'Battery','Type'] });
+        add({ message: 'Terra not configured ⇒ TerraBattery not allowed', path: ['Units','Main','Equipment',idx,'Battery','Type'] });
+      }
+      if (batType === 'SofarTerra')
+      {
+        add({ message: 'Terra not configured ⇒ BatteryType SofarTerra not allowed', path: ['Units','Main','Equipment',idx,'Battery','Config','BatteryType'] });
       }
       if (hasModbus)
       {
-        add({ message: 'HV≠Terra ⇒ kein Modbus', path: ['Units','Main','Equipment',idx,'Modbus'] });
+        add({ message: 'Terra not configured ⇒ Modbus not allowed', path: ['Units','Main','Equipment',idx,'Modbus'] });
       }
     }
   });

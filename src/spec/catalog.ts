@@ -25,7 +25,9 @@ export const enums = {
     inverterTypes: ['TerraInverter', 'InverterKaco'],
     batteryTypes: ['TerraBattery', 'BatteryPylontechM1xBms'],
     modbusTypes: ['TerraModbus']
-  }
+  },
+  inverterHardwareTypes: ['SofarTerra', 'Kaco'],
+  batteryHardwareTypes: ['SofarTerra', 'PylontechM1C']
 } as const;
 
 export const components = {
@@ -81,8 +83,8 @@ export const components = {
           Guid: { type: 'uuid', required: true },
           Config: {
             group: {
-              InverterType: { enum: ['Kaco', 'SofarTerra'], required: true },
-              NominalInverterPower: { type: 'integer-string', min: 0, max: 125000, required: true }
+              InverterType: { enum: 'inverterHardwareTypes', required: true },
+              NominalInverterPower: { type: 'integer-string', min: 1, max: 125000, required: true }
             }
           }
         }
@@ -94,7 +96,7 @@ export const components = {
           Guid: { type: 'uuid', required: true },
           Config: {
             group: {
-              BatteryType: { enum: ['PylontechM1C', 'SofarTerra'], required: true },
+              BatteryType: { enum: 'batteryHardwareTypes', required: true },
               BatteryCabinetCount: { type: 'integer-string', min: 1, max: 5, required: true },
               BatteryCabinetModuleCount: { type: 'integer-string', min: 1, max: 25, required: true }
             }
