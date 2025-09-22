@@ -74,12 +74,24 @@ export const getModbusTypes = (): readonly string[] =>
 {
   return enums.batteryInverter.modbusTypes;
 };
-export const getUiMeta = () => { return ui; };
+
+
+export const getUiMeta = () => 
+{
+  return ui;
+};
 
 function fieldSchema(f: any): z.ZodTypeAny
 {
-  if (f?.const) { return z.literal(f.const); }
-  if (f?.enum) { return z.enum(f.enum as [string, ...string[]]); }
+  if (f?.const) 
+  {
+    return z.literal(f.const); 
+  }
+  if (f?.enum) 
+  { 
+    const obj = (enums as any)[f.enum];
+    return z.enum(obj as [string, ...string[]]); 
+  }
   if (f?.enumRef)
   {
     const [domain, key] = f.enumRef as [string, string];
@@ -89,28 +101,47 @@ function fieldSchema(f: any): z.ZodTypeAny
   }
   switch (f?.type)
   {
-    case 'uuid': { return z.string().uuid(); }
-    case 'ipv4': { return z.string().regex(/^(?:\d{1,3}\.){3}\d{1,3}$/, 'Ungültige IPv4'); }
+    case 'uuid':
+    {
+      return z.string().uuid();
+    }
+
+    case 'ipv4':
+    {
+      return z.string().regex(/^(?:\d{1,3}\.){3}\d{1,3}$/, 'Invalid IPv4');
+    }
+
     case 'integer-string':
     {
-      let s = z.string().regex(/^\d+$/, 'Integer als String');
+      let s = z.string().regex(/^\d+$/, 'Integer as String');
       if (typeof f.min === 'number' || typeof f.max === 'number')
       {
-        s = s.refine((v) =>
+        return s.refine((v) =>
         {
           const n = Number(v);
-          if (typeof f.min === 'number' && n < f.min) { return false; }
-          if (typeof f.max === 'number' && n > f.max) { return false; }
+          if (typeof f.min === 'number' && n < f.min)
+          {
+            return false;
+          }
+          if (typeof f.max === 'number' && n > f.max)
+          {
+            return false;
+          }
           return true;
         }, 'Wert außerhalb des zulässigen Bereichs');
       }
       return s;
     }
-    default: { return z.string(); }
+
+    default:
+    {
+      return z.string();
+    }
   }
 }
 
-function groupSchema(g: any): z.ZodTypeAny
+
+function groupSchema(g: any, domain?: string): z.ZodTypeAny
 {
   const shape: Record<string, z.ZodTypeAny> = {};
   for (const [k, spec] of Object.entries<any>(g))
@@ -124,7 +155,12 @@ function groupSchema(g: any): z.ZodTypeAny
     else
     {
       let zod = fieldSchema(s);
-      if (s.optional) { zod = zod.optional(); }
+
+      if (s.optional)
+      {
+        zod = zod.optional();
+      }
+
       shape[k] = zod;
     }
   }
