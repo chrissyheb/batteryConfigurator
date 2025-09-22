@@ -6,6 +6,14 @@ import { applyCrossRules, applyCardinality } from './rules';
 export type EmsHardwareKey = keyof typeof enums.ems.smartmeterHardwareToTypes;
 export type MainHardwareKey = keyof typeof enums.main.smartmeterHardwareToTypes;
 
+export const getLibraryVersion = (): readonly string[] =>
+{
+  return enums.global.libVersion;
+};
+export const getHardwareVariants = (): readonly string[] =>
+{
+  return enums.global.hardwareVariant;
+};
 
 export const getEmsSmartmeterHardwares = (): EmsHardwareKey[] =>
 {

@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { useStore } from './store';
+import { SelectField, TextField } from '@/components/Fields';
+import { getLibraryVersion, getHardwareVariants } from '@/spec/builder';
 import EMSForm from '@/components/EMSForm';
 import MainForm from '@/components/MainForm';
 import { exportJSON, importJSON } from '@/utils/io';
@@ -40,9 +42,23 @@ export default function App()
 
       <section className="card">
         <h2>Global</h2>
-        <div className="field"><label>Customer</label><input value={state.Customer} onChange={(e) => { setCfg({ ...state, Customer: e.target.value }); }} /><span className="inline-error">{errorIndex.get('Customer')?.[0]}</span></div>
-        <div className="field"><label>Version</label><select value={state.ModularPlc.Version} onChange={(e) => { setCfg({ ...state, ModularPlc: { ...state.ModularPlc, Version: e.target.value } }); }}><option>0.0.1</option><option>0.0.2</option><option>0.0.3</option><option>1.0.0</option></select><span className="inline-error">{errorIndex.get('ModularPlc.Version')?.[0]}</span></div>
-        <div className="field"><label>HardwareVariant</label><select value={state.ModularPlc.HardwareVariant} onChange={(e) => { setCfg({ ...state, ModularPlc: { ...state.ModularPlc, HardwareVariant: e.target.value } }); }}><option>BlokkV3</option><option>Terra</option><option>Variante1</option></select><small className="hint">Wechsel ändert nichts automatisch – nur Validierungsfehler.</small></div>
+        <TextField 
+          leftLabel="Customer"
+          value={state.Customer}
+          onChange={(v: string) => { setCfg({ ...state, Customer: v }); }}
+        />     
+        <SelectField
+          label="LibraryVersion"
+          options={getLibraryVersion()}
+          value={state.ModularPlc.Version}
+          onChange={(v: string) => { setCfg({ ...state, ModularPlc: { ...state.ModularPlc, Version: v } }); }}
+        />    
+        <SelectField
+          label="HardwareVariant"
+          options={getHardwareVariants()}
+          value={state.ModularPlc.HardwareVariant}
+          onChange={(v: string) => { setCfg({ ...state, ModularPlc: { ...state.ModularPlc, HardwareVariant: v } }); }}
+        />
       </section>
 
       <EMSForm cfg={state} setCfg={setCfg} errorIndex={errorIndex} />
