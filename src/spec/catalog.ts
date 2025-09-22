@@ -13,7 +13,8 @@ export const enums = {
       Janitza: ['UMG 96 PA', 'UMG 96 RM', 'UMG 509 Pro'],
       Beckhoff: ['El34x3'],
       Virtual: ['Virtual']
-    }
+    },
+    smartmeterUseCaseTypes: ['Undefined', 'GridConnectionPointControl']
   },
   main: {
     smartmeterMainHardwareToTypes: {
@@ -40,7 +41,7 @@ export const components = {
       Guid: { type: 'uuid', required: true },
       Config: {
         group: {
-          Usecase: { enum: ['Undefined', 'GridConnectionPointControl'], required: true },
+          Usecase: { enumRef: ['ems','smartmeterUseCaseTypes'], required: true },
           Port: { type: 'integer-string', min: 1, max: 65535, required: true }
         }
       }

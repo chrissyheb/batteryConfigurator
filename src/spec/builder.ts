@@ -19,7 +19,14 @@ export const getMainSMTypes = (hw: string): string[] =>
 {
   return enums.main.smartmeterMainHardwareToTypes[hw] ?? [];
 };
-export const getInverterTypes = (): string[] =>
+
+
+export const getEmsSmartmeterUseCaseTypes = (): readonly string[] =>
+{
+  return enums.ems.smartmeterUseCaseTypes ?? [];
+};
+
+export const getInverterTypes = (): readonly string[] =>
 {
   return enums.batteryInverter.inverterTypes;
 };
