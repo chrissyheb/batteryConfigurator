@@ -102,17 +102,6 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; er
     <div className="card stack">
       <h2>Main</h2>
 
-      <div className="field">
-        <label>Type</label>
-        <select value={cfg.Units.Main.Type} onChange={(e) => {
-          setCfg({ ...cfg, Units: { ...cfg.Units, Main: { ...cfg.Units.Main, Type: e.target.value } } });
-        }}>
-          <option>Blokk</option>
-          <option>Terra</option>
-        </select>
-        <div className="inline-error">{errorAt(errorIndex, ['Units','Main','Type'])}</div>
-      </div>
-
       <div className="row">
         <button onClick={addSmartMain}>+ SmartmeterMain</button>
         <button onClick={addBatteryInv}>+ BatteryInverter</button>

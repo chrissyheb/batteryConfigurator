@@ -44,6 +44,12 @@ export const getEmsSmartmeterUseCaseTypes = (): readonly string[] =>
   return enums.ems.smartmeterUseCaseTypes ?? [];
 };
 
+
+export const getMainTypes = (): readonly string[] =>
+{
+  return enums.main.types;
+};
+
 export const getInverterTypes = (): readonly string[] =>
 {
   return enums.batteryInverter.inverterTypes;
@@ -142,7 +148,7 @@ const configZ = z.object({
       Equipment: z.array(z.union([smartmeterZ, slaveLocalZ, slaveRemoteZ])).min(1)
     }),
     Main: z.object({
-      Type: z.enum(['Terra', 'Blokk']),
+      Type: z.enum(enums.main.types),
       Equipment: z.array(z.union([smartmeterMainZ, batteryInverterZ])).min(1)
     })
   })
