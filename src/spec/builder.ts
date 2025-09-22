@@ -23,11 +23,23 @@ export const getInverterTypes = (): string[] =>
 {
   return enums.batteryInverter.inverterTypes;
 };
-export const getBatteryTypes = (): string[] =>
+export const getInverterHardwareTypes = (): readonly string[] =>
+{
+  return enums.inverterHardwareTypes;
+};
+
+
+export const getBatteryTypes = (): readonly string[] =>
 {
   return enums.batteryInverter.batteryTypes;
 };
-export const getModbusTypes = (): string[] =>
+export const getBatteryHardwareTypes = (): readonly string[] =>
+{
+  return enums.batteryHardwareTypes;
+};
+
+
+export const getModbusTypes = (): readonly string[] =>
 {
   return enums.batteryInverter.modbusTypes;
 };
