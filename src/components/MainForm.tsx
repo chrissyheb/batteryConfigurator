@@ -149,7 +149,7 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; er
             error={errorAt(errorIndex, ['Units','Ems','Equipment', smMainIndex, 'HardwareModel'])}
           />
           <TextField leftLabel="Name" value={smMain.Name} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Main.Equipment[smMainIndex].Name = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Main','Equipment', smMainIndex, 'Name'])} />
-          <TextField leftLabel="Displayname" value={smMain.Displayname ?? ''} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Main.Equipment[smMainIndex].Displayname = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Main','Equipment', smMainIndex, 'Displayname'])} />
+          <TextField leftLabel="DisplayName" value={smMain.DisplayName ?? ''} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Main.Equipment[smMainIndex].DisplayName = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Main','Equipment', smMainIndex, 'DisplayName'])} />
           <GuidField value={smMain.Guid} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Main.Equipment[smMainIndex].Guid = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Main','Equipment', smMainIndex, 'Guid'])} />
         </div>
       )}
