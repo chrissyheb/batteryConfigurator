@@ -149,6 +149,6 @@ export function applyCardinality(config: any, add: (i: Issue) => void): void
   }
   if (biCount < cardinality.main.batteryInverterMin)
   {
-    add({ message: 'Mindestens ein BatteryInverter erforderlich', path: ['Units','Main','Equipment'] });
+    add({ message: 'At least one BatteryInverter required', path: ['Units','Main','Equipment'] });
   }
 }

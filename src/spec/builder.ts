@@ -131,14 +131,14 @@ function groupSchema(g: any): z.ZodTypeAny
   return z.object(shape);
 }
 
-const smartmeterZ = groupSchema(components.Smartmeter.fields);
-const slaveLocalZ = groupSchema(components.SlaveLocalUM.fields);
-const slaveRemoteZ = groupSchema(components.SlaveRemoteUM.fields);
-const smartmeterMainZ = groupSchema(components.SmartmeterMain.fields);
-const batteryInverterZ = groupSchema(components.BatteryInverter.fields);
+const smartmeterZ = groupSchema(components.Smartmeter.fields,'Ems.Smartmeter');
+const slaveLocalZ = groupSchema(components.SlaveLocalUM.fields,'Ems.SlaveLocalUM');
+const slaveRemoteZ = groupSchema(components.SlaveRemoteUM.fields,'Ems.SlaveRemoteUM');
+const smartmeterMainZ = groupSchema(components.SmartmeterMain.fields,'Main.SmartmeterMain');
+const batteryInverterZ = groupSchema(components.BatteryInverter.fields,'Main.BatteryInverter');
 
 const configZ = z.object({
-  Customer: z.string().min(1, 'Customer erforderlich'),
+  Customer: z.string().min(1, 'Customer required'),
   ModularPlc: z.object({
     Version: z.string().min(1, 'Version required'),
     HardwareVariant: z.string().min(1, 'HardwareVariant required')
