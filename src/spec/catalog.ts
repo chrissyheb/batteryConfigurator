@@ -20,7 +20,8 @@ export const enums = {
     smartmeterHardwareToTypes: {
       Virtual: ['Virtual'],
       Beckhoff: ['El34x3']
-    }
+    },
+    types: ['Terra', 'Blokk']
   },
   batteryInverter: {
     inverterTypes: ['TerraInverter', 'InverterKaco'],
@@ -65,6 +66,7 @@ export const components = {
       Ip: { type: 'ipv4', required: true }
     }
   },
+  MainType: { enum: ['main', 'types'] },
   SmartmeterMain: {
     fields: {
       Type: { const: 'SmartmeterMain' },
