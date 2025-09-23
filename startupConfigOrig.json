@@ -1,0 +1,41 @@
+{
+  "Startup": {
+    "System": {
+      "SerialNumber": "TE0000000000",
+      "SmartmeterCount": 1,
+      "SmartmeterFirstIp": "192.168.100.5",
+      "InverterCount": 1,
+	  "InverterCabinetCount": 1,
+      "InverterFirstIpAddress": "192.168.137.40",
+      "BatteryCount": 1,
+      "BatteryFirstIpAddress": "192.168.137.40",
+      "IpAddressInternal": [ 192, 168, 137, 5 ],
+      "PowerSwitchMainAvailable": false,
+      "PowerChargeLimitLocal": "0kW",
+      "PowerDischargeLimitLocal": "0kW"
+    },
+    "GridConnectionPoint": {
+      "PowerGridConsumptionLimit": "0kW",
+      "PowerGridFeedInLimit": "0kW",
+      "PowerGridConsumptionOffset": "0kW"
+    },
+    "ExternalControl": {
+      "FallbackMode": 0
+    },
+    "MasterSlave": {
+      "SystemsInParallelCount": 1,
+      "IpAddressFirstSystem": "192.168.100.10",
+      "PowerActiveInstalledTotal": "0kW",
+      "CapacityInstalledTotal": "0kWh",
+      "PowerChargeLimitTotal": "0kW",
+      "PowerDischargeLimitTotal": "0kW"
+    },
+    "BatteryBalancing": {
+      "PreemptiveMode": 0,
+      "PreemptiveDaysToEnable": 60,
+      "PreemptiveMaxGridChargePower": "30kW",
+      "ForcedDaysToEnable": 90,
+      "ForcedMaxGridChargePowerPerInverter": "5kW"
+    }
+  }
+}
