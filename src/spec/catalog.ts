@@ -37,6 +37,24 @@ export const enums = {
 } as const;
 
 export const components = {
+  Global: {
+    fields: {
+      Customer: { type: 'string', required: true },
+      ModularPlc: {
+        group: {
+          Version: { enumRef: ['global', 'libVersion'], required: true },
+          HardwareVariant: { enumRef: ['global', 'hardwareVariant'], required: true }
+        }
+      }
+    },
+    defaults:{
+      Customer: '',
+      ModularPlc: { 
+        Version:'0.0.3',
+        HardwareVariant:'BlokkV3' 
+      }
+    }
+  },
   Smartmeter: {
     fields: {
       Type: { const: 'Smartmeter' },
