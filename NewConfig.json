@@ -1,0 +1,173 @@
+{
+    "Global": {
+        "Customer": "Customer XYZ",
+        "ModularPlc": {
+            "Version": "0.0.3",
+            "HardwareVariant": "Terra"
+        }
+    },
+    "System": {
+        "SerialNumber": "TE0000000000",
+        "BatteryBalancing": {
+            "PreemptiveMode": [ 0, "BlokkBatteryBalancingMode.None"],
+            "PreemptiveDaysToEnable": 60,
+            "PreemptiveMaxGridChargePower": "30kW",
+            "ForcedDaysToEnable": 90,
+            "ForcedMaxGridChargePowerPerInverter": "5kW"
+        },
+        "ExternalControl": {
+            "FallbackMode": [ 0, "ExternalControlOperationMode.Standard"]
+        }
+    },
+    "Units": {
+        "Ems": {
+            "Equipment": {
+                "Smartmeter": [
+                    {
+                        "Name": "Smartmeter 1",
+                        "DisplayName": "Smartmeter 1",
+                        "Type": "Smartmeter",
+                        "HardwareType": "Phoenix",
+                        "HardwareModel": "EM375",
+                        "Guid": "3b00e6d4-78f4-4b6b-af34-0f48720606c7",
+                        "Config": {
+                            "Usecase": "GridConnectionPointControl",
+                            "IpAddress": "192.168.100.5",
+                            "Port": 502
+                        }
+                    }
+                ],
+                "LocalRemoteSystems": [
+                    {
+                        "Name": "SlaveLocalUM 1",
+                        "DisplayName": "SlaveLocalUM 1",
+                        "Type": "SlaveLocalUM",
+                        "Guid": "14fe9bc5-9fe2-469a-bc68-617f0d33c9a9",
+                        "Config": {
+                            "IpAddress": "192.168.100.11"
+                        }
+                    },
+                    {
+                        "Name": "SlaveRemoteUM 1",
+                        "DisplayName": "SlaveRemoteUM 1",
+                        "Type": "SlaveRemoteUM",
+                        "Guid": "700d828e-1a30-4bae-a400-d144868c0c9a",
+                        "Config": {
+                            "IpAddress": "192.168.100.10"
+                        }
+                    }
+                ]
+            },
+            "Config": {
+                "GridConnectionPoint": {
+                    "PowerGridConsumptionLimit": "0kW",
+                    "PowerGridFeedInLimit": "0kW",
+                    "PowerGridConsumptionOffset": "0kW"
+                },
+                "MasterSlave": {
+                    "PowerActiveInstalledTotal": "0kW",
+                    "CapacityInstalledTotal": "0kWh",
+                    "PowerChargeLimitTotal": "0kW",
+                    "PowerDischargeLimitTotal": "0kW"
+                }
+            }
+        },
+        "Main": {
+            "Equipment": {
+                "Smartmeter": [
+                    {
+                        "Name": "SmartmeterMain 1",
+                        "DisplayName": "SmartmeterMain 1",
+                        "Type": "SmartmeterMain",
+                        "HardwareType": "Virtual",
+                        "HardwareModel": "Virtual",
+                        "Guid": "93f5c406-a7c2-4d9c-988e-db92ee574683"
+                    }
+                ],
+                "BatteryInverter": [
+                    {
+                        "Name": "BatteryInverter 1",
+                        "Type": "BatteryInverter",
+                        "Index": 0,
+                        "Inverter": {
+                            "Name": "Inverter 1",
+                            "Type": "TerraInverter",
+                            "Guid": "fc9884ad-7cee-4369-9372-9b4f24582f69",
+                            "Config": {
+                                "InverterType": "SofarTerra",
+                                "NominalInverterPower": "125000W",
+                                "IpAddress": "192.168.137.40",
+                                "Port": 502
+                            }
+                        },
+                        "Battery": {
+                            "Name": "Battery 1",
+                            "Type": "TerraBattery",
+                            "Guid": "b3a2ddc4-b1b9-4688-be12-7fc97228d09d",
+                            "Config": {
+                                "BatteryType": "SofarTerra",
+                                "BatteryCabinetCount": 1,
+                                "BatteryCabinetModuleCount": 6,
+                                "IpAddress": "192.168.137.40",
+                                "Port": 502
+                            }
+                        },
+                        "Modbus": {
+                            "Name": "asdfsad",
+                            "Type": "TerraModbus",
+                            "Guid": "c8e251f5-fb52-4d66-8e76-626349bb3b90",
+                            "Config": {
+                                "IpAddress": "192.168.137.40",
+                                "Port": 502
+                            }
+                        }
+                    },
+                    {
+                        "Name": "BatteryInverter 2",
+                        "Type": "BatteryInverter",
+                        "Index": 1,
+                        "Inverter": {
+                            "Name": "Inverter 2",
+                            "Type": "TerraInverter",
+                            "Guid": "450783a0-c7ef-461c-96c7-a05d5bfdbf8b",
+                            "Config": {
+                                "InverterType": "SofarTerra",
+                                "NominalInverterPower": "125000W",
+                                "IpAddress": "192.168.137.50",
+                                "Port": 502
+                            }
+                        },
+                        "Battery": {
+                            "Name": "Battery 2",
+                            "Type": "TerraBattery",
+                            "Guid": "4caed703-dd24-46ae-9266-375f0fdf1cc0",
+                            "Config": {
+                                "BatteryType": "SofarTerra",
+                                "BatteryCabinetCount": 1,
+                                "BatteryCabinetModuleCount": 6,
+                                "IpAddress": "192.168.137.50",
+                                "Port": 502
+                            }
+                        },
+                        "Modbus": {
+                            "Name": "Modbus",
+                            "Type": "TerraModbus",
+                            "Guid": "f61fae79-6883-4e25-a73a-489faf609c27",
+                            "Config": {
+                                "IpAddress": "192.168.137.50",
+                                "Port": 502
+                            }
+                        }
+                    }
+                ]
+            },
+            "Type": "Terra",
+            "Config": {
+                "IpAddressInternal": "192.168.137.5",
+                "PowerSwitchMainAvailable": false,
+                "PowerChargeLimitLocal": "0kW",
+                "PowerDischargeLimitLocal": "0kW"
+            }
+        }
+    }
+}
