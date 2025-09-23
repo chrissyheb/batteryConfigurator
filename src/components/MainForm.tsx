@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { SelectField, TextField, GuidField } from './Fields';
-import { createByKey, nextIndexForType, getInverterTypes, getBatteryTypes, getModbusTypes, getMainSmartmeterHardwares, getMainSmartmeterModels, getInverterHardwareTypes, getBatteryHardwareTypes } from '@/spec/builder';
+import { componentType, createByKey, nextIndexForType, getInverterTypes, getBatteryTypes, getModbusTypes, getMainSmartmeterHardwares, getMainSmartmeterModels, getInverterHardwareTypes, getBatteryHardwareTypes } from '@/spec/builder';
 import { errorAt } from '@/utils/errors';
 
 function BatteryInverterCard(props: { cfg: any; biIndex: number; setCfg: (c: any) => void; errorIndex: any })
@@ -115,29 +115,20 @@ function BatteryInverterCard(props: { cfg: any; biIndex: number; setCfg: (c: any
 export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; errorIndex: any })
 {
   const { cfg, setCfg, errorIndex } = props;
+  const list = cfg.Units.Main.Equipment;
 
-  const addSmartMain = (): void =>
-  {
-    const alreadyConfigured = cfg.Units.Main.Equipment.some((e: any) => { return e.Type === 'SmartmeterMain'; });
-    if (alreadyConfigured) 
+  function addElement(type: componentType)
     {
-      return;
-    }
-    const sm = createByKey('SmartmeterMain',{n:1});
-    const c = structuredClone(cfg);
-    c.Units.Main.Equipment.unshift(sm);
-    setCfg(c);
-  };
-
-  const addBatteryInv = (): void =>
-  {
-    const list = cfg.Units.Main.Equipment;
-    const n = nextIndexForType(list,'BatteryInverter');
-    const bi = createByKey('BatteryInverter',{n});
-    const c = structuredClone(cfg);
-    c.Units.Main.Equipment.push(bi);
-    setCfg(c);
-  };
+      return() => {
+        if (type === 'SmartmeterMain' && cfg.Units.Main.Equipment.some((e: any) => { return e.Type === 'SmartmeterMain'; })) { 
+          // SmartmeterMain already configured -> exit
+          return; 
+        }
+        const n = nextIndexForType(list, type);
+        const item = createByKey(type,{n});
+        setCfg({ ...cfg, Units: { ...cfg.Units, Main: { Equipment: [...list, item] } } });
+      }
+    };
 
   const smMainIndex = cfg.Units.Main.Equipment.findIndex((e: any) => { return e.Type === 'SmartmeterMain'; });
   const smMain = smMainIndex >= 0 ? cfg.Units.Main.Equipment[smMainIndex] : null;
@@ -147,8 +138,8 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; er
       <h2>Main</h2>
 
       <div className="row">
-        <button onClick={addSmartMain}>+ SmartmeterMain</button>
-        <button onClick={addBatteryInv}>+ BatteryInverter</button>
+        <button onClick={addElement('SmartmeterMain')}>+ SmartmeterMain</button>
+        <button onClick={addElement('BatteryInverter')}>+ BatteryInverter</button>
       </div>
 
       {smMain && (

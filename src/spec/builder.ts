@@ -1,6 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import { z, ZodIssue } from 'zod';
-import { ui, enums, components } from './catalog';
+import { ui, enums, components, emsComponentTypes, mainComponentTypes } from './catalog';
 import { applyCrossRules, applyCardinality } from './rules';
 
 export type EmsHardwareKey = keyof typeof enums.ems.smartmeterHardwareToTypes;
@@ -13,6 +13,17 @@ export const getLibraryVersion = (): readonly string[] =>
 export const getHardwareVariants = (): readonly string[] =>
 {
   return enums.global.hardwareVariant;
+};
+
+export type componentType = keyof typeof components;
+export const getEmsComponents = (): readonly string[] => 
+{ 
+  return emsComponentTypes;
+};
+
+export const getMainComponents = (): readonly string[] => 
+{ 
+  return mainComponentTypes;
 };
 
 export const getEmsSmartmeterHardwares = (): EmsHardwareKey[] =>
@@ -96,7 +107,7 @@ type CreateCtx = { n: number };
 
 function isPlainObject(v: unknown): v is Record<string, unknown> { return typeof v==='object' && v!==null && !Array.isArray(v); }
 
-function resolveScalars(key: string, value: unknown, draft: Record<string, unknown>, ctx: CreateCtx, componentKey: keyof typeof components): unknown
+function resolveScalars(key: string, value: unknown, draft: Record<string, unknown>, ctx: CreateCtx, componentKey: componentType): unknown
 {
   if (typeof value === 'string')
   {
@@ -117,7 +128,7 @@ function resolveScalars(key: string, value: unknown, draft: Record<string, unkno
   return value;
 }
 
-function deepResolveDefaults(defs: Record<string, unknown>, ctx: CreateCtx, componentKey: keyof typeof components): any
+function deepResolveDefaults(defs: Record<string, unknown>, ctx: CreateCtx, componentKey: componentType): any
 {
   const out: Record<string, unknown> = {};
   for (const k of Object.keys(defs))
@@ -129,7 +140,7 @@ function deepResolveDefaults(defs: Record<string, unknown>, ctx: CreateCtx, comp
   return out;
 }
 
-export function createByKey(componentKey: keyof typeof components, ctx: CreateCtx): any
+export function createByKey(componentKey: componentType, ctx: CreateCtx): any
 {
   const spec = components[componentKey] as any;
   if (!spec?.defaults) { throw new Error(`No defaults for component ${String(componentKey)}`); }
