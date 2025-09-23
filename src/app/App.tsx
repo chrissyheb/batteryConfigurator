@@ -3,6 +3,7 @@ import React from 'react';
 import { useStore } from './store';
 import { SelectField, TextField } from '@/components/Fields';
 import { getLibraryVersion, getHardwareVariants } from '@/spec/builder';
+import SystemForm from '@/components/SystemForm';
 import EMSForm from '@/components/EMSForm';
 import MainForm from '@/components/MainForm';
 import { exportJSON, importJSON } from '@/utils/io';
@@ -70,7 +71,7 @@ export default function App()
           onChange={(v: string) => { setCfg({ ...state, Global: { ...state.Global, ModularPlc: { ...state.Global.ModularPlc, HardwareVariant: v } } }); }}
         />
       </section>
-
+      <SystemForm cfg={state} setCfg={setCfg} errorIndex={errorIndex} />
       <EMSForm cfg={state} setCfg={setCfg} errorIndex={errorIndex} />
       <MainForm cfg={state} setCfg={setCfg} errorIndex={errorIndex} />
     </div>

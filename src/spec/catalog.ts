@@ -5,10 +5,16 @@ export type IPv4 = string;
 
 export const ui = { typeFirst: true } as const;
 
+export type IndexStringType = [number, string];
+
 export const enums = {
   global: {
     libVersion: ['0.0.3', '0.0.2', '0.0.1'],
     hardwareVariant: ['Terra', 'BlokkV3']
+  },
+  system: {
+    batteryBalancingModes: [[0, 'None'], [1, 'TotalDisabledConsumptionOptimizationDischarging'], [2, 'TotalChargeFromGrid'], [10, 'RoundRobinCrossCharge'], [11, 'RoundRobinChargeFromGrid']] as IndexStringType[],
+    externalControlOperationModes: [[0, 'Standard'], [1, 'OffsetOnStandard'], [2, 'InverterSetpoint'], [3, 'GridSetpoint'], [4, 'GridSetpointReplaceConsumptionOptimization'], [5, 'InverterSetpointReplaceConsumptionOptimization'], [6, 'GRIIDReplaceConsumptionOptimization'], [7, 'FrequencyContainmentReserve'], [99, 'StandBy'], [100, 'Maintenance']] as IndexStringType[]
   },
   ems: {
     smartmeterHardwareToTypes: {
@@ -56,6 +62,38 @@ export const components = {
       ModularPlc: { 
         Version:'0.0.3',
         HardwareVariant:'BlokkV3' 
+      }
+    }
+  },
+  System: {
+    fields: {
+      SerialNumber: { type: 'string', required: true },
+      BatteryBalancing: {
+        group: {
+          PreemptiveMode: { enumRef: ['system', 'batteryBalancingModes'], required: true },
+          PreemptiveDaysToEnable: { type: 'number', required: true },
+          PreemptiveMaxGridChargePower: { type: 'string', unit: 'kW', required: true },
+          ForcedDaysToEnable: { type: 'number', required: true },
+          ForcedMaxGridChargePowerPerInverter: { type: 'string', unit: 'kW', required: true },
+        }
+      },
+      ExternalControl: {
+        group: {
+          FallbackMode:  { enumRef: ['system', 'externalControlOperationModes'], required: true }
+        }
+      }
+    },
+    defaults: {
+      SerialNumber: 'TE0000000000',
+      BatteryBalancing: {
+        PreemptiveMode: [ 0, "BlokkBatteryBalancingMode.None"],
+        PreemptiveDaysToEnable: 60,
+        PreemptiveMaxGridChargePower: "30kW",
+        ForcedDaysToEnable: 90,
+        ForcedMaxGridChargePowerPerInverter: "5kW"
+      },
+      ExternalControl: {
+        FallbackMode: [ 0, "ExternalControlOperationMode.Standard"]
       }
     }
   },

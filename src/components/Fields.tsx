@@ -14,6 +14,19 @@ export function TextField(props: any)
   );
 }
 
+export function NumberField(props: any)
+{
+  const { label, value, onChange, error, leftLabel, rightLabel, minValue, maxValue, step } = props;
+  return (
+    <div className="field">
+      <label>{leftLabel ?? 'Type'}</label>
+      <input type="number" min={minValue} max={maxValue} step={step} value={value} onChange={(e) => onChange(e.target.value)} />
+      <label>{rightLabel ?? ''}</label>
+      {error ? <div className="inline-error">{error}</div> : <span />}
+    </div>
+  );
+}
+
 export function SelectField(props: any)
 {
   const { label, options, value, onChange, error, leftIsType = false, disabled = false } = props;
