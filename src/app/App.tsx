@@ -54,20 +54,20 @@ export default function App()
         <h2>Global</h2>
         <TextField 
           leftLabel="Customer"
-          value={state.Customer}
-          onChange={(v: string) => { setCfg({ ...state, Customer: v }); }}
+          value={state.Global.Customer}
+          onChange={(v: string) => { setCfg({ ...state, Global: { ...state.Global, Customer: v } }); }}
         />     
         <SelectField
           label="LibraryVersion"
           options={getLibraryVersion()}
-          value={state.ModularPlc.Version}
-          onChange={(v: string) => { setCfg({ ...state, ModularPlc: { ...state.ModularPlc, Version: v } }); }}
+          value={state.Global.ModularPlc.Version}
+          onChange={(v: string) => { setCfg({ ...state, Global: { ...state.Global, ModularPlc: { ...state.Global.ModularPlc, Version: v } } }); }}
         />    
         <SelectField
           label="HardwareVariant"
           options={getHardwareVariants()}
-          value={state.ModularPlc.HardwareVariant}
-          onChange={(v: string) => { setCfg({ ...state, ModularPlc: { ...state.ModularPlc, HardwareVariant: v } }); }}
+          value={state.Global.ModularPlc.HardwareVariant}
+          onChange={(v: string) => { setCfg({ ...state, Global: { ...state.Global, ModularPlc: { ...state.Global.ModularPlc, HardwareVariant: v } } }); }}
         />
       </section>
 

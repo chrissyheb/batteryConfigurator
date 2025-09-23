@@ -237,10 +237,12 @@ const smartmeterMainZ = groupSchema(components.SmartmeterMain.fields,'Main.Smart
 const batteryInverterZ = groupSchema(components.BatteryInverter.fields,'Main.BatteryInverter');
 
 const configZ = z.object({
-  Customer: z.string().min(1, 'Customer required'),
-  ModularPlc: z.object({
-    Version: z.string().min(1, 'Version required'),
-    HardwareVariant: z.string().min(1, 'HardwareVariant required')
+  Global: z.object({
+    Customer: z.string().min(1, 'Customer required'),
+    ModularPlc: z.object({
+      Version: z.string().min(1, 'Version required'),
+      HardwareVariant: z.string().min(1, 'HardwareVariant required')
+    })
   }),
   Units: z.object({
     Ems: z.object({
@@ -269,7 +271,16 @@ export function validate(cfg: any): { issues: ZodIssue[] }
 
 export function getInitialConfig(): any
 {
-  const emsEq:any[] = []; emsEq.push(createByKey('Smartmeter',{n:1})); emsEq.push(createByKey('SlaveLocalUM',{n:1}));
-  const mainEq:any[] = []; mainEq.push(createByKey('SmartmeterMain',{n:1})); mainEq.push(createByKey('BatteryInverter',{n:1}));
-  return { Customer:'Company XYZ', ModularPlc:{ Version:'1.0.0', Hardwarevariante:'Variante1' }, Units:{ Ems:{ Equipment: emsEq }, Main:{ Type:'Blokk', Equipment: mainEq } } };
+  const globalEq:any = createByKey('Global',{n:1});
+  const emsEq:any[] = []; 
+    emsEq.push(createByKey('Smartmeter',{n:1})); 
+    emsEq.push(createByKey('SlaveLocalUM',{n:1}));
+  const mainEq:any[] = []; 
+    mainEq.push(createByKey('SmartmeterMain',{n:1}));
+    mainEq.push(createByKey('BatteryInverter',{n:1}));
+  return { 
+    Global: globalEq, 
+    Units: { Ems:{ Equipment: emsEq }, 
+    Main: { Type:'Terra', Equipment: mainEq } } 
+  };
 }

@@ -49,7 +49,7 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
   });
 
   // Main/HV Terra/Blokk cross rules
-  const hv = config?.ModularPlc?.HardwareVariant;
+  const hv = config?.Global?.ModularPlc?.HardwareVariant;
   const main = config?.Units?.Main;
   if (!main) { return; }
   const eq = main.Equipment || [];
