@@ -1,8 +1,7 @@
 
 import React from 'react';
 import { SelectField, TextField, GuidField } from './Fields';
-import { v4 as uuid } from 'uuid';
-import { createByKey, nextIndexForType, getEmsSmartmeterHardwares, getEmsSmartmeterModels, getEmsSmartmeterUseCaseTypes } from '@/spec/builder';
+import { componentType, createByKey, nextIndexForType, getEmsSmartmeterHardwares, getEmsSmartmeterModels, getEmsSmartmeterUseCaseTypes } from '@/spec/builder';
 import { errorAt } from '@/utils/errors';
 
 export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; errorIndex: any })
@@ -10,25 +9,13 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; err
   const { cfg, setCfg, errorIndex } = props;
   const list = cfg.Units.Ems.Equipment;
 
-  const addSmart = (): void =>
+  function addElement(type: componentType)
   {
-    const n = nextIndexForType(list,'Smartmeter');
-    const item = createByKey('Smartmeter',{n});
-    setCfg({ ...cfg, Units: { ...cfg.Units, Ems: { Equipment: [...list, item] } } });
-  };
-
-  const addLocal = (): void =>
-  {
-    const n = nextIndexForType(list,'SlaveLocalUM');
-    const item = createByKey('SlaveLocalUM',{n});
-    setCfg({ ...cfg, Units: { ...cfg.Units, Ems: { Equipment: [...list, item] } } });
-  };
-
-  const addRemote = (): void =>
-  {
-    const n = nextIndexForType(list,'SlaveRemoteUM');
-    const item = createByKey('SlaveRemoteUM',{n});
-    setCfg({ ...cfg, Units: { ...cfg.Units, Ems: { Equipment: [...list, item] } } });
+    return() => {
+      const n = nextIndexForType(list, type);
+      const item = createByKey(type,{n});
+      setCfg({ ...cfg, Units: { ...cfg.Units, Ems: { Equipment: [...list, item] } } });
+    }
   };
 
   const removeAt = (i: number): void =>
@@ -41,9 +28,9 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; err
     <div className="card stack">
       <h2>EMS</h2>
       <div className="row">
-        <button onClick={addSmart}>+ Smartmeter</button>
-        <button onClick={addLocal}>+ SlaveLocalUM</button>
-        <button onClick={addRemote}>+ SlaveRemoteUM</button>
+        <button onClick={addElement('Smartmeter')}>+ Smartmeter</button>
+        <button onClick={addElement('SlaveLocalUM')}>+ SlaveLocalUM</button>
+        <button onClick={addElement('SlaveRemoteUM')}>+ SlaveRemoteUM</button>
       </div>
 
       {list.map((e: any, i: number) =>

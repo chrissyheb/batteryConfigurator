@@ -36,6 +36,10 @@ export const enums = {
   batteryHardwareTypes: ['SofarTerra', 'PylontechM1C']
 } as const;
 
+export const emsComponentTypes = ['Smartmeter', 'SlaveLocalUM', 'SlaveRemoteUM'] as const;
+
+export const mainComponentTypes = ['SmartmeterMain', 'BatteryInverter'] as const;
+
 export const components = {
   Global: {
     fields: {
