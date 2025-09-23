@@ -6,6 +6,8 @@ import { getLibraryVersion, getHardwareVariants } from '@/spec/builder';
 import EMSForm from '@/components/EMSForm';
 import MainForm from '@/components/MainForm';
 import { exportJSON, importJSON } from '@/utils/io';
+import { clearLocal } from '@/utils/storage';
+import { getInitialConfig } from '@/spec/builder';
 
 export default function App()
 {
@@ -21,11 +23,19 @@ export default function App()
     dispatch({ type: 'SET', payload: cfg });
   };
 
+  const onReset = (): void =>
+  {
+    clearLocal();
+    const fresh = getInitialConfig();
+    dispatch({ type: 'SET', payload: fresh });
+  };
+
   return (
     <div className="container">
       <header className="row" style={{ justifyContent: 'space-between' }}>
         <h1>Battery Configurator</h1>
         <div className="row">
+          <button className="ghost" onClick={onReset}>Reset</button>
           <button onClick={onExport}>Export</button>
           <label className="btn">Import
             <input hidden type="file" accept="application/json" onChange={(e) => { const f = e.target.files?.[0]; if (f) { onImport(f); } }} />

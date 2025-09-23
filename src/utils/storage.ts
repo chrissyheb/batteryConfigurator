@@ -18,3 +18,8 @@ export function loadLocal(): any | null
     return null;
   }
 }
+
+export function clearLocal(): void
+{
+  localStorage.removeItem(KEY);
+}
