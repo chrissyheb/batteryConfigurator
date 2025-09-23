@@ -131,7 +131,8 @@ export const components = {
       Name: 'SmartmeterMain ${n}',
       DisplayName: 'SmartmeterMain ${n}',
       Type: 'SmartmeterMain',
-      Hardware: 'Virtual',
+      HardwareType: 'Virtual',
+      HardwareModel: 'Virtual',
       Guid: '@uuid'
     }
   },
