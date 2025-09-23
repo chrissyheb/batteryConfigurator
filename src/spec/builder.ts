@@ -1,6 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import { z, ZodIssue } from 'zod';
-import { ui, enums, components, emsComponentTypes, mainComponentTypes } from './catalog';
+import { IndexStringType, ui, enums, components, emsComponentTypes, mainComponentTypes } from './catalog';
 import { applyCrossRules, applyCardinality } from './rules';
 
 export type EmsHardwareKey = keyof typeof enums.ems.smartmeterHardwareToTypes;
@@ -20,6 +20,15 @@ export const getEmsComponents = (): readonly string[] =>
 { 
   return emsComponentTypes;
 };
+
+export const getBatteryBalancingModes = (): IndexStringType[] =>
+{
+  return enums.system.batteryBalancingModes;
+}
+export const getExternalControlOperationModes = (): IndexStringType[] =>
+{
+  return enums.system.externalControlOperationModes;
+}
 
 export const getMainComponents = (): readonly string[] => 
 { 
@@ -283,14 +292,23 @@ export function validate(cfg: any): { issues: ZodIssue[] }
 export function getInitialConfig(): any
 {
   const globalEq:any = createByKey('Global',{n:1});
+  const systemEq:any = createByKey('System',{n:1});
   const emsEq:any[] = []; 
     emsEq.push(createByKey('Smartmeter',{n:1})); 
     emsEq.push(createByKey('SlaveLocalUM',{n:1}));
   const mainEq:any[] = []; 
     mainEq.push(createByKey('SmartmeterMain',{n:1}));
     mainEq.push(createByKey('BatteryInverter',{n:1}));
+  const all = {
+    Global: globalEq, 
+    System: systemEq,
+    Units: { Ems:{ Equipment: emsEq }, 
+    Main: { Type:'Terra', Equipment: mainEq } } 
+  };
+  console.log(all);
   return { 
     Global: globalEq, 
+    System: systemEq,
     Units: { Ems:{ Equipment: emsEq }, 
     Main: { Type:'Terra', Equipment: mainEq } } 
   };
