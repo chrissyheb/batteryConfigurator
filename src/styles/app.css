@@ -14,7 +14,7 @@ body {
   background: var(--bg);
   color: var(--txt);
 }
-.container { max-width: 1160px; margin: 0 auto; padding: 24px; }
+.container { max-width: 1000px; margin: 0 auto; padding: 24px; }
 header h1 { font-size: 24px; margin: 0; }
 .row { display: flex; gap: 12px; align-items: center; }
 .stack { display: grid; gap: 12px; }
@@ -27,13 +27,14 @@ button, .btn {
   cursor: pointer;
 }
 button:hover, .btn:hover { filter: brightness(1.15); }
-h2 { font-size: 18px; color: var(--muted); margin: 16px 0 8px; }
+h2 { font-size: 18px; color: var(--muted); margin: 5px 0 10px; }
+h3 { font-size: 18px; color: var(--muted); margin: 0px 0 10px; }
 .card { background: var(--panel); border: 1px solid #1f2946; border-radius: 16px; padding: 16px; }
 .error-panel { background: #2a1b22; border: 1px solid #7a2e41; color: #ffdfe7; padding: 12px; border-radius: 12px; margin: 16px 0; }
 .field {
   display: grid;
-  grid-template-columns: 180px minmax(0, 1fr) 200px;
-  gap: 8px;
+  grid-template-columns: 280px minmax(0, 1fr) 200px;
+  gap: 0 8px;
   align-items: center;
   margin-bottom: 10px;
 }
@@ -58,3 +59,16 @@ h2 { font-size: 18px; color: var(--muted); margin: 16px 0 8px; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .ghost { background: transparent; border: 1px dashed #3b4a86; }
 small.hint { color: #9fb0ff; }
+
+/* Chrome, Edge (Chromium), Safari, Opera */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0; /* optional */
+}
+
+/* Firefox */
+input[type="number"] {
+  -moz-appearance: textfield; /* älter */
+  appearance: textfield;      /* moderner Standard */
+}
