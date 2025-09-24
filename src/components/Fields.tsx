@@ -55,3 +55,15 @@ export function GuidField(props: any)
     </div>
   );
 }
+
+export function CheckField(props: any)
+{
+  const { label, value, onChange, error } = props;
+  return (
+    <div className="field">
+      <label>{label ?? '???'}</label>
+      <input type="checkbox" value={value} onChange={(e) => onChange(Boolean(e.target.value))} />
+      {error ? <div className="inline-error">{error}</div> : <span />}
+    </div>
+  );
+}
