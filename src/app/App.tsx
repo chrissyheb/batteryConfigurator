@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useStore } from './store';
+import { useStore, useConfigAccessors } from './store';
 import { SelectField, TextField } from '@/components/Fields';
 import { getLibraryVersion, getHardwareVariants } from '@/spec/builder';
 import SystemForm from '@/components/SystemForm';
@@ -9,11 +9,13 @@ import MainForm from '@/components/MainForm';
 import { exportJSON, importJSON } from '@/utils/io';
 import { clearLocal } from '@/utils/storage';
 import { getInitialConfig } from '@/spec/builder';
-import { formatPath } from '@/utils/errors';
+import { formatPath, errorAt } from '@/utils/errors';
 
 export default function App()
 {
   const { state, dispatch, errorIndex, issues, isValid, flatIssues } = useStore();
+
+  const {get, getOr, setIn, set, has, patch, del } = useConfigAccessors(state, dispatch);
 
   const setCfg = (cfg: any): void => { dispatch({ type: 'SET', payload: cfg }); };
 
@@ -21,15 +23,18 @@ export default function App()
 
   const onImport = async (file: File): Promise<void> =>
   {
+    clearLocal();
     const cfg = await importJSON(file);
-    dispatch({ type: 'SET', payload: cfg });
+    set(cfg);
+    //dispatch({ type: 'SET', payload: cfg });
   };
 
   const onReset = (): void =>
   {
     clearLocal();
     const fresh = getInitialConfig();
-    dispatch({ type: 'SET', payload: fresh });
+    set(fresh);
+    //dispatch({ type: 'SET', payload: fresh });
   };
 
   return (
@@ -56,25 +61,28 @@ export default function App()
         <h2>Global</h2>
         <TextField 
           leftLabel="Customer"
-          value={state.Global.Customer}
-          onChange={(v: string) => { setCfg({ ...state, Global: { ...state.Global, Customer: v } }); }}
+          value={getOr(['Global', 'Customer'],'')}
+          onChange={(v: string) => { setIn(['Global', 'Customer'], v );}}
+          error={errorAt(errorIndex, ['Global', 'Customer'])}
         />     
         <SelectField
-          label="LibraryVersion"
+          label="Library Version"
           options={getLibraryVersion()}
-          value={state.Global.ModularPlc.Version}
-          onChange={(v: string) => { setCfg({ ...state, Global: { ...state.Global, ModularPlc: { ...state.Global.ModularPlc, Version: v } } }); }}
+          value={get(['Global', 'ModularPlc', 'Version'])}
+          onChange={(v: string) => { setIn(['Global', 'ModularPlc', 'Version'], v );}}
+          error={errorAt(errorIndex, ['Global', 'ModularPlc', 'Version'])}
         />    
         <SelectField
-          label="HardwareVariant"
+          label="Hardware Variant"
           options={getHardwareVariants()}
-          value={state.Global.ModularPlc.HardwareVariant}
-          onChange={(v: string) => { setCfg({ ...state, Global: { ...state.Global, ModularPlc: { ...state.Global.ModularPlc, HardwareVariant: v } } }); }}
+          value={get(['Global', 'ModularPlc', 'HardwareVariant'])}
+          onChange={(v: string) => { setIn(['Global', 'ModularPlc', 'HardwareVariant'], v );}}
+          error={errorAt(errorIndex, ['Global', 'ModularPlc', 'HardwareVariant'])}
         />
       </section>
-      <SystemForm cfg={state} setCfg={setCfg} errorIndex={errorIndex} />
-      <EMSForm cfg={state} setCfg={setCfg} errorIndex={errorIndex} />
-      <MainForm cfg={state} setCfg={setCfg} errorIndex={errorIndex} />
+      <SystemForm cfg={state} setCfg={set} setInCfg={setIn} getCfg={get} getOrCfg={getOr} errorIndex={errorIndex} />
+      <EMSForm cfg={state} setCfg={set} setInCfg={setIn} getCfg={get} getOrCfg={getOr} delFromCfg={del} errorIndex={errorIndex} />
+      <MainForm cfg={state} setCfg={set} errorIndex={errorIndex} />
     </div>
   );
 }

@@ -1,12 +1,14 @@
 
 import React from 'react';
-import { SelectField, TextField, GuidField } from './Fields';
+import { SelectField, TextField, GuidField, NumberField, CheckField } from './Fields';
 import { emsEquipmentLists, emsEquipmentKeys, componentType, createByKey, nextIndexForType, getEmsSmartmeterHardwares, getEmsSmartmeterModels, getEmsSmartmeterUseCaseTypes } from '@/spec/builder';
 import { errorAt } from '@/utils/errors';
+import { components } from '@/spec/catalog';
+import { stripUnit, addUnit } from '@/utils/helper';
 
-export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; errorIndex: any })
+export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; delFromCfg:(p: any) => void; errorIndex: any })
 {
-  const { cfg, setCfg, errorIndex } = props;
+  const { cfg, setCfg, setInCfg, getCfg, getOrCfg, delFromCfg, errorIndex } = props;
   //const list = cfg.Units.Ems.Equipment;
   const lists: Partial<emsEquipmentLists> = cfg.Units.Ems.Equipment ?? {};
   const listsSingle: emsEquipmentLists =
@@ -15,9 +17,6 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; err
     SlaveLocalUM: lists.SlaveLocalUM ?? [],
     SlaveRemoteUM: lists.SlaveRemoteUM ?? []
   };
-//  const smList = list.Smartmeter ?? list.emsEqSmartmeter ?? [];
-//  const localList = list.SlaveLocalUM ?? list.emsEqSlaveLocalUM ?? [];
-//  const remoteList = list.SlaveRemoteUM ?? list.emsEqSlaveRemoteUM ?? [];
 
 
   function addElement(type: emsEquipmentKeys)
@@ -54,25 +53,23 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; err
         return (
           <div key={i} className="card">
             <div className="row" style={{ justifyContent: 'space-between' }}>
-              <span className="badge">{e.Type}</span>
-              <button className="ghost" onClick={() => removeAt('Smartmeter',i)}>Entfernen</button>
+              <h3>{e.Type + ' (' + e.Name + ')'}</h3>
+              <button className="ghost" onClick={() => delFromCfg(['Units','Ems','Equipment',"Smartmeter",i])}>Entfernen</button>
             </div>
             <SelectField leftIsType options={['Smartmeter']} value={e.Type} onChange={() => {}} />
-            <TextField leftLabel="Name" value={e.Name} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment[i].Name = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment', i, 'Name'])} />
-            <TextField leftLabel="DisplayName" value={e.DisplayName ?? ''} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment[i].DisplayName = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment', i, 'DisplayName'])} />
+            <TextField leftLabel="Name" value={e.Name} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment.Smartmeter[i].Name = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment', i, 'Name'])} />
+            <TextField leftLabel="DisplayName" value={e.DisplayName ?? ''} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment.Smartmeter[i].DisplayName = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment', i, 'DisplayName'])} />
             <SelectField
               label="HardwareType"
               options={getEmsSmartmeterHardwares()}
               value={e.HardwareType}
               onChange={(v: string) =>
               {
-                const c = structuredClone(cfg);
                 const models = getEmsSmartmeterModels(v);
-                c.Units.Ems.Equipment[i].HardwareType = v;
-                c.Units.Ems.Equipment[i].HardwareModel = models[0] ?? '';
-                setCfg(c);
+                setInCfg(['Units','Ems','Equipment',"Smartmeter",i,'HardwareType'], v);
+                setInCfg(['Units','Ems','Equipment',"Smartmeter",i,'HardwareModel'], models[0]);
               }}
-              error={errorAt(errorIndex, ['Units','Ems','Equipment', i, 'HardwareType'])}
+              error={errorAt(errorIndex, ['Units','Ems','Equipment',"Smartmeter",i,'HardwareType'])}
             />
             <SelectField
               label="HardwareModel"
@@ -80,15 +77,26 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; err
               value={e.HardwareModel ?? ''}
               onChange={(v: string) =>
               {
+                setInCfg(['Units','Ems','Equipment',"Smartmeter",i,'HardwareModel'], v);
+              }}
+              error={errorAt(errorIndex, ['Units','Ems','Equipment',"Smartmeter",i,'HardwareModel'])}
+            />
+            <GuidField value={e.Guid ?? ''} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment.Smartmeter[i].Guid = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment',"Smartmeter",i,'Guid'])} />
+            <SelectField label="Usecase" options={getEmsSmartmeterUseCaseTypes()} value={e.Config?.Usecase ?? 'Undefined'} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment.Smartmeter[i].Config.Usecase = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment', "Smartmeter",i,'Config','Usecase'])} />
+            <NumberField 
+              leftLabel="Port"
+              value={e.Config?.Port ?? 0}
+              minValue="1"
+              maxValue="65535"
+              step="1"
+              onChange={(v: number) => 
+              {
                 const c = structuredClone(cfg);
-                c.Units.Ems.Equipment[i].HardwareModel = v;
+                c.Units.Ems.Equipment.Smartmeter[i].Config.Port = v;
                 setCfg(c);
               }}
-              error={errorAt(errorIndex, ['Units','Ems','Equipment', i, 'HardwareModel'])}
+              error={errorAt(errorIndex, ['Units','Ems','Equipment',"Smartmeter",i,'Config','Port'])}
             />
-            <GuidField value={e.Guid ?? ''} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment[i].Guid = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment', i, 'Guid'])} />
-            <SelectField label="Usecase" options={getEmsSmartmeterUseCaseTypes()} value={e.Config?.Usecase ?? 'Undefined'} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment[i].Config.Usecase = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment', i, 'Config','Usecase'])} />
-            <TextField leftLabel="Port" value={e.Config?.Port ?? ''} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment[i].Config.Port = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment', i, 'Config','Port'])} />
           </div>
         );
       })}
@@ -98,13 +106,13 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; err
         return (
           <div key={i} className="card">
             <div className="row" style={{ justifyContent: 'space-between' }}>
-              <span className="badge">{e.Type}</span>
+              <h3>{e.Type + ' (' + e.Name + ')'}</h3>
               <button className="ghost" onClick={() => removeAt('SlaveLocalUM',i)}>Entfernen</button>
             </div>
             <SelectField leftIsType options={['SlaveLocalUM']} value={e.Type} onChange={() => {}} />
-            <TextField leftLabel="Name" value={e.Name} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment[i].Name = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment', i, 'Name'])} />
-            <TextField leftLabel="DisplayName" value={e.DisplayName ?? ''} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment[i].DisplayName = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment', i, 'DisplayName'])} />
-            <GuidField value={e.Guid ?? ''} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment[i].Guid = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment', i, 'Guid'])} />
+            <TextField leftLabel="Name" value={e.Name} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment.SlaveLocalUM[i].Name = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment','SlaveLocalUM',i,'Name'])} />
+            <TextField leftLabel="DisplayName" value={e.DisplayName ?? ''} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment.SlaveLocalUM[i].DisplayName = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment','SlaveLocalUM',i,'DisplayName'])} />
+            <GuidField value={e.Guid ?? ''} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment.SlaveLocalUM[i].Guid = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment','SlaveLocalUM',i,'Guid'])} />
           </div>
         );
       })}
@@ -114,14 +122,14 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; err
         return (
           <div key={i} className="card">
             <div className="row" style={{ justifyContent: 'space-between' }}>
-              <span className="badge">{e.Type}</span>
+              <h3>{e.Type + ' (' + e.Name + ')'}</h3>
               <button className="ghost" onClick={() => removeAt('SlaveRemoteUM',i)}>Entfernen</button>
             </div>
             <SelectField leftIsType options={['SlaveRemoteUM']} value={e.Type} onChange={() => {}} />
-            <TextField leftLabel="Name" value={e.Name} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment[i].Name = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment', i, 'Name'])} />
-            <TextField leftLabel="DisplayName" value={e.DisplayName ?? ''} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment[i].DisplayName = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment', i, 'DisplayName'])} />
-            <GuidField value={e.Guid ?? ''} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment[i].Guid = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment', i, 'Guid'])} />
-            <TextField leftLabel="IP Address" value={e.Ip} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment[i].Ip = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment', i, 'Ip'])} />
+            <TextField leftLabel="Name" value={e.Name} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment.SlaveRemoteUM[i].Name = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment','SlaveRemoteUM',i,'Name'])} />
+            <TextField leftLabel="DisplayName" value={e.DisplayName ?? ''} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment.SlaveRemoteUM[i].DisplayName = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment','SlaveRemoteUM',i,'DisplayName'])} />
+            <GuidField value={e.Guid ?? ''} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment.SlaveRemoteUM[i].Guid = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment','SlaveRemoteUM',i,'Guid'])} />
+            <TextField leftLabel="IP Address" value={e.Ip} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment.SlaveRemoteUM[i].Ip = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment','SlaveRemoteUM',i,'Ip'])} />
           </div>
         );
       })}

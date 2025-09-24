@@ -6,21 +6,25 @@ export function addUnit(n: number, unit: string): string
   return s;
 }
 
-export function stripUnit(s: string): [number, string]
+
+
+export function stripUnit(s: string): number
 {
+  if (!s) { 
+    return 0; 
+  }
   const t: string = s.trim();
   const m: RegExpMatchArray | null = t.match(/^([+-]?\d+(?:\.\d+)?)(.*)$/);
   if (m)
   {
     const num: number = parseFloat(m[1]);
-    const unit: string = m[2].trim();
-    return [num, unit];
+    return num;
   }
   else
   {
-    const num: number = Number.NaN;
+    const num: number = 0;
     const unit: string = t;
-    return [num, unit];
+    return num;
   }
 }
 
