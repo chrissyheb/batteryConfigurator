@@ -44,3 +44,7 @@ export const stringToIndexString = (v: string): IndexStringType =>
   const parts = v.split(" - ");
   return [Number(parts[0]), parts[1]] as IndexStringType;
 };
+
+
+
+export type TupleToRecord<T extends readonly string[], V> = { [K in T[number]]: V };

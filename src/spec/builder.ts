@@ -2,6 +2,7 @@ import { v4 as uuid } from 'uuid';
 import { z, ZodIssue } from 'zod';
 import { IndexStringType, ui, enums, components, emsComponentTypes, mainComponentTypes } from './catalog';
 import { applyCrossRules, applyCardinality } from './rules';
+import { TupleToRecord } from '@/utils/helper';
 
 export type EmsHardwareKey = keyof typeof enums.ems.smartmeterHardwareToTypes;
 export type MainHardwareKey = keyof typeof enums.main.smartmeterHardwareToTypes;
@@ -16,6 +17,13 @@ export const getHardwareVariants = (): readonly string[] =>
 };
 
 export type componentType = keyof typeof components;
+export type emsComponentType = keyof typeof emsComponentTypes;
+export type emsEquipmentLists = TupleToRecord<typeof emsComponentTypes, any[]>;
+export type emsEquipmentKeys = keyof emsEquipmentLists;
+export type mainComponentType = typeof mainComponentTypes;
+export type mainEquipmentLists = TupleToRecord<typeof mainComponentTypes, any[]>;
+export type mainEquipmentKeys = keyof mainEquipmentLists;
+
 export const getEmsComponents = (): readonly string[] => 
 { 
   return emsComponentTypes;
@@ -158,7 +166,8 @@ export function createByKey(componentKey: componentType, ctx: CreateCtx): any
 
 export function nextIndexForType(list: any[], type: string): number 
 { 
-  return list.filter((e) => e?.Type === type).length + 1; 
+  return list.length + 1;
+  //return list.filter((e) => e?.Type === type).length + 1; 
 }
 
 
@@ -316,6 +325,9 @@ const slaveLocalZ = groupSchema(components.SlaveLocalUM.fields,'Ems.SlaveLocalUM
 const slaveRemoteZ = groupSchema(components.SlaveRemoteUM.fields,'Ems.SlaveRemoteUM');
 const smartmeterMainZ = groupSchema(components.SmartmeterMain.fields,'Main.SmartmeterMain');
 const batteryInverterZ = groupSchema(components.BatteryInverter.fields,'Main.BatteryInverter');
+const systemZ = groupSchema(components.System.fields,'System');
+const emsConfigZ = groupSchema(components.EmsConfig.fields,'Ems.Config');
+//const mainConfigZ = groupSchema(components.MainConfig.fields,'Ems.Config');
 
 const configZ = z.object({
   Global: z.object({
@@ -327,7 +339,11 @@ const configZ = z.object({
   }),
   Units: z.object({
     Ems: z.object({
-      Equipment: z.array(z.union([smartmeterZ, slaveLocalZ, slaveRemoteZ])).min(1)
+      Equipment: z.object({
+        Smartmeter: z.array(smartmeterZ),
+        LocalRemoteSystems: z.array(z.union([slaveLocalZ, slaveRemoteZ])).min(1)
+      }),
+      Config: emsConfigZ,
     }),
     Main: z.object({
       Type: z.enum(enums.main.types),
@@ -354,23 +370,25 @@ export function getInitialConfig(): any
 {
   const globalEq:any = createByKey('Global',{n:1});
   const systemEq:any = createByKey('System',{n:1});
-  const emsEq:any[] = []; 
-    emsEq.push(createByKey('Smartmeter',{n:1})); 
-    emsEq.push(createByKey('SlaveLocalUM',{n:1}));
+
+//  const emsEq:any[] = []; 
+//    emsEq.push(createByKey('Smartmeter',{n:1})); 
+//    emsEq.push(createByKey('SlaveLocalUM',{n:1}));
   const mainEq:any[] = []; 
     mainEq.push(createByKey('SmartmeterMain',{n:1}));
     mainEq.push(createByKey('BatteryInverter',{n:1}));
-  const all = {
+  const emsEqSmartmeter:any[] = [];
+    emsEqSmartmeter.push(createByKey('Smartmeter',{n:1}));
+  const emsEqSlaveLocalUM:any[] = [];
+    emsEqSlaveLocalUM.push(createByKey('SlaveLocalUM',{n:1}));
+  const emsEqSlaveRemoteUM:any[] = [];
+  const initialConfig = {
     Global: globalEq, 
     System: systemEq,
-    Units: { Ems:{ Equipment: emsEq }, 
-    Main: { Type:'Terra', Equipment: mainEq } } 
+    Units: { 
+      Ems:{ Equipment: { Smartmeter: emsEqSmartmeter, SlaveLocalUM: emsEqSlaveLocalUM, SlaveRemoteUM: emsEqSlaveRemoteUM} }, 
+      Main: { Type:'Terra', Equipment: mainEq }
+    } 
   };
-  console.log(all);
-  return { 
-    Global: globalEq, 
-    System: systemEq,
-    Units: { Ems:{ Equipment: emsEq }, 
-    Main: { Type:'Terra', Equipment: mainEq } } 
-  };
+  return initialConfig;
 }
