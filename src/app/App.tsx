@@ -9,6 +9,7 @@ import MainForm from '@/components/MainForm';
 import { exportJSON, importJSON } from '@/utils/io';
 import { clearLocal } from '@/utils/storage';
 import { getInitialConfig } from '@/spec/builder';
+import { formatPath } from '@/utils/errors';
 
 export default function App()
 {
@@ -47,7 +48,7 @@ export default function App()
       {!isValid && (
         <div className="error-panel">
           <strong>Fehler</strong>
-          <ul>{issues.map((er, i) => { return <li key={i}>{er.message}</li>; })}</ul>
+          <ul>{issues.map((er, i) => { return <li key={i}><code>{formatPath(er.path as (string | number)[] | undefined)}</code>: {er.message}</li>; })}</ul>
         </div>
       )}
 

@@ -39,3 +39,17 @@ export function errorAt(index: ErrorIndex, path: (string | number)[]): string | 
   }
   return msgs[0];
 }
+
+export function formatPath(path: (string | number)[] | undefined): string
+{
+  // no or empty path
+  if (!path || path.length === 0) { return '(root)'; }
+  // path valid -> format
+  return path
+    .map((seg, i) =>
+    {
+      if (typeof seg === 'number') { return `[${seg}]`; }
+      return i === 0 ? String(seg) : `.${String(seg)}`;
+    })
+    .join('');
+}
