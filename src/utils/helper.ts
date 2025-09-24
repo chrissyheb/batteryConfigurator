@@ -3,7 +3,6 @@ import { IndexStringType } from '@/spec/catalog';
 export function addUnit(n: number, unit: string): string
 {
   const s:string = n.toString() + unit;
-  console.log('addUnit', s);
   return s;
 }
 

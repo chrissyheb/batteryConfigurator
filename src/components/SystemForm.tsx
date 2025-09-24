@@ -39,8 +39,7 @@ export default function SystemForm(props: { cfg: any; setCfg: (c: any) => void; 
           {
             const c = structuredClone(cfg);
             let out = stringToIndexString(v);
-            console.log(out)
-            c.System.BatteryBalancing.PreemptiveMode = out;//stringToIndexString(v);
+            c.System.BatteryBalancing.PreemptiveMode = out;
             setCfg(c);
           }}
           error={errorAt(errorIndex, ['System', 'BatteryBalancing', 'PreemptiveMode'])}
@@ -114,7 +113,6 @@ export default function SystemForm(props: { cfg: any; setCfg: (c: any) => void; 
           {
             const c = structuredClone(cfg);
             let out = stringToIndexString(v);
-            console.log(out)
             c.System.ExternalControl.FallbackMode = out;//stringToIndexString(v);
             setCfg(c);
           }}
