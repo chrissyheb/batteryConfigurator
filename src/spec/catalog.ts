@@ -52,8 +52,8 @@ export const components = {
       Customer: { type: 'string', required: true },
       ModularPlc: {
         group: {
-          Version: { enumRef: ['global', 'libVersion'], required: true },
-          HardwareVariant: { enumRef: ['global', 'hardwareVariant'], required: true }
+          Version: { type: 'string', enumRef: ['global', 'libVersion'], required: true },
+          HardwareVariant: { type: 'string', enumRef: ['global', 'hardwareVariant'], required: true }
         }
       }
     },
@@ -70,16 +70,16 @@ export const components = {
       SerialNumber: { type: 'string', required: true },
       BatteryBalancing: {
         group: {
-          PreemptiveMode: { enumRef: ['system', 'batteryBalancingModes'], required: true },
+          PreemptiveMode: { type: 'indexString', enumRef: ['system', 'batteryBalancingModes'], required: true },
           PreemptiveDaysToEnable: { type: 'number', required: true },
-          PreemptiveMaxGridChargePower: { type: 'string', unit: 'kW', required: true },
+          PreemptiveMaxGridChargePower: { type: 'numberWithUnit', unit: 'kW', required: true },
           ForcedDaysToEnable: { type: 'number', required: true },
-          ForcedMaxGridChargePowerPerInverter: { type: 'string', unit: 'kW', required: true },
+          ForcedMaxGridChargePowerPerInverter: { type: 'numberWithUnit', unit: 'kW', required: true },
         }
       },
       ExternalControl: {
         group: {
-          FallbackMode:  { enumRef: ['system', 'externalControlOperationModes'], required: true }
+          FallbackMode:  { type: 'indexString', enumRef: ['system', 'externalControlOperationModes'], required: true }
         }
       }
     },
@@ -102,13 +102,13 @@ export const components = {
       Type: { const: 'Smartmeter' },
       Name: { type: 'string', required: true },
       DisplayName: { type: 'string', required: true },
-      HardwareType: { enumRef: ['ems', 'smartmeterHardwareToTypes'], required: true },
+      HardwareType: { type: 'string', enumRef: ['ems', 'smartmeterHardwareToTypes'], required: true },
       HardwareModel: { type: 'string', required: true },
       Guid: { type: 'uuid', required: true },
       Config: {
         group: {
-          Usecase: { enumRef: ['ems','smartmeterUseCaseTypes'], required: true },
-          Port: { type: 'integer-string', min: 1, max: 65535, required: true }
+          Usecase: { type: 'string', enumRef: ['ems','smartmeterUseCaseTypes'], required: true },
+          Port: { type: 'number', min: 1, max: 65535, required: true }
         }
       }
     },
@@ -155,13 +155,13 @@ export const components = {
       Ip: '192.168.0.10'
     }
   },
-  MainType: { enum: ['main', 'types'] },
+  MainType: { type: 'string', enum: ['main', 'types'] },
   SmartmeterMain: {
     fields: {
       Type: { const: 'SmartmeterMain' },
       Name: { type: 'string', required: true },
       DisplayName: { type: 'string', required: true },
-      HardwareType: { enumRef: ['main', 'smartmeterHardwareToTypes'], required: true },
+      HardwareType: { type: 'string', enumRef: ['main', 'smartmeterHardwareToTypes'], required: true },
       HardwareModel: { type: 'string', required: true },
       Guid: { type: 'uuid', required: true }
     },
@@ -180,27 +180,27 @@ export const components = {
       Name: { type: 'string', required: true },
       Inverter: {
         group: {
-          Type: { enumRef: ['batteryInverter', 'inverterTypes'], required: true },
+          Type: { type: 'string', enumRef: ['batteryInverter', 'inverterTypes'], required: true },
           Name: { type: 'string', required: true },
           Guid: { type: 'uuid', required: true },
           Config: {
             group: {
-              InverterType: { enum: 'inverterHardwareTypes', required: true },
-              NominalInverterPower: { type: 'integer-string', min: 1, max: 125000, required: true }
+              InverterType: { type: 'string', enum: 'inverterHardwareTypes', required: true },
+              NominalInverterPower: { type: 'numberWithUnit', unit: 'kW', min: 1, max: 125, required: true }
             }
           }
         }
       },
       Battery: {
         group: {
-          Type: { enumRef: ['batteryInverter', 'batteryTypes'], required: true },
+          Type: { type: 'string', enumRef: ['batteryInverter', 'batteryTypes'], required: true },
           Name: { type: 'string', required: true },
           Guid: { type: 'uuid', required: true },
           Config: {
             group: {
-              BatteryType: { enum: 'batteryHardwareTypes', required: true },
-              BatteryCabinetCount: { type: 'integer-string', min: 1, max: 5, required: true },
-              BatteryCabinetModuleCount: { type: 'integer-string', min: 1, max: 25, required: true }
+              BatteryType: { type: 'string', enum: 'batteryHardwareTypes', required: true },
+              BatteryCabinetCount: { type: 'number', min: 1, max: 5, required: true },
+              BatteryCabinetModuleCount: { type: 'number', min: 1, max: 25, required: true }
             }
           }
         }
@@ -208,7 +208,7 @@ export const components = {
       Modbus: {
         optional: true,
         group: {
-          Type: { enumRef: ['batteryInverter', 'modbusTypes'], required: true },
+          Type: { type: 'string', enumRef: ['batteryInverter', 'modbusTypes'], required: true },
           Name: { type: 'string', required: true },
           Guid: { type: 'uuid', required: true }
         }
