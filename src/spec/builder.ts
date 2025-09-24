@@ -356,7 +356,8 @@ const configZ = z.object({
     }).strict(),
     Main: z.object({
       Type: z.enum(enums.main.types),
-      Equipment: z.array(z.union([smartmeterMainZ, batteryInverterZ])).min(1)
+      Equipment: z.array(z.union([smartmeterMainZ, batteryInverterZ])).min(1),
+      Config: mainConfigZ
     }).strict()
   }).strict()
 }).strict();
