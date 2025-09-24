@@ -337,6 +337,7 @@ const configZ = z.object({
       HardwareVariant: z.string().min(1, 'HardwareVariant required')
     })
   }),
+  System: systemZ,
   Units: z.object({
     Ems: z.object({
       Equipment: z.object({
