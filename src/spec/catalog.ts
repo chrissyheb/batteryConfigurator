@@ -61,7 +61,7 @@ export const components = {
       Customer: '',
       ModularPlc: { 
         Version:'0.0.3',
-        HardwareVariant:'BlokkV3' 
+        HardwareVariant:'Terra' 
       }
     }
   },
@@ -71,9 +71,9 @@ export const components = {
       BatteryBalancing: {
         group: {
           PreemptiveMode: { type: 'indexString', enumRef: ['system', 'batteryBalancingModes'], required: true },
-          PreemptiveDaysToEnable: { type: 'number', required: true },
+          PreemptiveDaysToEnable: { type: 'number', min: 0, max: 365, required: true },
           PreemptiveMaxGridChargePower: { type: 'numberWithUnit', unit: 'kW', required: true },
-          ForcedDaysToEnable: { type: 'number', required: true },
+          ForcedDaysToEnable: { type: 'number', min: 0, max: 365, required: true },
           ForcedMaxGridChargePowerPerInverter: { type: 'numberWithUnit', unit: 'kW', required: true },
         }
       },
@@ -153,7 +153,7 @@ export const components = {
       Guid:'@uuid',
       Config:{ 
         Usecase:'GridConnectionPointControl',
-        Port:'502' 
+        Port:502
       }
     }
   },
@@ -269,7 +269,7 @@ export const components = {
         Guid:'@uuid',
         Config: {
           InverterType:'SofarTerra',
-          NominalInverterPower:'125000'
+          NominalInverterPower:'125'
         }
       },
       Battery: {
