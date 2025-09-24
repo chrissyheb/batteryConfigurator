@@ -4,7 +4,7 @@ import { SelectField, TextField, NumberField } from './Fields';
 import { IndexStringType, components } from '@/spec/catalog';
 import { getBatteryBalancingModes, getExternalControlOperationModes } from '@/spec/builder';
 import { errorAt } from '@/utils/errors';
-import { stripUnit, addUnit } from '@/utils/helper';
+import { indexStringToString, stringToIndexString, stripUnit, addUnit } from '@/utils/helper';
 
 export default function SystemForm(props: { cfg: any; setCfg: (c: any) => void; errorIndex: any })
 {
@@ -12,24 +12,6 @@ export default function SystemForm(props: { cfg: any; setCfg: (c: any) => void; 
 
   const balancingMode:string = '';
 
-  const indexStringToString = (e: IndexStringType[]): string[] =>
-  {
-    let output:string[] = [];
-    let i = 0;
-    e.forEach(element => {
-      if (element[0] !== undefined && element[1] !== undefined)
-      {
-        output.push(element[0] + " - " + element[1]);
-        i++;
-      }
-    });
-    return output;
-  };
-  const stringToIndexString = (v: string): IndexStringType =>
-  {
-    const parts = v.split(" - ");
-    return [Number(parts[0]), parts[1]];
-  };
 
 
 
