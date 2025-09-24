@@ -11,7 +11,7 @@ export type Issue = { message: string; path: (string | number)[]; };
 export function applyCrossRules(config: any, add: (i: Issue) => void): void
 {
   // Validate Smartmeter HardwareType/HardwareModel dependency
-  const emsEq = config?.Units?.Ems?.Equipment ?? [];
+  const emsEq = config?.Units?.Ems?.Equipment?.Smartmeter ?? [];
   emsEq.forEach((e: any, idx: number) =>
   {
     if (e?.Type !== 'Smartmeter')
@@ -24,7 +24,7 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
 
     if (!type)
     {
-      add({ message: 'HardwareType erforderlich', path: ['Units','Ems','Equipment', idx, 'HardwareType'] });
+      add({ message: 'HardwareType erforderlich', path: ['Units','Ems','Equipment','Smartmeter', idx, 'HardwareType'] });
       return;
     }
 
@@ -32,19 +32,19 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
 
     if (!Array.isArray(allowed) || allowed.length === 0)
     {
-      add({ message: 'Unbekannter HardwareType', path: ['Units','Ems','Equipment', idx, 'HardwareType'] });
+      add({ message: 'Unbekannter HardwareType', path: ['Units','Ems','Equipment','Smartmeter', idx, 'HardwareType'] });
       return;
     }
 
     if (!model)
     {
-      add({ message: 'HardwareModel erforderlich', path: ['Units','Ems','Equipment', idx, 'HardwareModel'] });
+      add({ message: 'HardwareModel erforderlich', path: ['Units','Ems','Equipment','Smartmeter', idx, 'HardwareModel'] });
       return;
     }
 
     if (!allowed.includes(model))
     {
-      add({ message: 'HardwareModel passt nicht zu HardwareType', path: ['Units','Ems','Equipment', idx, 'HardwareModel'] });
+      add({ message: 'HardwareModel passt nicht zu HardwareType', path: ['Units','Ems','Equipment','Smartmeter', idx, 'HardwareModel'] });
     }
   });
 
@@ -123,10 +123,10 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
 
 export function applyCardinality(config: any, add: (i: Issue) => void): void
 {
-  const emsEq = config?.Units?.Ems?.Equipment ?? [];
-  const smCount = emsEq.filter((e: any) => { return e?.Type === 'Smartmeter'; }).length;
-  const localCount = emsEq.filter((e: any) => { return e?.Type === 'SlaveLocalUM'; }).length;
-  const remoteCount = emsEq.filter((e: any) => { return e?.Type === 'SlaveRemoteUM'; }).length;
+  const emsEq = config?.Units?.Ems?.Equipment ?? {};
+  const smCount = emsEq.Smartmeter?.length ?? emsEq.emsEqSmartmeter?.length ?? 0;
+  const localCount = emsEq.SlaveLocalUM?.length ?? emsEq.emsEqSlaveLocalUM?.length ?? 0;
+  const remoteCount = emsEq.SlaveRemoteUM?.length ?? emsEq.emsEqSlaveRemoteUM?.length ?? 0;
   if (localCount !== cardinality.ems.slaveLocalEq)
   {
     add({ message: 'SlaveLocalUM muss genau einmal vorhanden sein', path: ['Units','Ems','Equipment'] });
