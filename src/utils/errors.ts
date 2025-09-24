@@ -16,12 +16,42 @@ export function keyFromPath(path: (string | number)[]): string
   return parts.join('.');
 }
 
-export function buildErrorIndex(issues: ZodIssue[]): ErrorIndex
-{
+// minimaler Typ für dein UI / error-index
+export type SimpleIssue = {
+  message: string;
+  path: (string | number)[];
+};
+
+type UnrecognizedKeysIssue = Extract<ZodIssue, { code: 'unrecognized_keys' }>;
+
+function isUnrecognizedKeysIssue(i: ZodIssue): i is UnrecognizedKeysIssue {
+  return i.code === 'unrecognized_keys';
+}
+
+export function expandUnknownKeyIssues(issues: ZodIssue[]): SimpleIssue[] {
+  const out: SimpleIssue[] = [];
+
+  for (const is of issues) {
+    if (isUnrecognizedKeysIssue(is)) {
+      const base = (is.path ?? []) as (string | number)[];
+      for (const k of is.keys) {
+        out.push({ message: 'Unknown key', path: [...base, k] });
+      }
+    } else {
+      out.push({
+        message: is.message,
+        path: (is.path ?? []) as (string | number)[],
+      });
+    }
+  }
+  return out;
+}
+
+
+export function buildErrorIndex(issues: SimpleIssue[]): ErrorIndex {
   const map: ErrorIndex = new Map();
-  for (const is of issues)
-  {
-    const key = keyFromPath(is.path as (string | number)[]);
+  for (const is of issues) {
+    const key = (is.path ?? []).map(p => typeof p === 'number' ? String(p) : p).join('.');
     const list = map.get(key) ?? [];
     list.push(is.message);
     map.set(key, list);

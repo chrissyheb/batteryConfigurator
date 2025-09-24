@@ -13,7 +13,7 @@ import { formatPath } from '@/utils/errors';
 
 export default function App()
 {
-  const { state, dispatch, errorIndex, issues, isValid } = useStore();
+  const { state, dispatch, errorIndex, issues, isValid, flatIssues } = useStore();
 
   const setCfg = (cfg: any): void => { dispatch({ type: 'SET', payload: cfg }); };
 
@@ -48,7 +48,7 @@ export default function App()
       {!isValid && (
         <div className="error-panel">
           <strong>Fehler</strong>
-          <ul>{issues.map((er, i) => { return <li key={i}><code>{formatPath(er.path as (string | number)[] | undefined)}</code>: {er.message}</li>; })}</ul>
+          <ul>{flatIssues.map((er, i) => { return <li key={i}>{er.message}&nbsp;&nbsp;&nbsp;&nbsp;<code>@ {formatPath(er.path as (string | number)[] | undefined)}</code></li>; })}</ul>
         </div>
       )}
 
