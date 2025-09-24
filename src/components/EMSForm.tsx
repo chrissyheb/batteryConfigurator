@@ -42,6 +42,50 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
   return (
     <div className="card stack">
       <h2>EMS</h2>
+      <div className="card">
+        <h3>Config - Grid Connection Point</h3>
+        <NumberField 
+          leftLabel="PreemptiveMaxGridChargePower"
+          rightLabel={components.System.fields.BatteryBalancing.group.PreemptiveMaxGridChargePower.unit}
+          value={stripUnit(cfg.System?.BatteryBalancing?.PreemptiveMaxGridChargePower)}
+          minValue="0"
+          maxValue="50"
+          step="1"
+          onChange={(v: number) => 
+          {
+            const c = structuredClone(cfg);
+            if (!c.System.BatteryBalancing) { c.System.BatteryBalancing = {}; }
+            c.System.BatteryBalancing.PreemptiveMaxGridChargePower = addUnit(v, components.System.fields.BatteryBalancing.group.PreemptiveMaxGridChargePower.unit);
+            setCfg(c);
+          }}
+          error={errorAt(errorIndex, ['System', 'BatteryBalancing', 'PreemptiveMaxGridChargePower'])}
+        />
+        <CheckField 
+          label="PowerSwitchMainAvailable"
+          value={cfg.Units?.Main?.Config?.PowerSwitchMainAvailable ?? false}
+          onChange={(v: boolean) => 
+          {
+            const c = structuredClone(cfg);
+            if (!c.Units.Main.Config) { c.Units.Main.Config = {}; }
+            c.Units.Main.Config.PowerSwitchMainAvailable = v;
+            setCfg(c);
+          }}
+          error={errorAt(errorIndex, ['Units','Main','Config','PowerSwitchMainAvailable'])}
+        />
+        <NumberField 
+          leftLabel="PowerGridConsumptionLimit"
+          rightLabel={components.EmsConfig.fields.GridConnectionPoint.group.PowerGridConsumptionLimit.unit}
+          value={stripUnit(cfg.Units.Ems.Config?.GridConnectionPoint?.PowerGridConsumptionLimit)}
+          minValue="0"
+          onChange={(v: number) => 
+          {
+            const c = structuredClone(cfg);
+            c.Units.Ems.Config.GridConnectionPoint.PowerGridConsumptionLimit = addUnit(v, components.EmsConfig.fields.GridConnectionPoint.group.PowerGridConsumptionLimit.unit);
+            setCfg(c);
+          }}
+          error={errorAt(errorIndex, ['Units','Ems','Config','GridConnectionPoint','PowerGridConsumptionLimit'])}
+        />
+      </div>
       <div className="row">
         <button onClick={() => {addElement('Smartmeter')}}>+ Smartmeter</button>
         <button onClick={() => {addElement('SlaveLocalUM')}}>+ SlaveLocalUM</button>
