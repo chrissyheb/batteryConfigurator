@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useReducer } from 'react';
 import { loadLocal, saveLocal } from '@/utils/storage';
 import { validate, getInitialConfig } from '@/spec/builder';
-import { buildErrorIndex } from '@/utils/errors';
+import { buildErrorIndex, expandUnknownKeyIssues } from '@/utils/errors';
 
 type Action = { type: 'SET'; payload: any } | { type: 'PATCH'; payload: Partial<any> };
 
@@ -21,12 +21,17 @@ export function useStore()
     return getInitialConfig();
   });
 
-  const result = useMemo(() => { return validate(state); }, [state]);
-  const errorIndex = useMemo(() => { return buildErrorIndex(result.issues); }, [result.issues]);
+  const { result, flatIssues, errorIndex } = useMemo(() =>
+  {
+    const result = validate(state);
+    const flatIssues = expandUnknownKeyIssues(result.issues);
+    const errorIndex = buildErrorIndex(flatIssues);
+    return { result, flatIssues, errorIndex };
+  }, [state]);
 
   useEffect(() => { saveLocal(state); }, [state]);
 
   const isValid = result.issues.length === 0;
 
-  return { state, dispatch, errorIndex, issues: result.issues, isValid };
+  return { state, dispatch, errorIndex, issues: result.issues, isValid, flatIssues};
 }

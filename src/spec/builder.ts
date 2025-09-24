@@ -1,5 +1,5 @@
 import { v4 as uuid } from 'uuid';
-import { z, ZodIssue } from 'zod';
+import { z, ZodIssue, ZodObject } from 'zod';
 import { IndexStringType, ui, enums, components, emsComponentTypes, mainComponentTypes } from './catalog';
 import { applyCrossRules, applyCardinality } from './rules';
 import { TupleToRecord } from '@/utils/helper';
@@ -214,6 +214,11 @@ function fieldSchema(f: any): z.ZodTypeAny
       return z.string().uuid();
     }
 
+    case 'bool':
+    {
+      return z.boolean();
+    }
+
     case 'ipv4':
     {
       const OCTET = String.raw`(?:0|[1-9]\d?|1\d\d|2[0-4]\d|25[0-5])`;
@@ -288,13 +293,13 @@ function fieldSchema(f: any): z.ZodTypeAny
 
     default:
     {
-      return z.string();
+      return z.string().min(1);
     }
   }
 }
 
 
-function groupSchema(g: any, domain?: string): z.ZodTypeAny
+function groupSchema(g: any): z.ZodTypeAny
 {
   const shape: Record<string, z.ZodTypeAny> = {};
   for (const [k, spec] of Object.entries<any>(g))
@@ -317,17 +322,19 @@ function groupSchema(g: any, domain?: string): z.ZodTypeAny
       shape[k] = zod;
     }
   }
-  return z.object(shape);
+  return z.object(shape).strict();
 }
 
-const smartmeterZ = groupSchema(components.Smartmeter.fields,'Ems.Smartmeter');
-const slaveLocalZ = groupSchema(components.SlaveLocalUM.fields,'Ems.SlaveLocalUM');
-const slaveRemoteZ = groupSchema(components.SlaveRemoteUM.fields,'Ems.SlaveRemoteUM');
-const smartmeterMainZ = groupSchema(components.SmartmeterMain.fields,'Main.SmartmeterMain');
-const batteryInverterZ = groupSchema(components.BatteryInverter.fields,'Main.BatteryInverter');
-const systemZ = groupSchema(components.System.fields,'System');
-const emsConfigZ = groupSchema(components.EmsConfig.fields,'Ems.Config');
-//const mainConfigZ = groupSchema(components.MainConfig.fields,'Ems.Config');
+
+const smartmeterZ = groupSchema(components.Smartmeter.fields);
+const slaveLocalZ = groupSchema(components.SlaveLocalUM.fields);
+const slaveRemoteZ = groupSchema(components.SlaveRemoteUM.fields);
+const smartmeterMainZ = groupSchema(components.SmartmeterMain.fields);
+const batteryInverterZ = groupSchema(components.BatteryInverter.fields);
+const systemZ = groupSchema(components.System.fields);
+const emsConfigZ = groupSchema(components.EmsConfig.fields);
+const mainConfigZ = groupSchema(components.MainConfig.fields,);
+
 
 const configZ = z.object({
   Global: z.object({
@@ -335,23 +342,24 @@ const configZ = z.object({
     ModularPlc: z.object({
       Version: z.string().min(1, 'Version required'),
       HardwareVariant: z.string().min(1, 'HardwareVariant required')
-    })
-  }),
+    }).strict()
+  }).strict(),
   System: systemZ,
   Units: z.object({
     Ems: z.object({
       Equipment: z.object({
         Smartmeter: z.array(smartmeterZ),
-        LocalRemoteSystems: z.array(z.union([slaveLocalZ, slaveRemoteZ])).min(1)
-      }),
+        SlaveLocalUM: z.array(slaveLocalZ).min(1),
+        SlaveRemoteUM: z.array(slaveRemoteZ)
+      }).strict(),
       Config: emsConfigZ,
-    }),
+    }).strict(),
     Main: z.object({
       Type: z.enum(enums.main.types),
       Equipment: z.array(z.union([smartmeterMainZ, batteryInverterZ])).min(1)
-    })
-  })
-});
+    }).strict()
+  }).strict()
+}).strict();
 
 export function validate(cfg: any): { issues: ZodIssue[] }
 {
@@ -383,11 +391,19 @@ export function getInitialConfig(): any
   const emsEqSlaveLocalUM:any[] = [];
     emsEqSlaveLocalUM.push(createByKey('SlaveLocalUM',{n:1}));
   const emsEqSlaveRemoteUM:any[] = [];
+  const emsEqConfig:any = createByKey('EmsConfig',{n:1});
   const initialConfig = {
     Global: globalEq, 
     System: systemEq,
     Units: { 
-      Ems:{ Equipment: { Smartmeter: emsEqSmartmeter, SlaveLocalUM: emsEqSlaveLocalUM, SlaveRemoteUM: emsEqSlaveRemoteUM} }, 
+      Ems:{ 
+        Equipment: { 
+          Smartmeter: emsEqSmartmeter,
+          SlaveLocalUM: emsEqSlaveLocalUM,
+          SlaveRemoteUM: emsEqSlaveRemoteUM
+        },
+        Config: emsEqConfig
+      }, 
       Main: { Type:'Terra', Equipment: mainEq }
     } 
   };
