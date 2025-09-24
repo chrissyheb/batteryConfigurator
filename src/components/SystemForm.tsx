@@ -1,32 +1,22 @@
 
 import React from 'react';
 import { SelectField, TextField, NumberField } from './Fields';
-import { IndexStringType, components } from '@/spec/catalog';
+import { components } from '@/spec/catalog';
 import { getBatteryBalancingModes, getExternalControlOperationModes } from '@/spec/builder';
 import { errorAt } from '@/utils/errors';
 import { indexStringToString, stringToIndexString, stripUnit, addUnit } from '@/utils/helper';
 
-export default function SystemForm(props: { cfg: any; setCfg: (c: any) => void; errorIndex: any })
+export default function SystemForm(props: { cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; errorIndex: any })
 {
-  const { cfg, setCfg, errorIndex } = props;
-
-  const balancingMode:string = '';
-
-
-
+  const { cfg, setCfg, setInCfg, getCfg, getOrCfg, errorIndex } = props;
 
   return (
     <div className="card stack">
       <h2>System</h2>
       <TextField 
         leftLabel="Name"
-        value={cfg.System.SerialNumber}
-        onChange={(v: string) => 
-        {
-          const c = structuredClone(cfg);
-          c.System.SerialNumber = v;
-          setCfg(c);
-        }}
+        value={getOrCfg(['System', 'SerialNumber'],'')}
+        onChange={(v: string) => { setInCfg(['System', 'SerialNumber'], v); }}
         error={errorAt(errorIndex, ['System', 'SerialNumber'])}
       />
       <div className="card">
@@ -34,72 +24,46 @@ export default function SystemForm(props: { cfg: any; setCfg: (c: any) => void; 
         <SelectField
           label="PreemptiveBalancingMode"
           options={indexStringToString(getBatteryBalancingModes())}
-          value={indexStringToString([cfg.System.BatteryBalancing.PreemptiveMode])[0]}
-          onChange={(v: string) => 
-          {
-            const c = structuredClone(cfg);
-            let out = stringToIndexString(v);
-            c.System.BatteryBalancing.PreemptiveMode = out;
-            setCfg(c);
-          }}
+          value={indexStringToString([getOrCfg(['System', 'BatteryBalancing', 'PreemptiveMode'], [0,''])])[0]}
+          onChange={(v: string) => { setInCfg(['System', 'BatteryBalancing', 'PreemptiveMode'], stringToIndexString(v)); }}
           error={errorAt(errorIndex, ['System', 'BatteryBalancing', 'PreemptiveMode'])}
         />
         <NumberField 
           leftLabel="PreemptiveDaysToEnable"
-          value={cfg.System.BatteryBalancing.PreemptiveDaysToEnable}
+          value={getOrCfg(['System', 'BatteryBalancing', 'PreemptiveDaysToEnable'], 0)}
           minValue="0"
           maxValue="365"
           step="1"
-          onChange={(v: number) => 
-          {
-            const c = structuredClone(cfg);
-            c.System.BatteryBalancing.PreemptiveDaysToEnable = v;
-            setCfg(c);
-          }}
+          onChange={(v: number) => { setInCfg(['System', 'BatteryBalancing', 'PreemptiveDaysToEnable'], v); }}
           error={errorAt(errorIndex, ['System', 'BatteryBalancing', 'PreemptiveDaysToEnable'])}
         />
         <NumberField 
           leftLabel="PreemptiveMaxGridChargePower"
           rightLabel={components.System.fields.BatteryBalancing.group.PreemptiveMaxGridChargePower.unit}
-          value={stripUnit(cfg.System.BatteryBalancing.PreemptiveMaxGridChargePower)[0]}
+          value={stripUnit(getCfg(['System', 'BatteryBalancing', 'PreemptiveMaxGridChargePower']))}
           minValue="0"
           maxValue="50"
           step="1"
-          onChange={(v: number) => 
-          {
-            const c = structuredClone(cfg);
-            c.System.BatteryBalancing.PreemptiveMaxGridChargePower = addUnit(v, components.System.fields.BatteryBalancing.group.PreemptiveMaxGridChargePower.unit);
-            setCfg(c);
-          }}
+          onChange={(v: number) => { setInCfg(['System', 'BatteryBalancing', 'PreemptiveMaxGridChargePower'], addUnit(v, components.System.fields.BatteryBalancing.group.PreemptiveMaxGridChargePower.unit)); }}
           error={errorAt(errorIndex, ['System', 'BatteryBalancing', 'PreemptiveMaxGridChargePower'])}
         />
         <NumberField 
           leftLabel="ForcedDaysToEnable"
-          value={cfg.System.BatteryBalancing.ForcedDaysToEnable}
+          value={getOrCfg(['System', 'BatteryBalancing', 'ForcedDaysToEnable'], 0)}
           minValue="0"
           maxValue="365"
           step="1"
-          onChange={(v: number) => 
-          {
-            const c = structuredClone(cfg);
-            c.System.BatteryBalancing.ForcedDaysToEnable = v;
-            setCfg(c);
-          }}
+          onChange={(v: number) => {setInCfg(['System', 'BatteryBalancing', 'ForcedDaysToEnable'], v); }}
           error={errorAt(errorIndex, ['System', 'BatteryBalancing', 'ForcedDaysToEnable'])}
         />
         <NumberField 
           leftLabel="ForcedMaxGridChargePowerPerInverter"
           rightLabel={components.System.fields.BatteryBalancing.group.ForcedMaxGridChargePowerPerInverter.unit}
-          value={stripUnit(cfg.System.BatteryBalancing.ForcedMaxGridChargePowerPerInverter)[0]}
+          value={stripUnit(getCfg(['System', 'BatteryBalancing', 'ForcedMaxGridChargePowerPerInverter']))}
           minValue="0"
           maxValue="50"
           step="1"
-          onChange={(v: number) => 
-          {
-            const c = structuredClone(cfg);
-            c.System.BatteryBalancing.ForcedMaxGridChargePowerPerInverter = addUnit(v, components.System.fields.BatteryBalancing.group.PreemptiveMaxGridChargePower.unit);
-            setCfg(c);
-          }}
+          onChange={(v: number) => { setInCfg(['System', 'BatteryBalancing', 'ForcedMaxGridChargePowerPerInverter'], addUnit(v, components.System.fields.BatteryBalancing.group.ForcedMaxGridChargePowerPerInverter.unit)); }}
           error={errorAt(errorIndex, ['System', 'BatteryBalancing', 'ForcedMaxGridChargePowerPerInverter'])}
         />
       </div>
@@ -108,14 +72,8 @@ export default function SystemForm(props: { cfg: any; setCfg: (c: any) => void; 
         <SelectField
           label="FallbackMode"
           options={indexStringToString(getExternalControlOperationModes())}
-          value={indexStringToString([cfg.System.ExternalControl.FallbackMode])[0]}
-          onChange={(v: string) => 
-          {
-            const c = structuredClone(cfg);
-            let out = stringToIndexString(v);
-            c.System.ExternalControl.FallbackMode = out;//stringToIndexString(v);
-            setCfg(c);
-          }}
+          value={indexStringToString([getOrCfg(['System', 'ExternalControl', 'FallbackMode'], [0,''])])[0]}
+          onChange={(v: string) => { setInCfg(['System', 'ExternalControl', 'FallbackMode'], stringToIndexString(v)); }}
           error={errorAt(errorIndex, ['System', 'ExternalControl', 'FallbackMode'])}
         />
       </div>
