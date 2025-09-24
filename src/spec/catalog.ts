@@ -97,6 +97,38 @@ export const components = {
       }
     }
   },
+  EmsConfig: {
+    fields: {
+      GridConnectionPoint: {
+        group: {
+          PowerGridConsumptionLimit: { type: 'numberWithUnit', unit: 'kW', required: true },
+          PowerGridFeedInLimit: { type: 'numberWithUnit', unit: 'kW', required: true },
+          PowerGridConsumptionOffset: { type: 'numberWithUnit', unit: 'kW', required: true },
+        }
+      },
+      MasterSlave: {
+        group: {
+          PowerActiveInstalledTotal: { type: 'numberWithUnit', unit: 'kW', required: true },
+          CapacityInstalledTotal: { type: 'numberWithUnit', unit: 'kWh', required: true },
+          PowerChargeLimitTotal: { type: 'numberWithUnit', unit: 'kW', required: true },
+          PowerDischargeLimitTotal: { type: 'numberWithUnit', unit: 'kW', required: true },
+        }
+      }
+    },
+    defaults: {
+      GridConnectionPoint: {
+        PowerGridConsumptionLimit: "0kW",
+        PowerGridFeedInLimit: "0kW",
+        PowerGridConsumptionOffset: "0kW"
+      },
+      MasterSlave: {
+        PowerActiveInstalledTotal: "0kW",
+        CapacityInstalledTotal: "0kWh",
+        PowerChargeLimitTotal: "0kW",
+        PowerDischargeLimitTotal: "0kW"
+      }
+    }
+  },
   Smartmeter: {
     fields: {
       Type: { const: 'Smartmeter' },
@@ -156,6 +188,20 @@ export const components = {
     }
   },
   MainType: { type: 'string', enum: ['main', 'types'] },
+  MainConfig: {
+    fields: {
+      IpAddressInternal: { type: 'ipv4', required: true },
+      PowerSwitchMainAvailable: { type: 'bool', required: true },
+      PowerChargeLimitLocal: { type: 'numberWithUnit', unit: 'kW', required: true },
+      PowerDischargeLimitLocal: { type: 'numberWithUnit', unit: 'kW', required: true },
+    },
+    defaults: {
+      IpAddressInternal: "192.168.137.5",
+      PowerSwitchMainAvailable: false,
+      PowerChargeLimitLocal: "0kW",
+      PowerDischargeLimitLocal: "0kW"
+    }
+  },
   SmartmeterMain: {
     fields: {
       Type: { const: 'SmartmeterMain' },
