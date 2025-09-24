@@ -20,7 +20,7 @@ export function NumberField(props: any)
   return (
     <div className="field">
       <label>{leftLabel ?? 'Type'}</label>
-      <input type="number" min={minValue} max={maxValue} step={step} value={value} onChange={(e) => onChange(e.target.value)} />
+      <input type="number" min={minValue} max={maxValue} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} />
       <label>{rightLabel ?? ''}</label>
       {error ? <div className="inline-error">{error}</div> : <span />}
     </div>

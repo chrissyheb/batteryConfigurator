@@ -180,7 +180,23 @@ function fieldSchema(f: any): z.ZodTypeAny
     const [domain, key] = f.enumRef as [string, string];
     const obj = (enums as any)[domain][key];
     const flat = Array.isArray(obj) ? obj : Object.keys(obj);
-    return z.enum(flat as [string, ...string[]]);
+    switch (f?.type)
+    {
+      case 'indexString':
+      {
+        const allowed = new Set(flat.map(t => JSON.stringify(t)));
+        return z.tuple([z.number(), z.string()])
+          .refine((t) => {
+            return allowed.has(JSON.stringify(t));
+          }, {
+            message: 'Ungültige Auswahl (nicht in der Optionsliste)',
+          });
+      }
+      default:
+      {
+        return z.enum(flat as [string, ...string[]]);
+      }
+    }
   }
   switch (f?.type)
   {
@@ -191,7 +207,52 @@ function fieldSchema(f: any): z.ZodTypeAny
 
     case 'ipv4':
     {
-      return z.string().regex(/^(?:\d{1,3}\.){3}\d{1,3}$/, 'Invalid IPv4');
+      const OCTET = String.raw`(?:0|[1-9]\d?|1\d\d|2[0-4]\d|25[0-5])`;
+      const IPv4_RE = new RegExp(`^${OCTET}(?:\\.${OCTET}){3}$`);
+      return z.string().trim().regex(IPv4_RE, 'Invalid IPv4');
+    }
+
+    case 'number':
+    {
+      // Strings wie "12.3" -> Zahl; entferne .coerce, falls du reine Zahlen erwartest
+      let s = z.number().finite();
+
+      if (f?.int) s = s.int();  // ganzzahlig
+      if (typeof f?.min === 'number') s = s.min(f.min);
+      if (typeof f?.max === 'number') s = s.max(f.max);
+      if (typeof f?.multipleOf === 'number') s = s.multipleOf(f.multipleOf);
+
+      return s;
+    }
+
+    case 'numberWithUnit':
+    {
+      // Escape unit for regex (e.g. "%", "m/s", "°C")
+      const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const unit = String(f.unit ?? "");
+      const u = escapeRe(unit);
+
+      // Number: ±, integer or decimal (with/without leading 0: ".5")
+      const NUM = String.raw`[+-]?(?:\d+(?:\.\d+)?|\.\d+)`;
+
+      // Capture-Gruppe für die Zahl, optionaler Space/Tab/NBSP vor der Einheit
+      const RE = new RegExp(`^(${NUM})[ \\t\\u00A0]*${u}$`);
+
+      let s = z.string().trim().regex(RE, `Invalid value for unit ${unit}`);
+
+      // Optionale min/max-Validierung am numerischen Wert
+      if (typeof f.min === 'number' || typeof f.max === 'number') {
+        return s.refine((v) => {
+          const m = v.match(RE);
+          if (!m) return false;
+          const n = parseFloat(m[1]); // numerischer Teil
+          if (Number.isNaN(n)) return false;
+          if (typeof f.min === 'number' && n < f.min) return false;
+          if (typeof f.max === 'number' && n > f.max) return false;
+          return true;
+        }, 'Wert außerhalb des zulässigen Bereichs');
+      }
+      return s;
     }
 
     case 'integer-string':
