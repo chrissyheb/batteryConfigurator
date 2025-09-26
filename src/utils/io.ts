@@ -15,5 +15,6 @@ export async function importJSON(file: File): Promise<any>
 {
   const text = await file.text();
   const json = JSON.parse(text);
+  console.log('Import:', file, json);
   return json;
 }

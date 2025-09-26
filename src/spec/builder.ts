@@ -3,9 +3,12 @@ import { z, ZodIssue, ZodObject } from 'zod';
 import { IndexStringType, ui, enums, components, emsComponentTypes, mainComponentTypes } from './catalog';
 import { applyCrossRules, applyCardinality } from './rules';
 import { TupleToRecord } from '@/utils/helper';
+import { ZodIPv4 } from 'zod/v4';
 
 export type EmsHardwareKey = keyof typeof enums.ems.smartmeterHardwareToTypes;
 export type MainHardwareKey = keyof typeof enums.main.smartmeterHardwareToTypes;
+
+export type PathType = Array<string|number>;
 
 export const getLibraryVersion = (): readonly string[] =>
 {
@@ -198,7 +201,7 @@ function fieldSchema(f: any): z.ZodTypeAny
           .refine((t) => {
             return allowed.has(JSON.stringify(t));
           }, {
-            message: 'Ungültige Auswahl (nicht in der Optionsliste)',
+            message: 'Invalid selection',
           });
       }
       default:
@@ -221,8 +224,10 @@ function fieldSchema(f: any): z.ZodTypeAny
 
     case 'ipv4':
     {
-      const OCTET = String.raw`(?:0|[1-9]\d?|1\d\d|2[0-4]\d|25[0-5])`;
-      const IPv4_RE = new RegExp(`^${OCTET}(?:\\.${OCTET}){3}$`);
+      const Octet = String.raw`(?:0|[1-9]\d?|1\d\d|2[0-4]\d|25[0-5])`;
+      const OctetNoZero = String.raw`(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-5])`;
+      const IPv4_RE = new RegExp(`^${OctetNoZero}(?:\\.${Octet}){2}\\.${OctetNoZero}$`);
+      //return z.string().ip();
       return z.string().trim().regex(IPv4_RE, 'Invalid IPv4');
     }
 
@@ -234,13 +239,14 @@ function fieldSchema(f: any): z.ZodTypeAny
       if (f?.int) s = s.int();  // ganzzahlig
       if (typeof f?.min === 'number') s = s.min(f.min);
       if (typeof f?.max === 'number') s = s.max(f.max);
-      if (typeof f?.multipleOf === 'number') s = s.multipleOf(f.multipleOf);
+      if (typeof f?.int === 'boolean' && f.int === true) { s = s.int(); }
 
       return s;
     }
 
     case 'numberWithUnit':
     {
+      // input should be "12.3 m/s", "12.3m/s", "1m/s"
       // Escape unit for regex (e.g. "%", "m/s", "°C")
       const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const unit = String(f.unit ?? "");
@@ -250,45 +256,33 @@ function fieldSchema(f: any): z.ZodTypeAny
       const NUM = String.raw`[+-]?(?:\d+(?:\.\d+)?|\.\d+)`;
 
       // Capture-Gruppe für die Zahl, optionaler Space/Tab/NBSP vor der Einheit
-      const RE = new RegExp(`^(${NUM})[ \\t\\u00A0]*${u}$`);
+      const REwantedUnit = new RegExp(`^(${NUM})[ \\t\\u00A0]*${u}$`);
+      const REfoundUnit = new RegExp(`^(${NUM})[ \\t\\u00A0]*(.*)$`);
 
-      let s = z.string().trim().regex(RE, `Invalid value for unit ${unit}`);
+      // prüfen, ob die Zahl mit der gewünschten Einheit endet
+      const toNumber = z.string().trim().transform((s, ctx) => {
+        const good = s.match(REwantedUnit);
+        if (good) { return Number(good[1]); }
 
-      // Optionale min/max-Validierung am numerischen Wert
-      if (typeof f.min === 'number' || typeof f.max === 'number') {
-        return s.refine((v) => {
-          const m = v.match(RE);
-          if (!m) return false;
-          const n = parseFloat(m[1]); // numerischer Teil
-          if (Number.isNaN(n)) return false;
-          if (typeof f.min === 'number' && n < f.min) return false;
-          if (typeof f.max === 'number' && n > f.max) return false;
-          return true;
-        }, 'Wert außerhalb des zulässigen Bereichs');
-      }
-      return s;
-    }
+        const bad = s.match(REfoundUnit);
+        const foundUnit = bad ? bad[2] : '';
+        ctx.addIssue({
+          code: 'custom',
+          message: 
+            foundUnit
+              ? `Wrong unit: found ${foundUnit} - expected ${unit}`
+              : `No unit - expected ${unit}`
+        });
+        return z.NEVER;
+      })
 
-    case 'integer-string':
-    {
-      let s = z.string().regex(/^\d+$/, 'Integer as String');
-      if (typeof f.min === 'number' || typeof f.max === 'number')
-      {
-        return s.refine((v) =>
-        {
-          const n = Number(v);
-          if (typeof f.min === 'number' && n < f.min)
-          {
-            return false;
-          }
-          if (typeof f.max === 'number' && n > f.max)
-          {
-            return false;
-          }
-          return true;
-        }, 'Wert außerhalb des zulässigen Bereichs');
-      }
-      return s;
+      let num = z.number().finite();
+      if (typeof f?.min === 'number') { num = num.min(f.min); }
+      if (typeof f?.max === 'number') { num = num.max(f.max); }
+      if (typeof f?.int === 'boolean' && f.int === true) { num = num.int(); }
+      
+      // 3) Einmalig pipen: String -> number
+      return toNumber.pipe(num);
     }
 
     default:
@@ -349,15 +343,20 @@ const configZ = z.object({
     Ems: z.object({
       Equipment: z.object({
         Smartmeter: z.array(smartmeterZ),
-        SlaveLocalUM: z.array(slaveLocalZ).min(1),
-        SlaveRemoteUM: z.array(slaveRemoteZ)
+        SlaveLocalUM: z.array(slaveLocalZ).min(1, 'SlaveLocalUM required'),
+        SlaveRemoteUM: z.array(slaveRemoteZ),
+        //LocalRemoteUnits: z.array(z.union([slaveLocalZ, slaveRemoteZ]))
       }).strict(),
       Config: emsConfigZ,
     }).strict(),
     Main: z.object({
       Type: z.enum(enums.main.types),
-      Equipment: z.array(z.union([smartmeterMainZ, batteryInverterZ])).min(1),
-      Config: mainConfigZ
+      Equipment: z.object({
+        SmartmeterMain: smartmeterMainZ,
+        BatteryInverter: z.array(batteryInverterZ).min(1, 'BatteryInverter required'),
+      }).strict(),
+      //Equipment: z.array(z.union([smartmeterMainZ, batteryInverterZ])).min(1),
+      Config: mainConfigZ,
     }).strict()
   }).strict()
 }).strict();
@@ -384,15 +383,16 @@ export function getInitialConfig(): any
 //  const emsEq:any[] = []; 
 //    emsEq.push(createByKey('Smartmeter',{n:1})); 
 //    emsEq.push(createByKey('SlaveLocalUM',{n:1}));
-  const mainEq:any[] = []; 
-    mainEq.push(createByKey('SmartmeterMain',{n:1}));
-    mainEq.push(createByKey('BatteryInverter',{n:1}));
   const emsEqSmartmeter:any[] = [];
     emsEqSmartmeter.push(createByKey('Smartmeter',{n:1}));
   const emsEqSlaveLocalUM:any[] = [];
     emsEqSlaveLocalUM.push(createByKey('SlaveLocalUM',{n:1}));
   const emsEqSlaveRemoteUM:any[] = [];
-  const emsEqConfig:any = createByKey('EmsConfig',{n:1});
+  const emsConfig:any = createByKey('EmsConfig',{n:1});
+  const mainEqSmartmeter:any = createByKey('SmartmeterMain',{n:1});
+  const mainEqBatteryInverter:any[] = [];
+    mainEqBatteryInverter.push(createByKey('BatteryInverter',{n:1}));
+  const mainConfig:any = createByKey('MainConfig',{n:1});
   const initialConfig = {
     Global: globalEq, 
     System: systemEq,
@@ -403,10 +403,18 @@ export function getInitialConfig(): any
           SlaveLocalUM: emsEqSlaveLocalUM,
           SlaveRemoteUM: emsEqSlaveRemoteUM
         },
-        Config: emsEqConfig
+        Config: emsConfig
       }, 
-      Main: { Type:'Terra', Equipment: mainEq }
+      Main: { 
+        Type:'Terra',
+        Equipment: {
+          SmartmeterMain: mainEqSmartmeter,
+          BatteryInverter: mainEqBatteryInverter
+        },
+        Config: mainConfig
+      }
     } 
   };
+  console.log(initialConfig);
   return initialConfig;
 }

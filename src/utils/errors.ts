@@ -1,16 +1,14 @@
 
 import type { ZodIssue } from 'zod';
+import { PathType } from '@/spec/builder';
 
 export type ErrorIndex = Map<string, string[]>;
 
-export function keyFromPath(path: (string | number)[]): string
+export function keyFromPath(path: PathType): string
 {
   const parts = path.map((seg) =>
   {
-    if (typeof seg === 'number')
-    {
-      return String(seg);
-    }
+    if (typeof seg === 'number') { return String(seg); }
     return seg;
   });
   return parts.join('.');
@@ -19,7 +17,7 @@ export function keyFromPath(path: (string | number)[]): string
 // minimaler Typ für dein UI / error-index
 export type SimpleIssue = {
   message: string;
-  path: (string | number)[];
+  path: PathType;
 };
 
 type UnrecognizedKeysIssue = Extract<ZodIssue, { code: 'unrecognized_keys' }>;
@@ -33,14 +31,14 @@ export function expandUnknownKeyIssues(issues: ZodIssue[]): SimpleIssue[] {
 
   for (const is of issues) {
     if (isUnrecognizedKeysIssue(is)) {
-      const base = (is.path ?? []) as (string | number)[];
+      const base = (is.path ?? []) as PathType;
       for (const k of is.keys) {
         out.push({ message: 'Unknown key', path: [...base, k] });
       }
     } else {
       out.push({
         message: is.message,
-        path: (is.path ?? []) as (string | number)[],
+        path: (is.path ?? []) as PathType,
       });
     }
   }
@@ -59,7 +57,8 @@ export function buildErrorIndex(issues: SimpleIssue[]): ErrorIndex {
   return map;
 }
 
-export function errorAt(index: ErrorIndex, path: (string | number)[]): string | undefined
+
+export function errorAt(index: ErrorIndex, path: PathType): string | undefined
 {
   const key = keyFromPath(path);
   const msgs = index.get(key);
@@ -70,7 +69,7 @@ export function errorAt(index: ErrorIndex, path: (string | number)[]): string | 
   return msgs[0];
 }
 
-export function formatPath(path: (string | number)[] | undefined): string
+export function formatPath(path: PathType | undefined): string
 {
   // no or empty path
   if (!path || path.length === 0) { return '(root)'; }
