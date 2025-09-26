@@ -1,32 +1,33 @@
 
 import React from 'react';
+import { useRef } from 'react';
 import { useStore, useConfigAccessors } from './store';
-import { SelectField, TextField } from '@/components/Fields';
-import { getLibraryVersion, getHardwareVariants } from '@/spec/builder';
+import { SelectField, TextField, setGlobalProps } from '@/components/Fields';
+import { getInitialConfig, getLibraryVersion, getHardwareVariants, PathType } from '@/spec/builder';
 import SystemForm from '@/components/SystemForm';
 import EMSForm from '@/components/EMSForm';
 import MainForm from '@/components/MainForm';
 import { exportJSON, importJSON } from '@/utils/io';
 import { clearLocal } from '@/utils/storage';
-import { getInitialConfig } from '@/spec/builder';
 import { formatPath, errorAt } from '@/utils/errors';
 
 export default function App()
 {
-  const { state, dispatch, errorIndex, issues, isValid, flatIssues } = useStore();
+  const { state, dispatch, errorIndex, issues, isValid, flatIssues, addIssue } = useStore();
 
   const {get, getOr, setIn, set, has, patch, del } = useConfigAccessors(state, dispatch);
 
-  const setCfg = (cfg: any): void => { dispatch({ type: 'SET', payload: cfg }); };
-
   const onExport = (): void => { exportJSON(state, 'config.json'); };
 
+  const fileRef = useRef<HTMLInputElement>(null);
   const onImport = async (file: File): Promise<void> =>
   {
+    console.log('Import start')
     clearLocal();
     const cfg = await importJSON(file);
+    console.log('Import: data read')
     set(cfg);
-    //dispatch({ type: 'SET', payload: cfg });
+    console.log('Import done')
   };
 
   const onReset = (): void =>
@@ -34,26 +35,36 @@ export default function App()
     clearLocal();
     const fresh = getInitialConfig();
     set(fresh);
-    //dispatch({ type: 'SET', payload: fresh });
   };
+
+  setGlobalProps({get, getOr, setIn, errorIndex, addIssue});
 
   return (
     <div className="container">
-      <header className="row" style={{ justifyContent: 'space-between' }}>
-        <h1>Battery Configurator</h1>
+      <header className="row" {...{ style: { 
+          backgroundColor: flatIssues.length > 0 ? 'var(--errBg)' : 'var(--bg)', 
+          borderColor: flatIssues.length > 0 ? 'var(--errBorder)' : 'var(--bg)' } }}>
+        <h1>Terra / BLOKK PLC Configurator</h1>
         <div className="row">
           <button className="ghost" onClick={onReset}>Reset</button>
           <button onClick={onExport}>Export</button>
-          <label className="btn">Import
-            <input hidden type="file" accept="application/json" onChange={(e) => { const f = e.target.files?.[0]; if (f) { onImport(f); } }} />
-          </label>
+          <button onClick={() => fileRef.current?.click()}>Import</button>
+          <input hidden ref={fileRef} type="file" accept="application/json"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) onImport(f);
+              e.target.value = ""; // reset -> not only first click triggers an import of same file
+            }}
+          />
         </div>
       </header>
 
       {!isValid && (
-        <div className="error-panel">
-          <strong>Fehler</strong>
-          <ul>{flatIssues.map((er, i) => { return <li key={i}>{er.message}&nbsp;&nbsp;&nbsp;&nbsp;<code>@ {formatPath(er.path as (string | number)[] | undefined)}</code></li>; })}</ul>
+        <div className="row">
+          <div className="error-panel">
+            <strong>Fehler</strong>
+            <ul>{flatIssues.map((er, i) => { return <li key={i}>{er.message}&nbsp;&nbsp;&nbsp;&nbsp;<code>@ {formatPath(er.path as PathType | undefined)}</code></li>; })}</ul>
+          </div>
         </div>
       )}
 
@@ -61,28 +72,24 @@ export default function App()
         <h2>Global</h2>
         <TextField 
           leftLabel="Customer"
-          value={getOr(['Global', 'Customer'],'')}
-          onChange={(v: string) => { setIn(['Global', 'Customer'], v );}}
-          error={errorAt(errorIndex, ['Global', 'Customer'])}
+          path={['Global', 'Customer']}
         />     
         <SelectField
           label="Library Version"
+          path={['Global', 'ModularPlc', 'Version']}
           options={getLibraryVersion()}
-          value={get(['Global', 'ModularPlc', 'Version'])}
-          onChange={(v: string) => { setIn(['Global', 'ModularPlc', 'Version'], v );}}
-          error={errorAt(errorIndex, ['Global', 'ModularPlc', 'Version'])}
         />    
         <SelectField
           label="Hardware Variant"
+          path={['Global', 'ModularPlc', 'HardwareVariant']}
           options={getHardwareVariants()}
-          value={get(['Global', 'ModularPlc', 'HardwareVariant'])}
-          onChange={(v: string) => { setIn(['Global', 'ModularPlc', 'HardwareVariant'], v );}}
-          error={errorAt(errorIndex, ['Global', 'ModularPlc', 'HardwareVariant'])}
         />
       </section>
       <SystemForm cfg={state} setCfg={set} setInCfg={setIn} getCfg={get} getOrCfg={getOr} errorIndex={errorIndex} />
-      <EMSForm cfg={state} setCfg={set} setInCfg={setIn} getCfg={get} getOrCfg={getOr} delFromCfg={del} errorIndex={errorIndex} />
-      <MainForm cfg={state} setCfg={set} errorIndex={errorIndex} />
+      <EMSForm cfg={state} setCfg={set} setInCfg={setIn} getCfg={get} getOrCfg={getOr} delFromCfg={del} hasCfg={has} errorIndex={errorIndex} />
+      <MainForm cfg={state} setCfg={set} setInCfg={setIn} getCfg={get} getOrCfg={getOr} delFromCfg={del} hasCfg={has} errorIndex={errorIndex} />
+
     </div>
   );
 }
+   

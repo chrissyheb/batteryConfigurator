@@ -1,41 +1,31 @@
 
 import React from 'react';
 import { SelectField, TextField, GuidField, NumberField, CheckField } from './Fields';
-import { emsEquipmentLists, emsEquipmentKeys, componentType, createByKey, nextIndexForType, getEmsSmartmeterHardwares, getEmsSmartmeterModels, getEmsSmartmeterUseCaseTypes } from '@/spec/builder';
+import { PathType, emsEquipmentKeys, createByKey, getEmsSmartmeterHardwares, getEmsSmartmeterModels, getEmsSmartmeterUseCaseTypes } from '@/spec/builder';
 import { errorAt } from '@/utils/errors';
 import { components } from '@/spec/catalog';
-import { stripUnit, addUnit } from '@/utils/helper';
+import { JSONValue } from '@/app/store';
 
-export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; delFromCfg:(p: any) => void; errorIndex: any })
+export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; delFromCfg:(p: any) => void; hasCfg:(p: any) => boolean; errorIndex: any })
 {
-  const { cfg, setCfg, setInCfg, getCfg, getOrCfg, delFromCfg, errorIndex } = props;
-  //const list = cfg.Units.Ems.Equipment;
-  const lists: Partial<emsEquipmentLists> = cfg.Units.Ems.Equipment ?? {};
-  const listsSingle: emsEquipmentLists =
+  const { cfg, setInCfg, getOrCfg, delFromCfg, errorIndex } = props;
+  
+  function addElement(path: PathType, type: emsEquipmentKeys): void
   {
-    Smartmeter: lists.Smartmeter ?? [],
-    SlaveLocalUM: lists.SlaveLocalUM ?? [],
-    SlaveRemoteUM: lists.SlaveRemoteUM ?? []
-  };
-
-
-  function addElement(type: emsEquipmentKeys)
-  {
-    //const lists: Partial<emsEquipmentLists> = cfg.Units.Ems.Equipment ?? {};
-    const current: any[] = lists[type] ?? [];
-    const n: number = current.length + 1;
-    const item: any = createByKey(type, { n });
-    const next: emsEquipmentLists = { ...listsSingle };
-    next[type] = [ ...next[type], item ];
-
-    setCfg({ ...cfg, Units: { ...cfg.Units, Ems: { ...cfg.Units.Ems, Equipment: next }}});
+    const pathExt: PathType = path.concat([type]);
+    const list:JSONValue = getOrCfg(pathExt, []);
+    let idxNew: number = 0;
+    if (!Array.isArray(list)) { return; }
+    idxNew = list.length;
+    const item: any = createByKey(type, { n: idxNew+1 });
+    const pathNew: PathType = pathExt.concat([idxNew]);
+    setInCfg(pathNew, item);
   }
 
-  const removeAt = (type: emsEquipmentKeys, i: number): void =>
+  function removeElement(path: PathType, i?: number): void 
   {
-    const listsReduced: emsEquipmentLists = { ...listsSingle };
-    listsReduced[type] = listsSingle[type].filter((_: any, idx: number) => { return idx !== i; });
-    setCfg({ ...cfg, Units: { ...cfg.Units, Ems: { ...cfg.Units.Ems, Equipment: listsReduced } } });
+    if (i !== undefined && i !== null) { delFromCfg(path.concat([i])); }
+    else { delFromCfg(path); }
   };
 
 
@@ -45,135 +35,166 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
       <div className="card">
         <h3>Config - Grid Connection Point</h3>
         <NumberField 
-          leftLabel="PreemptiveMaxGridChargePower"
-          rightLabel={components.System.fields.BatteryBalancing.group.PreemptiveMaxGridChargePower.unit}
-          value={stripUnit(cfg.System?.BatteryBalancing?.PreemptiveMaxGridChargePower)}
+          leftLabel="PowerGridConsumptionLimit"
+          path={['Units','Ems','Config','GridConnectionPoint','PowerGridConsumptionLimit']}
+          rightLabel={components.EmsConfig.fields.GridConnectionPoint.group.PowerGridConsumptionLimit.unit}
           minValue="0"
-          maxValue="50"
-          step="1"
-          onChange={(v: number) => 
-          {
-            const c = structuredClone(cfg);
-            if (!c.System.BatteryBalancing) { c.System.BatteryBalancing = {}; }
-            c.System.BatteryBalancing.PreemptiveMaxGridChargePower = addUnit(v, components.System.fields.BatteryBalancing.group.PreemptiveMaxGridChargePower.unit);
-            setCfg(c);
-          }}
-          error={errorAt(errorIndex, ['System', 'BatteryBalancing', 'PreemptiveMaxGridChargePower'])}
-        />
-        <CheckField 
-          label="PowerSwitchMainAvailable"
-          value={cfg.Units?.Main?.Config?.PowerSwitchMainAvailable ?? false}
-          onChange={(v: boolean) => 
-          {
-            const c = structuredClone(cfg);
-            if (!c.Units.Main.Config) { c.Units.Main.Config = {}; }
-            c.Units.Main.Config.PowerSwitchMainAvailable = v;
-            setCfg(c);
-          }}
-          error={errorAt(errorIndex, ['Units','Main','Config','PowerSwitchMainAvailable'])}
         />
         <NumberField 
-          leftLabel="PowerGridConsumptionLimit"
-          rightLabel={components.EmsConfig.fields.GridConnectionPoint.group.PowerGridConsumptionLimit.unit}
-          value={stripUnit(cfg.Units.Ems.Config?.GridConnectionPoint?.PowerGridConsumptionLimit)}
+          leftLabel="PowerGridFeedInLimit"
+          path={['Units','Ems','Config','GridConnectionPoint','PowerGridFeedInLimit']}
+          rightLabel={components.EmsConfig.fields.GridConnectionPoint.group.PowerGridFeedInLimit.unit}
           minValue="0"
-          onChange={(v: number) => 
-          {
-            const c = structuredClone(cfg);
-            c.Units.Ems.Config.GridConnectionPoint.PowerGridConsumptionLimit = addUnit(v, components.EmsConfig.fields.GridConnectionPoint.group.PowerGridConsumptionLimit.unit);
-            setCfg(c);
-          }}
-          error={errorAt(errorIndex, ['Units','Ems','Config','GridConnectionPoint','PowerGridConsumptionLimit'])}
+        />
+        <NumberField 
+          leftLabel="PowerGridConsumptionOffset"
+          path={['Units','Ems','Config','GridConnectionPoint','PowerGridConsumptionOffset']}
+          rightLabel={components.EmsConfig.fields.GridConnectionPoint.group.PowerGridConsumptionOffset.unit}
+          minValue="0"
         />
       </div>
-      <div className="row">
-        <button onClick={() => {addElement('Smartmeter')}}>+ Smartmeter</button>
-        <button onClick={() => {addElement('SlaveLocalUM')}}>+ SlaveLocalUM</button>
-        <button onClick={() => {addElement('SlaveRemoteUM')}}>+ SlaveRemoteUM</button>
+      
+      <div className="card">
+        <h3>Config - Master/Slave</h3>
+        <NumberField 
+          leftLabel="PowerActiveInstalledTotal"
+          path={['Units','Ems','Config','MasterSlave','PowerActiveInstalledTotal']}
+          rightLabel={components.EmsConfig.fields.MasterSlave.group.PowerActiveInstalledTotal.unit}
+          minValue="0"
+        />
+        <NumberField 
+          leftLabel="CapacityInstalledTotal"
+          path={['Units','Ems','Config','MasterSlave','CapacityInstalledTotal']}
+          rightLabel={components.EmsConfig.fields.MasterSlave.group.CapacityInstalledTotal.unit}
+          minValue="0"
+        />
+        <NumberField 
+          leftLabel="PowerChargeLimitTotal"
+          path={['Units','Ems','Config','MasterSlave','PowerChargeLimitTotal']}
+          rightLabel={components.EmsConfig.fields.MasterSlave.group.PowerChargeLimitTotal.unit}
+          minValue="0"
+        />
+        <NumberField 
+          leftLabel="PowerDischargeLimitTotal"
+          path={['Units','Ems','Config','MasterSlave','PowerDischargeLimitTotal']}
+          rightLabel={components.EmsConfig.fields.MasterSlave.group.PowerDischargeLimitTotal.unit}
+          minValue="0"
+        />
       </div>
 
-      {listsSingle.Smartmeter.map((e: any, i: number) =>
+      <div className="row">
+        <button onClick={() => {addElement(['Units','Ems','Equipment'],'Smartmeter')}}>+ Smartmeter</button>
+        <button onClick={() => {addElement(['Units','Ems','Equipment'],'SlaveLocalUM')}}>+ SlaveLocalUM</button>
+        <button onClick={() => {addElement(['Units','Ems','Equipment'],'SlaveRemoteUM')}}>+ SlaveRemoteUM</button>
+      </div>
+
+      {getOrCfg(['Units','Ems','Equipment',"Smartmeter"], []).map((e: any, i: number) =>
       {
         return (
           <div key={i} className="card">
             <div className="row" style={{ justifyContent: 'space-between' }}>
-              <h3>{e.Type + ' (' + e.Name + ')'}</h3>
-              <button className="ghost" onClick={() => delFromCfg(['Units','Ems','Equipment',"Smartmeter",i])}>Entfernen</button>
+              <h3>{getOrCfg(['Units','Ems','Equipment',"Smartmeter",i,'Type'], 'Unkown Smartmeter') + ' (' + getOrCfg(['Units','Ems','Equipment',"Smartmeter",i,'Name'], '') + ')'}</h3>
+              <button className="ghost" onClick={() => removeElement(['Units','Ems','Equipment','Smartmeter'],i)}>Entfernen</button>
             </div>
-            <SelectField leftIsType options={['Smartmeter']} value={e.Type} onChange={() => {}} />
-            <TextField leftLabel="Name" value={e.Name} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment.Smartmeter[i].Name = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment', i, 'Name'])} />
-            <TextField leftLabel="DisplayName" value={e.DisplayName ?? ''} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment.Smartmeter[i].DisplayName = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment', i, 'DisplayName'])} />
+            <TextField 
+              leftLabel="Name"
+              path={['Units','Ems','Equipment',"Smartmeter",i,'Name']}
+            />
+            <TextField
+              leftLabel="DisplayName"
+              path={['Units','Ems','Equipment',"Smartmeter",i,'DisplayName']}
+            />
             <SelectField
               label="HardwareType"
+              path={['Units','Ems','Equipment',"Smartmeter",i,'HardwareType']}
               options={getEmsSmartmeterHardwares()}
-              value={e.HardwareType}
               onChange={(v: string) =>
               {
                 const models = getEmsSmartmeterModels(v);
                 setInCfg(['Units','Ems','Equipment',"Smartmeter",i,'HardwareType'], v);
                 setInCfg(['Units','Ems','Equipment',"Smartmeter",i,'HardwareModel'], models[0]);
               }}
-              error={errorAt(errorIndex, ['Units','Ems','Equipment',"Smartmeter",i,'HardwareType'])}
             />
             <SelectField
               label="HardwareModel"
-              options={getEmsSmartmeterModels(e.HardwareType)}
-              value={e.HardwareModel ?? ''}
-              onChange={(v: string) =>
-              {
-                setInCfg(['Units','Ems','Equipment',"Smartmeter",i,'HardwareModel'], v);
-              }}
-              error={errorAt(errorIndex, ['Units','Ems','Equipment',"Smartmeter",i,'HardwareModel'])}
+              path={['Units','Ems','Equipment',"Smartmeter",i,'HardwareModel']}
+              options={getEmsSmartmeterModels(getOrCfg(['Units','Ems','Equipment',"Smartmeter",i,'HardwareType'], ''))}
             />
-            <GuidField value={e.Guid ?? ''} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment.Smartmeter[i].Guid = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment',"Smartmeter",i,'Guid'])} />
-            <SelectField label="Usecase" options={getEmsSmartmeterUseCaseTypes()} value={e.Config?.Usecase ?? 'Undefined'} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment.Smartmeter[i].Config.Usecase = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment', "Smartmeter",i,'Config','Usecase'])} />
+            <GuidField
+              path={['Units','Ems','Equipment',"Smartmeter",i,'Guid']}
+            />
+            <SelectField
+              label="Usecase"
+              path={['Units','Ems','Equipment',"Smartmeter",i,'Config','Usecase']}
+              options={getEmsSmartmeterUseCaseTypes()}
+            />
             <NumberField 
               leftLabel="Port"
-              value={e.Config?.Port ?? 0}
+              path={['Units','Ems','Equipment',"Smartmeter",i,'Config','Port']}
               minValue="1"
               maxValue="65535"
               step="1"
-              onChange={(v: number) => 
-              {
-                const c = structuredClone(cfg);
-                c.Units.Ems.Equipment.Smartmeter[i].Config.Port = v;
-                setCfg(c);
-              }}
-              error={errorAt(errorIndex, ['Units','Ems','Equipment',"Smartmeter",i,'Config','Port'])}
             />
           </div>
         );
       })}
 
-      {listsSingle.SlaveLocalUM.map((e: any, i: number) =>
+      {getOrCfg(['Units','Ems','Equipment',"SlaveLocalUM"], []).map((e: any, i: number) =>
       {
         return (
           <div key={i} className="card">
             <div className="row" style={{ justifyContent: 'space-between' }}>
-              <h3>{e.Type + ' (' + e.Name + ')'}</h3>
-              <button className="ghost" onClick={() => removeAt('SlaveLocalUM',i)}>Entfernen</button>
+              <h3>{getOrCfg(['Units','Ems','Equipment',"SlaveLocalUM",i,'Type'], 'Unkown Local Unit') + ' (' + getOrCfg(['Units','Ems','Equipment',"SlaveLocalUM",i,'Name'], '') + ')'}</h3>
+              <button className="ghost" onClick={() => removeElement(['Units','Ems','Equipment','SlaveLocalUM'],i)}>Entfernen</button>
             </div>
-            <SelectField leftIsType options={['SlaveLocalUM']} value={e.Type} onChange={() => {}} />
-            <TextField leftLabel="Name" value={e.Name} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment.SlaveLocalUM[i].Name = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment','SlaveLocalUM',i,'Name'])} />
-            <TextField leftLabel="DisplayName" value={e.DisplayName ?? ''} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment.SlaveLocalUM[i].DisplayName = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment','SlaveLocalUM',i,'DisplayName'])} />
-            <GuidField value={e.Guid ?? ''} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment.SlaveLocalUM[i].Guid = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment','SlaveLocalUM',i,'Guid'])} />
+            <TextField
+              leftLabel="Name"
+              path={['Units','Ems','Equipment',"SlaveLocalUM",i,'Name']}
+            />
+            <TextField
+              leftLabel="DisplayName"
+              path={['Units','Ems','Equipment',"SlaveLocalUM",i,'DisplayName']}
+            />
+            <GuidField
+              path={['Units','Ems','Equipment',"SlaveLocalUM",i,'Guid']}
+            />
+            <TextField
+              leftLabel="IP Address"
+              path={['Units','Ems','Equipment',"SlaveLocalUM",i,'Config','IpAddress']}
+            />
           </div>
         );
       })}
 
-      {listsSingle.SlaveRemoteUM.map((e: any, i: number) =>
+      {getOrCfg(['Units','Ems','Equipment',"SlaveRemoteUM"], []).map((e: any, i: number) =>
       {
         return (
           <div key={i} className="card">
             <div className="row" style={{ justifyContent: 'space-between' }}>
-              <h3>{e.Type + ' (' + e.Name + ')'}</h3>
-              <button className="ghost" onClick={() => removeAt('SlaveRemoteUM',i)}>Entfernen</button>
+              <h3>{getOrCfg(['Units','Ems','Equipment',"SlaveRemoteUM",i,'Type'], 'Unkown Remote Unit') + ' (' + getOrCfg(['Units','Ems','Equipment',"SlaveRemoteUM",i,'Name'], '') + ')'}</h3>
+              <button className="ghost" onClick={() => removeElement(['Units','Ems','Equipment','SlaveRemoteUM'],i)}>Remove</button>
             </div>
-            <SelectField leftIsType options={['SlaveRemoteUM']} value={e.Type} onChange={() => {}} />
-            <TextField leftLabel="Name" value={e.Name} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment.SlaveRemoteUM[i].Name = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment','SlaveRemoteUM',i,'Name'])} />
-            <TextField leftLabel="DisplayName" value={e.DisplayName ?? ''} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment.SlaveRemoteUM[i].DisplayName = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment','SlaveRemoteUM',i,'DisplayName'])} />
-            <GuidField value={e.Guid ?? ''} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment.SlaveRemoteUM[i].Guid = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment','SlaveRemoteUM',i,'Guid'])} />
-            <TextField leftLabel="IP Address" value={e.Ip} onChange={(v: string) => { const c = structuredClone(cfg); c.Units.Ems.Equipment.SlaveRemoteUM[i].Ip = v; setCfg(c); }} error={errorAt(errorIndex, ['Units','Ems','Equipment','SlaveRemoteUM',i,'Ip'])} />
+            <SelectField
+              leftIsType
+              options={['SlaveRemoteUM']}
+              value={getOrCfg(['Units','Ems','Equipment',"SlaveRemoteUM",i,'Type'], 'SlaveRemoteUM')}
+              onChange={() => {}}
+            />
+            <TextField
+              leftLabel="Name"
+              path={['Units','Ems','Equipment',"SlaveRemoteUM",i,'Name']}
+            />
+            <TextField
+              leftLabel="DisplayName"
+              path={['Units','Ems','Equipment',"SlaveRemoteUM",i,'DisplayName']}
+            />
+            <GuidField
+              path={['Units','Ems','Equipment',"SlaveRemoteUM",i,'Guid']}
+            />
+            <TextField
+              leftLabel="IP Address"
+              path={['Units','Ems','Equipment',"SlaveRemoteUM",i,'Config','IpAddress']}
+            />
           </div>
         );
       })}

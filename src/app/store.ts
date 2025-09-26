@@ -1,35 +1,35 @@
 
-import { useEffect, useMemo, useReducer } from 'react';
+import { useEffect, useMemo, useReducer, useState } from 'react';
 import { loadLocal, saveLocal } from '@/utils/storage';
-import { validate, getInitialConfig } from '@/spec/builder';
-import { buildErrorIndex, expandUnknownKeyIssues } from '@/utils/errors';
+import { validate, getInitialConfig, PathType } from '@/spec/builder';
+import { buildErrorIndex, expandUnknownKeyIssues, SimpleIssue } from '@/utils/errors';
 
-export function useConfigAccessors(state: Config, dispatch: React.Dispatch<Action>) {
+export function useConfigAccessors(state: JSONObject, dispatch: React.Dispatch<Action>) {
   return {
-    get: (path: Array<string|number>) => getAt(state, path),
-    getOr: (path: Array<string|number>, fb: any) => getAtOr(state, path, fb),
-    has: (path: Array<string|number>) => hasAt(state, path),
-    set: (p: Config) =>
+    get: (path: PathType) => getAt(state, path), // get element at path from state (current config  )
+    getOr: (path: PathType, fb: any) => getAtOr(state, path, fb),
+    has: (path: PathType) => hasAt(state, path),
+    set: (p: JSONObject) =>
       dispatch({ type: 'SET', payload: p }),
-    setIn: (path: Array<string|number>, value: JSONValue) =>
+    setIn: (path: PathType, value: JSONValue) =>
       dispatch({ type: 'SET_AT_PATH', path, value }),
-    del: (path: Array<string|number>) =>
+    del: (path: PathType) =>
       dispatch({ type: 'DELETE_AT_PATH', path }),
-    patch: (p: DeepPartial<Config>) =>
+    patch: (p: DeepPartial<JSONObject>) =>
       dispatch({ type: 'PATCH', payload: p }),
   };
 }
 
 // Breite, sichere Typen für dynamische Config
-type JSONPrimitive = string | number | boolean | null;
-type JSONValue = JSONPrimitive | JSONObject | JSONArray;
-interface JSONObject { [k: string]: JSONValue }
-interface JSONArray extends Array<JSONValue> {}
-type Config = JSONObject;
+export type JSONPrimitive = string | number | boolean | null;
+export type JSONValue = JSONPrimitive | JSONObject | JSONArray;
+export interface JSONObject { [k: string]: JSONValue }
+export interface JSONArray extends Array<JSONValue> {}
 
-// --- Selector-Helfer (LESEN) ---
-export function getAt(obj: JSONObject, path: Array<string|number>): JSONValue | undefined {
-  let cur: any = obj;
+// Read element value at path or return undefined
+export function getAt(obj:JSONObject, path:PathType): JSONValue | undefined {
+  if (path?.length === 0 || !obj) return undefined; // invalid path or object
+  let cur:any = obj;
   for (const key of path) {
     if (cur == null) return undefined;
     cur = cur[key as any];
@@ -37,12 +37,14 @@ export function getAt(obj: JSONObject, path: Array<string|number>): JSONValue | 
   return cur as JSONValue | undefined;
 }
 
-export function getAtOr<T>(obj: JSONObject, path: Array<string|number>, fallback: T): JSONValue | T {
+// Read element value at path or return fallback
+export function getAtOr<T>(obj: JSONObject, path: PathType, fallback: T): JSONValue | T {
   const v = getAt(obj, path);
   return v === undefined ? fallback : v;
 }
 
-export function hasAt(obj: JSONObject, path: Array<string|number>): boolean {
+// Check if element exists at path
+export function hasAt(obj: JSONObject, path: PathType): boolean {
   let cur: any = obj;
   for (const key of path) {
     if (cur == null || !(key in cur)) return false;
@@ -74,7 +76,7 @@ function deepMerge<T extends JSONObject>(base: T, patch: DeepPartial<T>): T {
   return out;
 }
 
-function setIn<T extends JSONObject>(obj: T, path: Array<string|number>, value: JSONValue): T {
+export function setIn<T extends JSONObject>(obj: T, path: PathType, value: JSONValue): T {
   const clone: any = structuredClone(obj);
   let cur: any = clone;
   for (let i = 0; i < path.length - 1; i++) {
@@ -90,9 +92,10 @@ function setIn<T extends JSONObject>(obj: T, path: Array<string|number>, value: 
   return clone as T;
 }
 
-export function delIn<T extends JSONObject>(obj: T, path: Array<string | number>): T {
-  if (!path.length) return obj;
+export function delIn<T extends JSONObject>(obj: T, path: PathType): T {
+  if ((path?.length ?? 0) === 0) return obj;
 
+  // copy structure
   const clone: any = structuredClone(obj);
   let parent: any = clone;
 
@@ -103,16 +106,15 @@ export function delIn<T extends JSONObject>(obj: T, path: Array<string | number>
   }
 
   const last = path[path.length - 1];
-
   // Fall 1: letzter Key ist ein Array-Index -> per splice entfernen
   if (typeof last === "number" && Array.isArray(parent)) {
-    if (last >= 0 && last < parent.length) parent.splice(last, 1);
+    if (last >= 0 && last < parent.length) { parent.splice(last, 1); }
     return clone as T;
   }
   // Optional: String-"0" als Index behandeln (falls du Indizes als String reichst)
   if (typeof last === "string" && Array.isArray(parent) && /^\d+$/.test(last)) {
     const idx = Number(last);
-    if (idx >= 0 && idx < parent.length) parent.splice(idx, 1);
+    if (idx >= 0 && idx < parent.length) parent = parent.splice(idx, 1);
     return clone as T;
   }
 
@@ -126,12 +128,12 @@ export function delIn<T extends JSONObject>(obj: T, path: Array<string | number>
 // --- Reducer ---
 
 type Action =
-  | { type: 'SET'; payload: Config }
-  | { type: 'PATCH'; payload: DeepPartial<Config> }              // tiefer Merge
-  | { type: 'SET_AT_PATH'; path: Array<string|number>; value: JSONValue } // legt Pfade an
-  | { type: 'DELETE_AT_PATH'; path: Array<string|number> }; // löscht Pfade
+  | { type: 'SET'; payload: JSONObject } // sets path
+  | { type: 'PATCH'; payload: DeepPartial<JSONObject> } // deep merge
+  | { type: 'SET_AT_PATH'; path: PathType; value: JSONValue } // inserts/replaces a path
+  | { type: 'DELETE_AT_PATH'; path: PathType }; // delets a path
 
-function reducer(state: Config, action: Action): Config {
+function reducer(state: JSONObject, action: Action): JSONObject {
   switch (action.type) {
     case 'SET':
       return action.payload;
@@ -146,6 +148,7 @@ function reducer(state: Config, action: Action): Config {
   }
 }
 
+
 export function useStore()
 {
   const [state, dispatch] = useReducer(reducer, null, () =>
@@ -155,17 +158,26 @@ export function useStore()
     return getInitialConfig();
   });
 
+  const [addIssues, setAddIssues] = useState(new Array<SimpleIssue>());
+  const [issues, setIssues] = useState(0);
+
   const { result, flatIssues, errorIndex } = useMemo(() =>
   {
     const result = validate(state);
-    const flatIssues = expandUnknownKeyIssues(result.issues);
+    const valIssues = expandUnknownKeyIssues(result.issues);
+    const flatIssues = [...valIssues, ...addIssues];
     const errorIndex = buildErrorIndex(flatIssues);
     return { result, flatIssues, errorIndex };
-  }, [state]);
+  }, [state, issues]);
+
+  function addIssue(issue:SimpleIssue, ): void {
+    setAddIssues([...addIssues, issue]);
+    setIssues(issues + 1);
+  }
 
   useEffect(() => { saveLocal(state); }, [state]);
 
   const isValid = result.issues.length === 0;
 
-  return { state, dispatch, errorIndex, issues: result.issues, isValid, flatIssues};
+  return { state, dispatch, errorIndex, issues: result.issues, isValid, flatIssues, addIssue};
 }

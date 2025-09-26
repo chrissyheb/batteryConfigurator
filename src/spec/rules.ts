@@ -1,4 +1,5 @@
 
+import { PathType } from './builder';
 import { enums } from './catalog';
 
 export const cardinality = {
@@ -6,7 +7,7 @@ export const cardinality = {
   main: { smartmeterMainEq: 1, batteryInverterMin: 1 }
 } as const;
 
-export type Issue = { message: string; path: (string | number)[]; };
+export type Issue = { message: string; path: PathType; };
 
 export function applyCrossRules(config: any, add: (i: Issue) => void): void
 {
@@ -52,8 +53,8 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
   const hv = config?.Global?.ModularPlc?.HardwareVariant;
   const main = config?.Units?.Main;
   if (!main) { return; }
-  const eq = main.Equipment || [];
-  const biList = eq.filter((e: any) => { return e?.Type === 'BatteryInverter'; });
+  const eqBI = main.Equipment.BatteryInverter || [];
+  const biList = eqBI.filter((e: any) => { return e?.Type === 'BatteryInverter'; });
 
   const isTerraHV = typeof hv === 'string' && /terra/i.test(hv);
   main.Type = isTerraHV ? 'Terra' : 'Blokk';
@@ -65,7 +66,7 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
 
   biList.forEach((bi: any) =>
   {
-    const idx = eq.indexOf(bi);
+    const idx = eqBI.indexOf(bi);
     const inv = bi?.Inverter?.Type;
     const invType = bi?.Inverter?.Config?.InverterType;
     const bat = bi?.Battery?.Type;
@@ -76,46 +77,46 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
     {
       if (inv !== 'TerraInverter')
       {
-        add({ message: 'Terra configured ⇒ TerraInverter required', path: ['Units','Main','Equipment',idx,'Inverter','Type'] });
+        add({ message: 'Terra configured ⇒ TerraInverter required', path: ['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Type'] });
       }
       if (invType !== 'SofarTerra')
       {
-        add({ message: 'TerraInverter configured ⇒ InverterType SofarTerra required', path: ['Units','Main','Equipment',idx,'Inverter','Config','InverterType'] });
+        add({ message: 'TerraInverter configured ⇒ InverterType SofarTerra required', path: ['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Config','InverterType'] });
       }
       if (bat !== 'TerraBattery')
       {
-        add({ message: 'Terra configured ⇒ TerraBattery required', path: ['Units','Main','Equipment',idx,'Battery','Type'] });
+        add({ message: 'Terra configured ⇒ TerraBattery required', path: ['Units','Main','Equipment','BatteryInverter',idx,'Battery','Type'] });
       }
       if (batType !== 'SofarTerra')
       {
-        add({ message: 'TerraBattery configured ⇒ BatteryType SofarTerra required', path: ['Units','Main','Equipment',idx,'Battery','Config','BatteryType'] });
+        add({ message: 'TerraBattery configured ⇒ BatteryType SofarTerra required', path: ['Units','Main','Equipment','BatteryInverter',idx,'Battery','Config','BatteryType'] });
       }
       if (!hasModbus)
       {
-        add({ message: 'Terra configured ⇒ Modbus component required', path: ['Units','Main','Equipment',idx,'Modbus'] });
+        add({ message: 'Terra configured ⇒ Modbus component required', path: ['Units','Main','Equipment','BatteryInverter',idx,'Modbus','Type'] });
       }
     }
     else
     {
       if (inv === 'TerraInverter')
       {
-        add({ message: 'Terra not configured ⇒ TerraInverter not allowed', path: ['Units','Main','Equipment',idx,'Inverter','Type'] });
+        add({ message: 'Terra not configured ⇒ TerraInverter not allowed', path: ['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Type'] });
       }
       if (invType === 'SofarTerra')
       {
-        add({ message: 'Terra not configured ⇒ InverterType SofarTerra not allowed', path: ['Units','Main','Equipment',idx,'Inverter','Config','InverterType'] });
+        add({ message: 'Terra not configured ⇒ InverterType SofarTerra not allowed', path: ['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Config','InverterType'] });
       }
       if (bat === 'TerraBattery')
       {
-        add({ message: 'Terra not configured ⇒ TerraBattery not allowed', path: ['Units','Main','Equipment',idx,'Battery','Type'] });
+        add({ message: 'Terra not configured ⇒ TerraBattery not allowed', path: ['Units','Main','Equipment','BatteryInverter',idx,'Battery','Type'] });
       }
       if (batType === 'SofarTerra')
       {
-        add({ message: 'Terra not configured ⇒ BatteryType SofarTerra not allowed', path: ['Units','Main','Equipment',idx,'Battery','Config','BatteryType'] });
+        add({ message: 'Terra not configured ⇒ BatteryType SofarTerra not allowed', path: ['Units','Main','Equipment','BatteryInverter',idx,'Battery','Config','BatteryType'] });
       }
       if (hasModbus)
       {
-        add({ message: 'Terra not configured ⇒ Modbus not allowed', path: ['Units','Main','Equipment',idx,'Modbus'] });
+        add({ message: 'Terra not configured ⇒ Modbus not allowed', path: ['Units','Main','Equipment','BatteryInverter',idx,'Modbus','Type'] });
       }
     }
   });
@@ -140,15 +141,15 @@ export function applyCardinality(config: any, add: (i: Issue) => void): void
     add({ message: `SlaveRemoteUM max. ${cardinality.ems.slaveRemoteMax}`, path: ['Units','Ems','Equipment'] });
   }
 
-  const mainEq = config?.Units?.Main?.Equipment ?? [];
-  const smMainCount = mainEq.filter((e: any) => { return e?.Type === 'SmartmeterMain'; }).length;
-  const biCount = mainEq.filter((e: any) => { return e?.Type === 'BatteryInverter'; }).length;
-  if (smMainCount !== cardinality.main.smartmeterMainEq)
-  {
-    add({ message: 'SmartmeterMain muss genau einmal vorhanden sein', path: ['Units','Main','Equipment'] });
-  }
+  const mainEq = config?.Units?.Main?.Equipment ?? {};
+  //const smMainCount = mainEq.SmartmeterMain?.filter((e: any) => { return e?.Type === 'SmartmeterMain'; }).length;
+  const biCount = mainEq.BatteryInverter?.filter((e: any) => { return e?.Type === 'BatteryInverter'; }).length;
+  //if (smMainCount !== cardinality.main.smartmeterMainEq)
+  //{
+  //  add({ message: 'SmartmeterMain muss genau einmal vorhanden sein', path: ['Units','Main','Equipment','SmartmeterMain'] });
+  //}
   if (biCount < cardinality.main.batteryInverterMin)
   {
-    add({ message: 'At least one BatteryInverter required', path: ['Units','Main','Equipment'] });
+    add({ message: 'At least one BatteryInverter required', path: ['Units','Main','Equipment','BatteryInverter'] });
   }
 }
