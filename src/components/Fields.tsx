@@ -71,10 +71,16 @@ export function NumberField(props: any)
     if (!props.path) { setNoPathError(); return; } // run once on mount
   }, []); // ← empty depts Array -> important for run once
 
-  const { leftLabel, value, onChange, error, rightLabel, minValue, maxValue, step, path } = props;
+  const { path, defLink, unit, label, value, onChange, error, minValue, maxValue, step, readOnly } = props;
 
   const pathDefined: boolean = (path !== null && path !== undefined && Array.isArray(path) && path.length > 0);
-  const rightLabelDefined: boolean = (rightLabel !== undefined && rightLabel !== '');
+  const rl: string = unit ?? defLink?.unit ?? '';
+  const minVal: number = minValue ?? defLink?.min ?? Number.NEGATIVE_INFINITY;
+  const maxVal: number = maxValue ?? defLink?.max ?? Number.POSITIVE_INFINITY;
+  const st: number = step ?? (defLink?.int ?? false) ? 1 : 0.1;
+  const rightLabelDefined: boolean = (rl !== '');
+  const l = label ?? pathDefined ? path.at(-1) : 'UnknownComponent';
+  const ro = readOnly ?? defLink?.readOnly ?? false
 
   const v:number = (() => {
     if (value !== undefined && !Number.isNaN(value) && typeof value === 'number') 
@@ -92,18 +98,18 @@ export function NumberField(props: any)
 
   function handleUnitOnChange(s: number):void {
     if (!pathDefined) { setNoPathError(); return; }
-    if (rightLabelDefined) { handleOnChange(addUnit(s, rightLabel), pathDefined, onChange, path); }
+    if (rightLabelDefined) { handleOnChange(addUnit(s, rl), pathDefined, onChange, path); }
     else { handleOnChange(s, pathDefined, onChange, path); }
   }
 
   const err = error ?? (pathDefined ? errorAt(gFun().errorIndex, path) : 'path not defined');
 
   return (
-    <div className="field numberWithUnit" >
-      <label>{leftLabel ?? ''}</label>
-      <input type="number" min={minValue} max={maxValue} step={step} value={v} onChange={(e) => handleUnitOnChange(Number(e.target.value))} onPlay={() => pathDefined ? () => {} : setNoPathError()}/>
+    <div className="field numberWithUnit">
+      <label>{l}</label>
+      <input type="number" min={minVal} max={maxVal} step={st} value={v} readOnly={ro} onChange={(e) => handleUnitOnChange(Number(e.target.value))} onPlay={() => pathDefined ? () => {} : setNoPathError()}/>
       {err ? <div className="inline-error">{err}</div> : <span />}
-      <span className="unit">{rightLabel ?? ''}</span>
+      <span className="unit">{rl}</span>
     </div>
   );
 }
@@ -111,19 +117,21 @@ export function NumberField(props: any)
 export function SelectField(props: any)
 {
   useEffect(() => {
-    if (!props.path) { setNoPathError(); return; } // run once on mount
+    if (!props.path) { setNoPathError(); return; } // run once on mount to read correct value
   }, []); // ← empty depts Array -> important for run once
 
-  const { label, options, value, onChange, error, path,leftIsType = false, disabled = false } = props;
+  const { path, defLink, label, options, value, onChange, error, readOnly } = props;
   
   const pathDefined: boolean = (path !== null && path !== undefined && Array.isArray(path) && path.length > 0);
   const v:string = value ?? gFun().getOr(path ?? [], '');
   const err = error ?? (pathDefined ? errorAt(gFun().errorIndex, path) : 'path not defined');
+  const l = label ?? pathDefined ? path.at(-1) : 'UnknownComponent';
+  const ro = readOnly ?? defLink?.readOnly ?? false
   
   return (
     <div className="field">
-      <label>{leftIsType ? 'Type' : label}</label>
-      <select value={v} onChange={(e) => handleOnChange(e.target.value, pathDefined, onChange, path)} disabled={disabled}>
+      <label>{l}</label>
+      <select value={v} onChange={(e) => handleOnChange(e.target.value, pathDefined, onChange, path)} disabled={ro}>
         {options.map((o: string) => { return <option key={o} value={o}>{o}</option>; })}
       </select>
       {err ? <div className="inline-error">{err}</div> : <span />}
@@ -137,11 +145,13 @@ export function CheckField(props: any)
     if (!props.path) { setNoPathError(); return; } // run once on mount
   }, []); // ← empty depts Array -> important for run once
 
-  const { label, checked, onChange, error, path } = props;
+  const { path, defLink, label, checked, onChange, error, readOnly } = props;
 
   const pathDefined: boolean = path ? true : false;
   const v:boolean = checked ?? gFun().getOr(path ?? [], false);
   const err = error ?? (pathDefined ? errorAt(gFun().errorIndex, path) : 'path not defined');
+  const l = label ?? pathDefined ? path.at(-1) : 'UnknownComponent';
+  const ro = readOnly ?? defLink?.readOnly ?? false
 
   if (!pathDefined) { 
 
@@ -149,8 +159,8 @@ export function CheckField(props: any)
 
   return (
     <div className="field">
-      <label>{label ?? '???'}</label>
-      <input type="checkbox" checked={v} onChange={(e) => handleOnChange(e.target.checked, pathDefined, onChange, path)} />
+      <label>{l}</label>
+      <input type="checkbox" readOnly={ro} checked={v} onChange={(e) => handleOnChange(e.target.checked, pathDefined, onChange, path)} />
       {err ? <div className="inline-error">{err}</div> : <span />}
     </div>
   );
@@ -163,16 +173,18 @@ export function TextField(props: any)
     if (!props.path) { setNoPathError(); return; } // run once on mount
   }, []); // ← empty depts Array -> important for run once
 
-  const { label, value, onChange, error, leftLabel, path } = props;
+  const { path, defLink, label, value, onChange, error, readOnly } = props;
 
   const pathDefined: boolean = path ? true : false;
   const v:string = value ?? gFun().getOr(path ?? [], '');
   const err =  error ?? (pathDefined ? errorAt(gFun().errorIndex, path) : 'path not defined');
+  const l = label ?? pathDefined ? path.at(-1) : 'UnknownComponent';
+  const ro = readOnly ?? defLink?.readOnly ?? false
 
   return (
     <div className="field">
-      <label>{leftLabel ?? 'Type'}</label>
-      <input value={v} onChange={(e) => handleOnChange(e.target.value, pathDefined, onChange, path)} />
+      <label>{l}</label>
+      <input value={v} readOnly={ro} onChange={(e) => handleOnChange(e.target.value, pathDefined, onChange, path)} />
       {err ? <div className="inline-error">{err}</div> : <span />}
     </div>
   );
@@ -185,18 +197,21 @@ export function GuidField(props: any)
     if (!props.path) { setNoPathError(); return; } // run once on mount
   }, []); // ← empty depts Array -> important for run once
 
-  const { label = 'Guid', value, onChange, error, path } = props;
+  //const { label = 'Guid', value, readOnly, onChange, error, path } = props;
+  const { path, defLink, label, value, readOnly, onChange, error,  } = props;
 
   const pathDefined: boolean = path ? true : false;
   const v:string = value ?? gFun().getOr(path ?? [], '');
   const err =  error ?? (pathDefined ? errorAt(gFun().errorIndex, path) : 'path not defined');
+  const l = label ?? pathDefined ? path.at(-1) : 'UnknownComponent';
+  const ro = readOnly ?? defLink?.readOnly ?? false
 
   return (
     <div className="field">
-      <label>{label}</label>
-      <input value={v} onChange={(e) => handleOnChange(e.target.value, pathDefined, onChange, path)} />
+      <label>{l}</label>
+      <input value={v} readOnly={ro} onChange={(e) => handleOnChange(e.target.value, pathDefined, onChange, path)} />
       <div className="row" style={{ gap: 8 }}>
-        <button className="ghost" onClick={() => handleOnChange(uuid(), pathDefined, onChange, path)}>Neu generieren</button>
+        <button className="ghost" onClick={() => handleOnChange(uuid(), pathDefined, onChange, path)}>Generate</button>
         {err ? <div className="inline-error">{err}</div> : <span />}
       </div>
     </div>

@@ -26,77 +26,90 @@ function BatteryInverterCard(props: { idx: number; cfg: any; setCfg: (c: any) =>
       </div>
 
       <TextField
-        leftLabel="Name"
         path={['Units','Main','Equipment','BatteryInverter',idx,'Name']}
+        defLink={components.BatteryInverter.fields.Name}
+      />
+      <NumberField 
+        value={idx}
+        path={['Units','Main','Equipment','BatteryInverter',idx,'Index']}
+        defLink={components.BatteryInverter.fields.Index}
       />
 
       <div className="card">
         <h3>Inverter</h3>
         <SelectField
-          leftIsType
           path={['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Type']}
+          defLink={components.BatteryInverterInverter.fields.group.Type}
           options={getInverterTypes()}
         />
         <TextField
-          leftLabel="Name"
           path={['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Name']}
+          defLink={components.BatteryInverterInverter.fields.group.Name}
         />
         <GuidField 
           path={['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Guid']}
+          defLink={components.BatteryInverterInverter.fields.group.Guid}
         />
         <SelectField
-          label="InverterType"
           path={['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Config','InverterType']}
+          defLink={components.BatteryInverterInverter.fields.group.Config.group.InverterType}
           options={getInverterHardwareTypes()}
         />
         <NumberField
-          leftLabel="NominalInverterPower"
           path={['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Config','NominalInverterPower']}
-          rightLabel={components.BatteryInverterInverter.fields.group.Config.group.NominalInverterPower.unit}
-          minValue="1"
-          maxValue="250"
+          defLink={components.BatteryInverterInverter.fields.group.Config.group.NominalInverterPower}
+        />
+        <TextField
+          path={['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Config','IpAddress']}
+          defLink={components.BatteryInverterInverter.fields.group.Config.group.IpAddress}
+        />
+        <NumberField
+          path={['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Config','Port']}
+          defLink={components.BatteryInverterInverter.fields.group.Config.group.Port}
         />
       </div>
 
       <div className="card">
         <h3>Battery</h3>
         <SelectField
-          leftIsType
           path={['Units','Main','Equipment','BatteryInverter',idx, 'Battery','Type']}
+          defLink={components.BatteryInverterBattery.fields.group.Type}
           options={getBatteryTypes()}
         />
         <TextField
-          leftLabel="Name"
           path={['Units','Main','Equipment','BatteryInverter',idx,'Battery','Name']}
+          defLink={components.BatteryInverterBattery.fields.group.Name}
         />
         <GuidField
           path={['Units','Main','Equipment','BatteryInverter',idx,'Battery','Guid']}
+          defLink={components.BatteryInverterBattery.fields.group.Guid}
         />
         <SelectField
-          label="BatteryType"
           path={['Units','Main','Equipment','BatteryInverter',idx,'Battery','Config','BatteryType']}
+          defLink={components.BatteryInverterBattery.fields.group.Config.group.BatteryType}
           options={getBatteryHardwareTypes()}
         />
         <NumberField
-          leftLabel="BatteryCabinetCount"
           path={['Units','Main','Equipment','BatteryInverter',idx,'Battery','Config','BatteryCabinetCount']}
-          minValue="1"
-          maxValue="4"
-          step="1"
+          defLink={components.BatteryInverterBattery.fields.group.Config.group.BatteryCabinetCount}
         />
         <NumberField
-          leftLabel="BatteryCabinetModuleCount"
           path={['Units','Main','Equipment','BatteryInverter',idx,'Battery','Config','BatteryCabinetModuleCount']}
-          minValue="1"
-          maxValue="25"
-          step="1"
+          defLink={components.BatteryInverterBattery.fields.group.Config.group.BatteryCabinetModuleCount}
+        />
+        <TextField
+          path={['Units','Main','Equipment','BatteryInverter',idx,'Battery','Config','IpAddress']}
+          defLink={components.BatteryInverterBattery.fields.group.Config.group.IpAddress}
+        />
+        <NumberField 
+          path={['Units','Main','Equipment','BatteryInverter',idx,'Battery','Config','Port']}
+          defLink={components.BatteryInverterBattery.fields.group.Config.group.Port}
         />
       </div>
 
       <div className="card">
         <h3>Modbus</h3>
         <SelectField 
-          leftIsType 
           path={['Units','Main','Equipment','BatteryInverter',idx,'Modbus','Type']}
           options={getModbusTypes()} 
           onChange=
@@ -109,11 +122,20 @@ function BatteryInverterCard(props: { idx: number; cfg: any; setCfg: (c: any) =>
         />
         {modbusAvailable && (<>
           <TextField 
-            leftLabel="Name"
             path={['Units','Main','Equipment','BatteryInverter',idx,'Modbus','Name']}
+            defLink={components.BatteryInverterModbus.fields.group.Name}
           />
           <GuidField 
             path={['Units','Main','Equipment','BatteryInverter',idx,'Modbus','Guid']}
+            defLink={components.BatteryInverterModbus.fields.group.Guid}
+          />
+          <TextField
+            path={['Units','Main','Equipment','BatteryInverter',idx,'Modbus','Config','IpAddress']}
+            defLink={components.BatteryInverterModbus.fields.group.Config.group.IpAddress}
+          />
+          <NumberField 
+            path={['Units','Main','Equipment','BatteryInverter',idx,'Modbus','Config','Port']}
+            defLink={components.BatteryInverterModbus.fields.group.Config.group.Port}
           />
         </>)}
       </div>
@@ -143,39 +165,49 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; se
       <div className="card">
         <h3>Config - Main Unit</h3>
         <TextField
-          leftLabel="IP Address Internal"
           path={['Units','Main','Config','IpAddressInternal']}
+          defLink={components.MainConfig.fields.IpAddressInternal}
         />
         <CheckField 
-          label="Power Switch Available"
           path={['Units','Main','Config','PowerSwitchMainAvailable']}
+          defLink={components.MainConfig.fields.PowerSwitchMainAvailable}
+        />
+        <CheckField 
+          path={['Units','Main','Config','SafetyRelayAvailable']}
+          defLink={components.MainConfig.fields.SafetyRelayAvailable}
         />
         <NumberField 
-          leftLabel="Local Power Charge Limit"
           path={['Units','Main','Config','PowerChargeLimitLocal']}
-          rightLabel={components.EmsConfig.fields.GridConnectionPoint.group.PowerGridConsumptionLimit.unit}
-          minValue="0"
+          defLink={components.MainConfig.fields.PowerChargeLimitLocal}
         />
         <NumberField 
-          leftLabel="Local Power Discharge Limit"
           path={['Units','Main','Config','PowerDischargeLimitLocal']}
-          rightLabel={components.EmsConfig.fields.GridConnectionPoint.group.PowerGridFeedInLimit.unit}
-          minValue="0"
+          defLink={components.MainConfig.fields.PowerDischargeLimitLocal}
+        />
+        <NumberField 
+          readOnly
+          path={['Units','Main','Config','InverterCount']}
+          defLink={components.MainConfig.fields.InverterCount}
+        />
+        <NumberField 
+          readOnly
+          path={['Units','Main','Config','BatteryCount']}
+          defLink={components.MainConfig.fields.BatteryCount}
         />
       </div>
       <div className="card">
         <h3>{getOrCfg(['Units','Main','Equipment','SmartmeterMain','Type'], 'Unkown Smartmeter Type') + ' (' + getOrCfg(['Units','Main','Equipment',"SmartmeterMain",'Name'], '') + ')'}</h3>
         <TextField 
-          leftLabel="Name"
           path={['Units','Main','Equipment','SmartmeterMain','Name']}
+          defLink={components.SmartmeterMain.fields.Name}
         />
         <TextField
-          leftLabel="DisplayName"
           path={['Units','Main','Equipment','SmartmeterMain','DisplayName']}
+          defLink={components.SmartmeterMain.fields.DisplayName}
         />
         <SelectField
-          label="HardwareType"
           path={['Units','Main','Equipment','SmartmeterMain','HardwareType']}
+          defLink={components.SmartmeterMain.fields.HardwareType}
           options={getMainSmartmeterHardwares()}
           onChange={(v: string) =>
           {
@@ -185,12 +217,13 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; se
           }}
         />
         <SelectField
-          label="HardwareModel"
           path={['Units','Main','Equipment','SmartmeterMain','HardwareModel']}
+          defLink={components.SmartmeterMain.fields.HardwareModel}
           options={getMainSmartmeterModels(getCfg(['Units','Main','Equipment','SmartmeterMain','HardwareType']))}
         />
         <GuidField
           path={['Units','Main','Equipment','SmartmeterMain','Guid']}
+          defLink={components.SmartmeterMain.fields.Guid}
         />
       </div>
 
