@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useEffect } from 'react';
 import { SelectField, TextField, GuidField, CheckField, NumberField } from './Fields';
 import { PathType, createByKey, getInverterTypes, getBatteryTypes, getModbusTypes, getMainSmartmeterHardwares, getMainSmartmeterModels, getInverterHardwareTypes, getBatteryHardwareTypes, mainEquipmentKeys } from '@/spec/builder';
 import { errorAt } from '@/utils/errors';
@@ -11,6 +12,7 @@ function BatteryInverterCard(props: { idx: number; cfg: any; setCfg: (c: any) =>
   const { idx, cfg, setCfg, setInCfg, getOrCfg, delFromCfg } = props;
 
   const modbusAvailable = getOrCfg(['Units','Main','Equipment','BatteryInverter',idx,'Modbus'], false); 
+
 
   function removeElement(path: PathType, i?: number): void 
   {
@@ -145,18 +147,30 @@ function BatteryInverterCard(props: { idx: number; cfg: any; setCfg: (c: any) =>
 export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; delFromCfg:(p: any) => void; hasCfg:(p: any) => boolean; errorIndex: any })
 {
   const { cfg, setCfg, setInCfg, getCfg, getOrCfg, delFromCfg, hasCfg, errorIndex } = props;
-    
-    function addElement(path: PathType, type: mainEquipmentKeys): void
-    {
-      const pathExt: PathType = path.concat([type]);
-      const list:JSONValue = getOrCfg(pathExt, []);
-      let idxNew: number = 0;
-      if (!Array.isArray(list)) { return; }
-      idxNew = list.length;
-      const item: any = createByKey(type, { n: idxNew+1 });
-      const pathNew: PathType = pathExt.concat([idxNew]);
-      setInCfg(pathNew, item);
+  
+  function addElement(path: PathType, type: mainEquipmentKeys): void
+  {
+    const pathExt: PathType = path.concat([type]);
+    const list:JSONValue = getOrCfg(pathExt, []);
+    let idxNew: number = 0;
+    if (!Array.isArray(list)) { return; }
+    idxNew = list.length;
+    const item: any = createByKey(type, { n: idxNew+1 });
+    const pathNew: PathType = pathExt.concat([idxNew]);
+    setInCfg(pathNew, item);
+  }
+  
+  // Effect -> get numbers of batteries and inverters -> change value on JSON-Structure change
+  useEffect(() => {
+    const BatteryCount = cfg.Units.Main.Equipment.BatteryInverter.length; 
+    if (cfg.Units.Main.Config.BatteryCount !== BatteryCount) {
+      setInCfg(['Units','Main','Config','BatteryCount'], BatteryCount);
     }
+    const InverterCount = cfg.Units.Main.Equipment.BatteryInverter.length;
+    if (cfg.Units.Main.Config.InverterCount !== InverterCount) {
+      setInCfg(['Units','Main','Config','InverterCount'], InverterCount);
+    }
+  }, [cfg.Units?.Main?.Equipment?.BatteryInverter?.length ?? 0]);
 
   return (
     <div className="card stack">
