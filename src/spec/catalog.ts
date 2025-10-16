@@ -24,7 +24,7 @@ export const enums = {
       Beckhoff: ['El34x3'],
       Virtual: ['Virtual']
     },
-    smartmeterUseCaseTypes: ['GridConnectionPointControl']
+    smartmeterUseCaseTypes: [[0,'Undefined'], [2,'GridConnectionPointControl']] as IndexStringType[]
   },
   main: {
     smartmeterHardwareToTypes: {
@@ -141,20 +141,22 @@ const cSmartmeter = {
     Guid: { type: 'uuid', required: true },
     Config: {
       group: {
-        Usecase: { type: 'string', enumRef: ['ems','smartmeterUseCaseTypes'], required: true },
+        Usecase: { type: 'indexString', enumRef: ['ems','smartmeterUseCaseTypes'], required: true },
+        IpAddress: { type: 'ipv4', required: true },
         Port: { type: 'number', min: 1, max: 65535, int: true, required: true }
       }
     }
   },
   defaults:{
-    Name: 'Smartmeter ${n}', 
-    DisplayName: 'Smartmeter ${n}',
     Type:'Smartmeter',
+    Name: 'Smartmeter${n}', 
+    DisplayName: 'Smartmeter ${n}',
     HardwareType:'Phoenix',
     HardwareModel:'@firstModelOf(HardwareType)',
     Guid:'@uuid',
     Config:{ 
-      Usecase:'GridConnectionPointControl',
+      Usecase: [ 0, "Undefined"],
+      IpAddress: '192.168.100.5',
       Port:502
     }
   }

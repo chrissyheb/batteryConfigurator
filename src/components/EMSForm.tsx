@@ -126,7 +126,13 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
             <SelectField
               label="Usecase"
               path={['Units','Ems','Equipment',"Smartmeter",i,'Config','Usecase']}
-              options={getEmsSmartmeterUseCaseTypes()}
+              options={indexStringToString(getEmsSmartmeterUseCaseTypes())}
+              value={indexStringToString([getOrCfg(['Units','Ems','Equipment',"Smartmeter",i,'Config','Usecase'], [0,''])])[0]}
+              onChange={(v: string) => { setInCfg(['Units','Ems','Equipment',"Smartmeter",i,'Config','Usecase'], stringToIndexString(v)); }}
+            />
+            <TextField
+              leftLabel="IP Address"
+              path={['Units','Ems','Equipment',"Smartmeter",i,'Config','IpAddress']}
             />
             <NumberField 
               leftLabel="Port"
