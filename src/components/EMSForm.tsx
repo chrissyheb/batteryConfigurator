@@ -20,14 +20,21 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
     const item: any = createByKey(type, { n: idxNew+1 });
     const pathNew: PathType = pathExt.concat([idxNew]);
     setInCfg(pathNew, item);
+
+    //setInCfg(['Units','Ems','Config','SmartmeterCount'], smartmeterCount);
+    //setInCfg(['Units','Ems','Config','SystemsInParallelCount'],  getOrCfg(['Units','Ems','Equipment','RemoteSystems'], []).length + 1);
+    
   }
 
   function removeElement(path: PathType, i?: number): void 
   {
     if (i !== undefined && i !== null) { delFromCfg(path.concat([i])); }
     else { delFromCfg(path); }
-  };
 
+    //setInCfg(['Units','Ems','Config','SmartmeterCount'], smartmeterCount);
+    //setInCfg(['Units','Ems','Config','SystemsInParallelCount'],  getOrCfg(['Units','Ems','Equipment','RemoteSystems'], []).length + 1);
+    
+  };
 
   return (
     <div className="card stack">
@@ -69,9 +76,19 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
       </div>
 
       <div className="row">
-        <button onClick={() => {addElement(['Units','Ems','Equipment'],'Smartmeter')}}>+ Smartmeter</button>
-        <button onClick={() => {addElement(['Units','Ems','Equipment'],'SlaveLocalUM')}}>+ SlaveLocalUM</button>
-        <button onClick={() => {addElement(['Units','Ems','Equipment'],'SlaveRemoteUM')}}>+ SlaveRemoteUM</button>
+        <button onClick={() => {addElement(['Units','Ems','Equipment','Smartmeter'],'Smartmeter')}}>+ Smartmeter</button>
+        <button onClick={() => {addElement(['Units','Ems','Equipment','RemoteSystems'],'SlaveRemoteUM')}}>+ Remote System</button>
+      </div>
+      <div className="card">
+        
+        <NumberField 
+          path={['Units','Ems','Config','SmartmeterCount']}
+          defLink={components.EmsConfig.fields.SmartmeterCount}
+        />
+        <NumberField 
+          path={['Units','Ems','Config','SystemsInParallelCount']}
+          defLink={components.EmsConfig.fields.SystemsInParallelCount}
+        />
       </div>
 
       {getOrCfg(['Units','Ems','Equipment',"Smartmeter"], []).map((e: any, i: number) =>
@@ -151,7 +168,7 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
         />
       </div>
 
-      {getOrCfg(['Units','Ems','Equipment',"SlaveRemoteUM"], []).map((e: any, i: number) =>
+      {getOrCfg(['Units','Ems','Equipment',"RemoteSystems"], []).map((e: any, i: number) =>
       {
         return (
           <div key={i} className="card">

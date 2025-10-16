@@ -132,7 +132,8 @@ function resolveScalars(key: string, value: unknown, draft: Record<string, unkno
   if (typeof value === 'string')
   {
     if (value === '@uuid') { return uuid(); }
-    if (value.includes('${n}')) { return value.replaceAll('${n}', String(ctx.n)); }
+    if (value.includes('${n0}')) { return value.replaceAll('${n0}', String(ctx.n-1)); } // start with index 0
+    if (value.includes('${n}')) { return value.replaceAll('${n}', String(ctx.n)); } // start with index 1
     if (value.startsWith('@firstModelOf('))
     {
       const inside = value.slice('@firstModelOf('.length, -1).trim();
@@ -343,9 +344,8 @@ const configZ = z.object({
     Ems: z.object({
       Equipment: z.object({
         Smartmeter: z.array(smartmeterZ),
-        SlaveLocalUM: z.array(slaveLocalZ).min(1, 'SlaveLocalUM required'),
-        SlaveRemoteUM: z.array(slaveRemoteZ),
-        //LocalRemoteUnits: z.array(z.union([slaveLocalZ, slaveRemoteZ]))
+        LocalSystem: slaveLocalZ,
+        RemoteSystems: z.array(slaveRemoteZ),
       }).strict(),
       Config: emsConfigZ,
     }).strict(),
@@ -385,8 +385,7 @@ export function getInitialConfig(): any
 //    emsEq.push(createByKey('SlaveLocalUM',{n:1}));
   const emsEqSmartmeter:any[] = [];
     emsEqSmartmeter.push(createByKey('Smartmeter',{n:1}));
-  const emsEqSlaveLocalUM:any[] = [];
-    emsEqSlaveLocalUM.push(createByKey('SlaveLocalUM',{n:1}));
+  const emsEqSlaveLocalUM:any = createByKey('SlaveLocalUM',{n:1});
   const emsEqSlaveRemoteUM:any[] = [];
   const emsConfig:any = createByKey('EmsConfig',{n:1});
   const mainEqSmartmeter:any = createByKey('SmartmeterMain',{n:1});
@@ -400,8 +399,8 @@ export function getInitialConfig(): any
       Ems:{ 
         Equipment: { 
           Smartmeter: emsEqSmartmeter,
-          SlaveLocalUM: emsEqSlaveLocalUM,
-          SlaveRemoteUM: emsEqSlaveRemoteUM
+          LocalSystem: emsEqSlaveLocalUM,
+          RemoteSystems: emsEqSlaveRemoteUM
         },
         Config: emsConfig
       }, 
