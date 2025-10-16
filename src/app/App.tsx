@@ -10,6 +10,7 @@ import MainForm from '@/components/MainForm';
 import { exportJSON, importJSON } from '@/utils/io';
 import { clearLocal } from '@/utils/storage';
 import { formatPath, errorAt } from '@/utils/errors';
+import { components } from '@/spec/catalog';
 
 export default function App()
 {
@@ -71,17 +72,18 @@ export default function App()
       <section className="card">
         <h2>Global</h2>
         <TextField 
-          leftLabel="Customer"
           path={['Global', 'Customer']}
+          defLink={components.Global.fields.Customer}
         />     
         <SelectField
-          label="Library Version"
           path={['Global', 'ModularPlc', 'Version']}
+          defLink={components.Global.fields.ModularPlc.group.Version}
           options={getLibraryVersion()}
         />    
         <SelectField
           label="Hardware Variant"
           path={['Global', 'ModularPlc', 'HardwareVariant']}
+          defLink={components.Global.fields.ModularPlc.group.HardwareVariant}
           options={getHardwareVariants()}
         />
       </section>
