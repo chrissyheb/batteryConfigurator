@@ -108,7 +108,7 @@ export function delIn<T extends JSONObject>(obj: T, path: PathType): T {
   const last = path[path.length - 1];
   // Fall 1: letzter Key ist ein Array-Index -> per splice entfernen
   if (typeof last === "number" && Array.isArray(parent)) {
-    if (last >= 0 && last < parent.length) { parent.splice(last, 1); }
+    if (last >= 0 && last < parent.length) { parent = parent.splice(last, 1); }
     return clone as T;
   }
   // Optional: String-"0" als Index behandeln (falls du Indizes als String reichst)

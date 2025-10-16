@@ -1,24 +1,45 @@
 
 import React from 'react';
+import { useEffect } from 'react';
 import { SelectField, TextField, GuidField, NumberField, CheckField } from './Fields';
 import { PathType, emsEquipmentKeys, createByKey, getEmsSmartmeterHardwares, getEmsSmartmeterModels, getEmsSmartmeterUseCaseTypes } from '@/spec/builder';
 import { errorAt } from '@/utils/errors';
+import { indexStringToString, stringToIndexString } from '@/utils/helper';
 import { components } from '@/spec/catalog';
 import { JSONValue } from '@/app/store';
 
 export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; delFromCfg:(p: any) => void; hasCfg:(p: any) => boolean; errorIndex: any })
 {
-  const { cfg, setInCfg, getOrCfg, delFromCfg, errorIndex } = props;
+  const { cfg, setInCfg, getOrCfg, delFromCfg,  errorIndex } = props;
   
+  let systemsInParallelCount: number = 0;
+
+  // Effekt: NumberOfArrayEntries automatisch nachführen
+  useEffect(() => {
+    const systemsInParallelCount = cfg.Units.Ems.Equipment.RemoteSystems.length+1; // add local unit
+    if (cfg.Units.Ems.Config.SystemsInParallelCount !== systemsInParallelCount) {
+      setInCfg(['Units','Ems','Config','SystemsInParallelCount'], systemsInParallelCount);
+    }
+  }, [cfg.Units?.Ems?.Equipment?.RemoteSystems?.length ?? 0]); // <— wichtig: auf Länge hören, nicht auf ganze Struktur!
+  
+  // Effekt: NumberOfArrayEntries automatisch nachführen
+  useEffect(() => {
+    const smartmeterCount = cfg.Units.Ems.Equipment.Smartmeter.length;
+    if (cfg.Units.Ems.Config.SmartmeterCount !== smartmeterCount) {
+      setInCfg(['Units','Ems','Config','SmartmeterCount'], smartmeterCount);
+    }
+  }, [cfg.Units?.Ems?.Equipment?.Smartmeter?.length ?? 0]); // <— wichtig: auf Länge hören, nicht auf ganze Struktur!
+  
+
   function addElement(path: PathType, type: emsEquipmentKeys): void
   {
-    const pathExt: PathType = path.concat([type]);
-    const list:JSONValue = getOrCfg(pathExt, []);
+    //const pathExt: PathType = path.concat([type]);
+    const list:JSONValue = getOrCfg(path, []);
     let idxNew: number = 0;
     if (!Array.isArray(list)) { return; }
     idxNew = list.length;
     const item: any = createByKey(type, { n: idxNew+1 });
-    const pathNew: PathType = pathExt.concat([idxNew]);
+    const pathNew: PathType = path.concat([idxNew]);
     setInCfg(pathNew, item);
 
     //setInCfg(['Units','Ems','Config','SmartmeterCount'], smartmeterCount);
