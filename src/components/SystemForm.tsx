@@ -14,8 +14,8 @@ export default function SystemForm(props: { cfg: any; setCfg: (c: any) => void; 
     <div className="card stack">
       <h2>System</h2>
       <TextField 
-        leftLabel="Serial Number"
         path={['System', 'SerialNumber']}
+        defLink={components.System.fields.SerialNumber}
       />
       <div className="card">
         <h3>Battery Balancing</h3>

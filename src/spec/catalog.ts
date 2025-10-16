@@ -10,6 +10,7 @@ export type IndexStringType = [number, string];
 type BaseType<T extends 'number' | 'string' | 'bool' | 'indexString' | 'ipv4' | 'uuid'> = {
   type: T;
   required: boolean;
+  hint: string;
   readOnly?: boolean;
 };
 
@@ -120,11 +121,11 @@ export const mainComponentTypes = ['SmartmeterMain', 'BatteryInverter'] as const
 
 const cGlobal = {
   fields: {
-    Customer: TypeString({ required: true }),
+    Customer: TypeString({ required: true, hint: 'Customer name' }),
     ModularPlc: {
       group: {
-        Version: TypeString({ required: true, enumRef: ['global', 'libVersion'] }),
-        HardwareVariant: TypeString({ required: true, enumRef: ['global', 'hardwareVariant'] })
+        Version: TypeString({ required: true, hint: 'Library version of the Modular PLC', enumRef: ['global', 'libVersion'] }),
+        HardwareVariant: TypeString({ required: true, hint: 'Hardware variant of customer project', enumRef: ['global', 'hardwareVariant'] })
       }
     }
   },
@@ -139,19 +140,19 @@ const cGlobal = {
 
 const cSystem = {
   fields: {
-    SerialNumber: TypeString({ required: true }),
+    SerialNumber: TypeString({ required: true, hint: 'Serial number of the BESS system (e.g. TEMSM-001, TE0000000047)' }),
     BatteryBalancing: {
       group: {
-        PreemptiveMode: TypeIndexString({ required: true, enumRef: ['system', 'batteryBalancingModes'] }),
-        PreemptiveDaysToEnable: TypeNumber({ required: true, min: 0, max: 365, int: true }),
-        PreemptiveMaxGridChargePower: TypeNumberUnit({ required: true, min: 0, unit: 'kW' }),
-        ForcedDaysToEnable: TypeNumber({ required: true, min: 0, max: 365, int: true }),
-        ForcedMaxGridChargePowerPerInverter: TypeNumberUnit({ required: true, min: 0, unit: 'kW' }),
+        PreemptiveMode: TypeIndexString({ required: true, hint: 'Balancing mode used for preemptive balancing', enumRef: ['system', 'batteryBalancingModes'] }),
+        PreemptiveDaysToEnable: TypeNumber({ required: true, hint: 'Preemptive balancing starts number of days after last successful balancing process. \n 0: preemptive balancing disabled', min: 0, max: 365, int: true }),
+        PreemptiveMaxGridChargePower: TypeNumberUnit({ required: true, hint: 'Max power sum used for charging from grid during preemptive balancing', min: 0, unit: 'kW' }),
+        ForcedDaysToEnable: TypeNumber({ required: true, hint: 'Balancing is forced number of days after last successful balancing process.', min: 0, max: 365, int: true }),
+        ForcedMaxGridChargePowerPerInverter: TypeNumberUnit({ required: true, hint: 'Max power per inverter used for charging from grid during forced balancing', min: 0, unit: 'kW' }),
       }
     },
     ExternalControl: {
       group: {
-        FallbackMode:  TypeIndexString({ required: true, enumRef: ['system', 'externalControlOperationModes'] })
+        FallbackMode:  TypeIndexString({ required: true, hint: 'Fallback operation mode if connection to external control unit (BEAAM, Master-BESS, external EMS) is lost', enumRef: ['system', 'externalControlOperationModes'] })
       }
     }
   },
@@ -172,21 +173,21 @@ const cSystem = {
 
 const cEmsConfig = {
   fields: {
-    SmartmeterCount: TypeNumber({ required: true, min: 0, int: true, readOnly: true }),
-    SystemsInParallelCount: TypeNumber({ required: true, min: 1, int: true, readOnly: true }),
+    SmartmeterCount: TypeNumber({ required: true, hint: '', min: 0, int: true, readOnly: true }),
+    SystemsInParallelCount: TypeNumber({ required: true, hint: '', min: 1, int: true, readOnly: true }),
     GridConnectionPoint: {
       group: {
-        PowerGridConsumptionLimit: TypeNumberUnit({ required: true, min: 0, unit: 'kW' }),
-        PowerGridFeedInLimit: TypeNumberUnit({ required: true, min: 0, unit: 'kW' }),
-        PowerGridConsumptionOffset: TypeNumberUnit({ required: true, unit: 'kW' }),
+        PowerGridConsumptionLimit: TypeNumberUnit({ required: true, hint: '', min: 0, unit: 'kW' }),
+        PowerGridFeedInLimit: TypeNumberUnit({ required: true, hint: '', min: 0, unit: 'kW' }),
+        PowerGridConsumptionOffset: TypeNumberUnit({ required: true, hint: '', unit: 'kW' }),
       }
     },
     MasterSlave: {
       group: {
-        PowerActiveInstalledTotal: TypeNumberUnit({ required: true, min: 0, unit: 'kW' }),
-        CapacityInstalledTotal: TypeNumberUnit({ required: true, min: 0, unit: 'kWh' }),
-        PowerChargeLimitTotal: TypeNumberUnit({ required: true, min: 0, unit: 'kW' }),
-        PowerDischargeLimitTotal: TypeNumberUnit({ required: true, min: 0, unit: 'kW' }),
+        PowerActiveInstalledTotal: TypeNumberUnit({ required: true, hint: '', min: 0, unit: 'kW' }),
+        CapacityInstalledTotal: TypeNumberUnit({ required: true, hint: '', min: 0, unit: 'kWh' }),
+        PowerChargeLimitTotal: TypeNumberUnit({ required: true, hint: '', min: 0, unit: 'kW' }),
+        PowerDischargeLimitTotal: TypeNumberUnit({ required: true, hint: '', min: 0, unit: 'kW' }),
       }
     }
   },
@@ -210,16 +211,16 @@ const cEmsConfig = {
 const cSmartmeter = {
   fields: {
     Type: { const: 'Smartmeter', required: true },
-    Name: TypeString({ required: true }),
-    DisplayName: TypeString({ required: true }),
-    HardwareType: TypeString({ required: true, enumRef: ['ems', 'smartmeterHardwareToTypes'] }),
-    HardwareModel: TypeString({ required: true }),
-    Guid: TypeUuid({ required: true }),
+    Name: TypeString({ required: true, hint: '' }),
+    DisplayName: TypeString({ required: true, hint: '' }),
+    HardwareType: TypeString({ required: true, hint: '', enumRef: ['ems', 'smartmeterHardwareToTypes'] }),
+    HardwareModel: TypeString({ required: true, hint: '' }),
+    Guid: TypeUuid({ required: true, hint: '' }),
     Config: {
       group: {
-        Usecase: TypeIndexString({ required: true, enumRef: ['ems','smartmeterUseCaseTypes'] }),
-        IpAddress: TypeIPv4({ required: true }),
-        Port: TypeNumber({ required: true, min: 1, max: 65535, int: true })
+        Usecase: TypeIndexString({ required: true, hint: '', enumRef: ['ems','smartmeterUseCaseTypes'] }),
+        IpAddress: TypeIPv4({ required: true, hint: '' }),
+        Port: TypeNumber({ required: true, hint: '', min: 1, max: 65535, int: true })
       }
     }
   },
@@ -241,12 +242,12 @@ const cSmartmeter = {
 const cSlaveLocalUM = {
   fields: {
     Type: { const: 'SlaveLocalUM', required: true },
-    Name: TypeString({ required: true }),
-    DisplayName: TypeString({ required: true }),
-    Guid: TypeUuid({ required: true }),
+    Name: TypeString({ required: true, hint: '' }),
+    DisplayName: TypeString({ required: true, hint: '' }),
+    Guid: TypeUuid({ required: true, hint: '' }),
     Config: {
       group: {
-        IpAddress: TypeIPv4({ required: true })
+        IpAddress: TypeIPv4({ required: true, hint: '' })
       }
     }
   },
@@ -264,12 +265,12 @@ const cSlaveLocalUM = {
 const cSlaveRemoteUM = {
   fields: {
     Type: { const: 'SlaveRemoteUM', required: true },
-    Name: TypeString({ required: true }),
-    DisplayName: TypeString({ required: true }),
-    Guid: TypeUuid({ required: true }),
+    Name: TypeString({ required: true, hint: '' }),
+    DisplayName: TypeString({ required: true, hint: '' }),
+    Guid: TypeUuid({ required: true, hint: '' }),
     Config: {
       group: {
-        IpAddress: TypeIPv4({ required: true })
+        IpAddress: TypeIPv4({ required: true, hint: '' })
       }
     }
   },
@@ -286,13 +287,13 @@ const cSlaveRemoteUM = {
 
 const cMainConfig = {
   fields: {
-    InverterCount: TypeNumber({ required: true, min: 0, max: 25, int: true, readOnly: true }),
-    BatteryCount: TypeNumber({ required: true, min: 0, max: 25, int: true, readOnly: true }),
-    IpAddressInternal: TypeIPv4({ required: true }),
-    PowerSwitchMainAvailable: TypeBool({ required: true, }),
-    SafetyRelayAvailable: TypeBool({ required: true, }),
-    PowerChargeLimitLocal: TypeNumberUnit({ required: true, min: 0, unit: 'kW' }),
-    PowerDischargeLimitLocal: TypeNumberUnit({ required: true, min: 0, unit: 'kW' }),
+    InverterCount: TypeNumber({ required: true, hint: '', min: 0, max: 25, int: true, readOnly: true }),
+    BatteryCount: TypeNumber({ required: true, hint: '', min: 0, max: 25, int: true, readOnly: true }),
+    IpAddressInternal: TypeIPv4({ required: true, hint: '' }),
+    PowerSwitchMainAvailable: TypeBool({ required: true, hint: '' }),
+    SafetyRelayAvailable: TypeBool({ required: true, hint: '' }),
+    PowerChargeLimitLocal: TypeNumberUnit({ required: true, hint: '', min: 0, unit: 'kW' }),
+    PowerDischargeLimitLocal: TypeNumberUnit({ required: true, hint: '', min: 0, unit: 'kW' }),
   },
   defaults: {
     InverterCount: 1,
@@ -308,11 +309,11 @@ const cMainConfig = {
 const cSmartmeterMain = {
   fields: {
     Type: { const: 'SmartmeterMain', required: true },
-    Name: TypeString({ required: true }),
-    DisplayName: TypeString({ required: true }),
-    HardwareType: TypeString({ required: true, enumRef: ['main', 'smartmeterHardwareToTypes'] }),
-    HardwareModel: TypeString({ required: true }),
-    Guid: TypeUuid({ required: true })
+    Name: TypeString({ required: true, hint: '' }),
+    DisplayName: TypeString({ required: true, hint: '' }),
+    HardwareType: TypeString({ required: true, hint: '', enumRef: ['main', 'smartmeterHardwareToTypes'] }),
+    HardwareModel: TypeString({ required: true, hint: '' }),
+    Guid: TypeUuid({ required: true, hint: '' })
   },
   defaults:{
     Type: 'SmartmeterMain',
@@ -327,15 +328,15 @@ const cSmartmeterMain = {
 const cBatteryInverterInverter = {
   fields: {
     group: {
-      Type: TypeString({ required: true, enumRef: ['batteryInverter', 'inverterTypes'] }),
-      Name: TypeString({ required: true }),
-      Guid: TypeUuid({ required: true }),
+      Type: TypeString({ required: true, hint: '', enumRef: ['batteryInverter', 'inverterTypes'] }),
+      Name: TypeString({ required: true, hint: '' }),
+      Guid: TypeUuid({ required: true, hint: '' }),
       Config: {
         group: {
-          InverterType: TypeString({ required: true, enum: 'inverterHardwareTypes' }),
-          NominalInverterPower: TypeNumberUnit({ required: true, unit: 'kW', min: 1, max: 125 }),
-          IpAddress: TypeIPv4({ required: true }),
-          Port: TypeNumber({ required: true, min: 1, max: 65535, int: true })
+          InverterType: TypeString({ required: true, hint: '', enum: 'inverterHardwareTypes' }),
+          NominalInverterPower: TypeNumberUnit({ required: true, hint: '', unit: 'kW', min: 1, max: 125 }),
+          IpAddress: TypeIPv4({ required: true, hint: '' }),
+          Port: TypeNumber({ required: true, hint: '', min: 1, max: 65535, int: true })
         }
       }
     }
@@ -356,16 +357,16 @@ const cBatteryInverterInverter = {
 const cBatteryInverterBattery = {
   fields:{
     group: {
-      Type: TypeString({ required: true, enumRef: ['batteryInverter', 'batteryTypes'] }),
-      Name: TypeString({ required: true }),
-      Guid: TypeUuid({ required: true }),
+      Type: TypeString({ required: true, hint: '', enumRef: ['batteryInverter', 'batteryTypes'] }),
+      Name: TypeString({ required: true, hint: '' }),
+      Guid: TypeUuid({ required: true, hint: '' }),
       Config: {
         group: {
-          BatteryType: TypeString({ required: true, enum: 'batteryHardwareTypes' }),
-          BatteryCabinetCount: TypeNumber({ required: true, min: 1, max: 5, int: true }),
-          BatteryCabinetModuleCount: TypeNumber({ required: true, min: 1, max: 25, int: true }),
-          IpAddress: TypeIPv4({ required: true }),
-          Port: TypeNumber({ required: true, min: 1, max: 65535, int: true })
+          BatteryType: TypeString({ required: true, hint: '', enum: 'batteryHardwareTypes' }),
+          BatteryCabinetCount: TypeNumber({ required: true, hint: '', min: 1, max: 5, int: true }),
+          BatteryCabinetModuleCount: TypeNumber({ required: true, hint: '', min: 1, max: 25, int: true }),
+          IpAddress: TypeIPv4({ required: true, hint: '' }),
+          Port: TypeNumber({ required: true, hint: '', min: 1, max: 65535, int: true })
         }
       }
     }
@@ -388,13 +389,13 @@ const cBatteryInverterModbus = {
   fields: {
     optional: true,
     group: {
-      Type: TypeString({ required: true, enumRef: ['batteryInverter', 'modbusTypes'] }),
-      Name: TypeString({ required: true }),
-      Guid: TypeUuid({ required: true }),
+      Type: TypeString({ required: true, hint: '', enumRef: ['batteryInverter', 'modbusTypes'] }),
+      Name: TypeString({ required: true, hint: '' }),
+      Guid: TypeUuid({ required: true, hint: '' }),
       Config: {
         group: {
-          IpAddress: TypeIPv4({ required: true }),
-          Port: TypeNumber({ required: true, min: 1, max: 65535, int: true })
+          IpAddress: TypeIPv4({ required: true, hint: '' }),
+          Port: TypeNumber({ required: true, hint: '', min: 1, max: 65535, int: true })
         }
       }
     }
@@ -417,7 +418,7 @@ export const components = {
   Smartmeter: cSmartmeter,
   SlaveLocalUM: cSlaveLocalUM,
   SlaveRemoteUM: cSlaveRemoteUM,
-  MainType: TypeString({ required: true, enumRef: ['main', 'types'] }),
+  MainType: TypeString({ required: true, hint: '', enumRef: ['main', 'types'] }),
   MainConfig: cMainConfig,
   SmartmeterMain: cSmartmeterMain,
   BatteryInverterInverter: cBatteryInverterInverter,
@@ -426,8 +427,8 @@ export const components = {
   BatteryInverter: {
     fields: {
       Type: { const: 'BatteryInverter', required: true },
-      Name: TypeString({ required: true }),
-      Index: TypeNumber({ required: true, min: 0, max: 14, int: true, readOnly: true }),
+      Name: TypeString({ required: true, hint: '' }),
+      Index: TypeNumber({ required: true, hint: '', min: 0, max: 14, int: true, readOnly: true }),
       Inverter : cBatteryInverterInverter.fields,
       Battery : cBatteryInverterBattery.fields,
       Modbus : cBatteryInverterModbus.fields

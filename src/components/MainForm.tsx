@@ -12,7 +12,6 @@ function BatteryInverterCard(props: { idx: number; cfg: any; setCfg: (c: any) =>
 
   const modbusAvailable = getOrCfg(['Units','Main','Equipment','BatteryInverter',idx,'Modbus'], false); 
 
-
   function removeElement(path: PathType, i?: number): void 
   {
     if (i !== undefined && i !== null) { delFromCfg(path.concat([i])); }

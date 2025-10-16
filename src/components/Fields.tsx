@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useId } from 'react';
 import { v4 as uuid } from 'uuid';
 import { errorAt, ErrorIndex, SimpleIssue } from '@/utils/errors';
 import { PathType } from '@/spec/builder';
@@ -81,6 +81,8 @@ export function NumberField(props: any)
   const rightLabelDefined: boolean = (rl !== '');
   const l = label ?? pathDefined ? path.at(-1) : 'UnknownComponent';
   const ro = readOnly ?? defLink?.readOnly ?? false
+  const hint = defLink?.hint ?? '';
+  const id = useId();
 
   const v:number = (() => {
     if (value !== undefined && !Number.isNaN(value) && typeof value === 'number') 
@@ -105,10 +107,13 @@ export function NumberField(props: any)
   const err = error ?? (pathDefined ? errorAt(gFun().errorIndex, path) : 'path not defined');
 
   return (
-    <div className="field numberWithUnit">
+    <div className="field numberWithUnit tooltip-wrapper">
       <label>{l}</label>
-      <input type="number" min={minVal} max={maxVal} step={st} value={v} readOnly={ro} onChange={(e) => handleUnitOnChange(Number(e.target.value))} onPlay={() => pathDefined ? () => {} : setNoPathError()}/>
+      <input type="number" min={minVal} max={maxVal} step={st} value={v} readOnly={ro} title={hint} onChange={(e) => handleUnitOnChange(Number(e.target.value))} onPlay={() => pathDefined ? () => {} : setNoPathError()}/>
       {err ? <div className="inline-error">{err}</div> : <span />}
+      <div role="tooltip" id={id} className={`tooltip-bubble`}>
+        {hint}
+      </div>
       <span className="unit">{rl}</span>
     </div>
   );
@@ -127,14 +132,19 @@ export function SelectField(props: any)
   const err = error ?? (pathDefined ? errorAt(gFun().errorIndex, path) : 'path not defined');
   const l = label ?? pathDefined ? path.at(-1) : 'UnknownComponent';
   const ro = readOnly ?? defLink?.readOnly ?? false
+  const hint = defLink?.hint ?? '';
+  const id = useId();
   
   return (
-    <div className="field">
+    <div className="field tooltip-wrapper">
       <label>{l}</label>
-      <select value={v} onChange={(e) => handleOnChange(e.target.value, pathDefined, onChange, path)} disabled={ro}>
+      <select title={hint} value={v} onChange={(e) => handleOnChange(e.target.value, pathDefined, onChange, path)} disabled={ro}>
         {options.map((o: string) => { return <option key={o} value={o}>{o}</option>; })}
       </select>
       {err ? <div className="inline-error">{err}</div> : <span />}
+      <div role="tooltip" id={id} className={`tooltip-bubble`}>
+        {hint}
+      </div>
     </div>
   );
 }
@@ -152,16 +162,21 @@ export function CheckField(props: any)
   const err = error ?? (pathDefined ? errorAt(gFun().errorIndex, path) : 'path not defined');
   const l = label ?? pathDefined ? path.at(-1) : 'UnknownComponent';
   const ro = readOnly ?? defLink?.readOnly ?? false
+  const hint = defLink?.hint ?? '';
+  const id = useId();
 
   if (!pathDefined) { 
 
   }
 
   return (
-    <div className="field">
+    <div className="field tooltip-wrapper">
       <label>{l}</label>
-      <input type="checkbox" readOnly={ro} checked={v} onChange={(e) => handleOnChange(e.target.checked, pathDefined, onChange, path)} />
+      <input type="checkbox" readOnly={ro} checked={v} title={hint} onChange={(e) => handleOnChange(e.target.checked, pathDefined, onChange, path)} />
       {err ? <div className="inline-error">{err}</div> : <span />}
+      <div role="tooltip" id={id} className={`tooltip-bubble`}>
+        {hint}
+      </div>
     </div>
   );
 }
@@ -180,12 +195,17 @@ export function TextField(props: any)
   const err =  error ?? (pathDefined ? errorAt(gFun().errorIndex, path) : 'path not defined');
   const l = label ?? pathDefined ? path.at(-1) : 'UnknownComponent';
   const ro = readOnly ?? defLink?.readOnly ?? false
+  const hint = defLink?.hint ?? 'Bla';
+  const id = useId();
 
   return (
-    <div className="field">
+    <div className="field tooltip-wrapper">
       <label>{l}</label>
-      <input value={v} readOnly={ro} onChange={(e) => handleOnChange(e.target.value, pathDefined, onChange, path)} />
+      <input value={v} readOnly={ro} title={hint} onChange={(e) => handleOnChange(e.target.value, pathDefined, onChange, path)} />
       {err ? <div className="inline-error">{err}</div> : <span />}
+      <div role="tooltip" id={id} className={`tooltip-bubble`}>
+        {hint}
+      </div>
     </div>
   );
 }
@@ -205,11 +225,16 @@ export function GuidField(props: any)
   const err =  error ?? (pathDefined ? errorAt(gFun().errorIndex, path) : 'path not defined');
   const l = label ?? pathDefined ? path.at(-1) : 'UnknownComponent';
   const ro = readOnly ?? defLink?.readOnly ?? false
+  const hint = defLink?.hint ?? '';
+  const id = useId();
 
   return (
-    <div className="field">
+    <div className="field tooltip-wrapper">
       <label>{l}</label>
-      <input value={v} readOnly={ro} onChange={(e) => handleOnChange(e.target.value, pathDefined, onChange, path)} />
+      <input value={v} readOnly={ro} title={hint} onChange={(e) => handleOnChange(e.target.value, pathDefined, onChange, path)} />
+      <div role="tooltip" id={id} className={`tooltip-bubble`}>
+        {hint}
+      </div>
       <div className="row" style={{ gap: 8 }}>
         <button className="ghost" onClick={() => handleOnChange(uuid(), pathDefined, onChange, path)}>Generate</button>
         {err ? <div className="inline-error">{err}</div> : <span />}
