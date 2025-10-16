@@ -78,9 +78,9 @@ export const getMainSmartmeterModels = (hw: string): string[] =>
 };
 
 
-export const getEmsSmartmeterUseCaseTypes = (): readonly string[] =>
+export const getEmsSmartmeterUseCaseTypes =(): IndexStringType[] =>
 {
-  return enums.ems.smartmeterUseCaseTypes ?? [];
+  return enums.ems.smartmeterUseCaseTypes;
 };
 
 
