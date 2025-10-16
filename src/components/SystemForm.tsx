@@ -4,7 +4,7 @@ import { SelectField, TextField, NumberField } from './Fields';
 import { components } from '@/spec/catalog';
 import { getBatteryBalancingModes, getExternalControlOperationModes } from '@/spec/builder';
 import { errorAt } from '@/utils/errors';
-import { indexStringToString, stringToIndexString, stripUnit, addUnit } from '@/utils/helper';
+import { indexStringToString, stringToIndexString } from '@/utils/helper';
 
 export default function SystemForm(props: { cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; errorIndex: any })
 {

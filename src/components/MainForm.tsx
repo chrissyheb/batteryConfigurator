@@ -3,7 +3,6 @@ import React from 'react';
 import { useEffect } from 'react';
 import { SelectField, TextField, GuidField, CheckField, NumberField } from './Fields';
 import { PathType, createByKey, getInverterTypes, getBatteryTypes, getModbusTypes, getMainSmartmeterHardwares, getMainSmartmeterModels, getInverterHardwareTypes, getBatteryHardwareTypes, mainEquipmentKeys } from '@/spec/builder';
-import { errorAt } from '@/utils/errors';
 import { components } from '@/spec/catalog';
 import { JSONValue } from '@/app/store';
 

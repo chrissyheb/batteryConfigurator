@@ -3,7 +3,6 @@ import React from 'react';
 import { useEffect } from 'react';
 import { SelectField, TextField, GuidField, NumberField, CheckField } from './Fields';
 import { PathType, emsEquipmentKeys, createByKey, getEmsSmartmeterHardwares, getEmsSmartmeterModels, getEmsSmartmeterUseCaseTypes } from '@/spec/builder';
-import { errorAt } from '@/utils/errors';
 import { indexStringToString, stringToIndexString } from '@/utils/helper';
 import { components } from '@/spec/catalog';
 import { JSONValue } from '@/app/store';
