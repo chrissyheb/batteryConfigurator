@@ -110,3 +110,35 @@ input[type="number"] {
   -moz-appearance: textfield; /* älter */
   appearance: textfield;      /* moderner Standard */
 }
+
+
+.tooltip-wrapper {
+  position: relative;
+}
+
+.tooltip-bubble {
+  position: absolute;
+  left: var(--fieldLeftColumn);
+  bottom: 100%;
+  transform: translateY(-6px);
+  max-width: 380px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #111;
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.2;
+  box-shadow: 0 6px 16px rgba(0,0,0,.2);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .12s ease, transform .12s ease;
+  z-index: 1000;
+  white-space: normal;
+}
+
+/* Anzeige bei Hover ODER Fokus (Tastatur) */
+.tooltip-wrapper:hover .tooltip-bubble,
+.tooltip-wrapper:focus-within .tooltip-bubble {
+  opacity: 1;
+  transform: translateY(-10px);
+}
