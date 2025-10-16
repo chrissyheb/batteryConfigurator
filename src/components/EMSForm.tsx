@@ -35,50 +35,36 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
       <div className="card">
         <h3>Config - Grid Connection Point</h3>
         <NumberField 
-          leftLabel="PowerGridConsumptionLimit"
           path={['Units','Ems','Config','GridConnectionPoint','PowerGridConsumptionLimit']}
-          rightLabel={components.EmsConfig.fields.GridConnectionPoint.group.PowerGridConsumptionLimit.unit}
-          minValue="0"
+          defLink={components.EmsConfig.fields.GridConnectionPoint.group.PowerGridConsumptionLimit}
         />
         <NumberField 
-          leftLabel="PowerGridFeedInLimit"
           path={['Units','Ems','Config','GridConnectionPoint','PowerGridFeedInLimit']}
-          rightLabel={components.EmsConfig.fields.GridConnectionPoint.group.PowerGridFeedInLimit.unit}
-          minValue="0"
+          defLink={components.EmsConfig.fields.GridConnectionPoint.group.PowerGridFeedInLimit}
         />
         <NumberField 
-          leftLabel="PowerGridConsumptionOffset"
           path={['Units','Ems','Config','GridConnectionPoint','PowerGridConsumptionOffset']}
-          rightLabel={components.EmsConfig.fields.GridConnectionPoint.group.PowerGridConsumptionOffset.unit}
-          minValue="0"
+          defLink={components.EmsConfig.fields.GridConnectionPoint.group.PowerGridConsumptionOffset}
         />
       </div>
       
       <div className="card">
         <h3>Config - Master/Slave</h3>
         <NumberField 
-          leftLabel="PowerActiveInstalledTotal"
           path={['Units','Ems','Config','MasterSlave','PowerActiveInstalledTotal']}
-          rightLabel={components.EmsConfig.fields.MasterSlave.group.PowerActiveInstalledTotal.unit}
-          minValue="0"
+          defLink={components.EmsConfig.fields.MasterSlave.group.PowerActiveInstalledTotal}
         />
         <NumberField 
-          leftLabel="CapacityInstalledTotal"
           path={['Units','Ems','Config','MasterSlave','CapacityInstalledTotal']}
-          rightLabel={components.EmsConfig.fields.MasterSlave.group.CapacityInstalledTotal.unit}
-          minValue="0"
+          defLink={components.EmsConfig.fields.MasterSlave.group.CapacityInstalledTotal}
         />
         <NumberField 
-          leftLabel="PowerChargeLimitTotal"
           path={['Units','Ems','Config','MasterSlave','PowerChargeLimitTotal']}
-          rightLabel={components.EmsConfig.fields.MasterSlave.group.PowerChargeLimitTotal.unit}
-          minValue="0"
+          defLink={components.EmsConfig.fields.MasterSlave.group.PowerChargeLimitTotal}
         />
         <NumberField 
-          leftLabel="PowerDischargeLimitTotal"
           path={['Units','Ems','Config','MasterSlave','PowerDischargeLimitTotal']}
-          rightLabel={components.EmsConfig.fields.MasterSlave.group.PowerDischargeLimitTotal.unit}
-          minValue="0"
+          defLink={components.EmsConfig.fields.MasterSlave.group.PowerDischargeLimitTotal}
         />
       </div>
 
@@ -93,20 +79,20 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
         return (
           <div key={i} className="card">
             <div className="row" style={{ justifyContent: 'space-between' }}>
-              <h3>{getOrCfg(['Units','Ems','Equipment',"Smartmeter",i,'Type'], 'Unkown Smartmeter') + ' (' + getOrCfg(['Units','Ems','Equipment',"Smartmeter",i,'Name'], '') + ')'}</h3>
-              <button className="ghost" onClick={() => removeElement(['Units','Ems','Equipment','Smartmeter'],i)}>Entfernen</button>
+              <h3>{getOrCfg(['Units','Ems','Equipment',"Smartmeter",i,'Type'], 'Unkown Smartmeter') + ' (' + getOrCfg(['Units','Ems','Equipment',"Smartmeter",i,'DisplayName'], '') + ')'}</h3>
+              <button className="ghost" onClick={() => removeElement(['Units','Ems','Equipment','Smartmeter'],i)}>Remove</button>
             </div>
             <TextField 
-              leftLabel="Name"
               path={['Units','Ems','Equipment',"Smartmeter",i,'Name']}
+              defLink={components.Smartmeter.fields.Name}
             />
             <TextField
-              leftLabel="DisplayName"
               path={['Units','Ems','Equipment',"Smartmeter",i,'DisplayName']}
+              defLink={components.Smartmeter.fields.DisplayName}
             />
             <SelectField
-              label="HardwareType"
               path={['Units','Ems','Equipment',"Smartmeter",i,'HardwareType']}
+              defLink={components.Smartmeter.fields.HardwareType}
               options={getEmsSmartmeterHardwares()}
               onChange={(v: string) =>
               {
@@ -116,90 +102,78 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
               }}
             />
             <SelectField
-              label="HardwareModel"
               path={['Units','Ems','Equipment',"Smartmeter",i,'HardwareModel']}
+              defLink={components.Smartmeter.fields.HardwareModel}
               options={getEmsSmartmeterModels(getOrCfg(['Units','Ems','Equipment',"Smartmeter",i,'HardwareType'], ''))}
             />
             <GuidField
               path={['Units','Ems','Equipment',"Smartmeter",i,'Guid']}
+              defLink={components.Smartmeter.fields.Guid}
             />
             <SelectField
-              label="Usecase"
               path={['Units','Ems','Equipment',"Smartmeter",i,'Config','Usecase']}
+              defLink={components.Smartmeter.fields.Config.group.Usecase}
               options={indexStringToString(getEmsSmartmeterUseCaseTypes())}
               value={indexStringToString([getOrCfg(['Units','Ems','Equipment',"Smartmeter",i,'Config','Usecase'], [0,''])])[0]}
               onChange={(v: string) => { setInCfg(['Units','Ems','Equipment',"Smartmeter",i,'Config','Usecase'], stringToIndexString(v)); }}
             />
             <TextField
-              leftLabel="IP Address"
               path={['Units','Ems','Equipment',"Smartmeter",i,'Config','IpAddress']}
+              defLink={components.Smartmeter.fields.Config.group.IpAddress}
             />
             <NumberField 
-              leftLabel="Port"
               path={['Units','Ems','Equipment',"Smartmeter",i,'Config','Port']}
-              minValue="1"
-              maxValue="65535"
-              step="1"
+              defLink={components.Smartmeter.fields.Config.group.Port}
             />
           </div>
         );
       })}
 
-      {getOrCfg(['Units','Ems','Equipment',"SlaveLocalUM"], []).map((e: any, i: number) =>
-      {
-        return (
-          <div key={i} className="card">
-            <div className="row" style={{ justifyContent: 'space-between' }}>
-              <h3>{getOrCfg(['Units','Ems','Equipment',"SlaveLocalUM",i,'Type'], 'Unkown Local Unit') + ' (' + getOrCfg(['Units','Ems','Equipment',"SlaveLocalUM",i,'Name'], '') + ')'}</h3>
-              <button className="ghost" onClick={() => removeElement(['Units','Ems','Equipment','SlaveLocalUM'],i)}>Entfernen</button>
-            </div>
-            <TextField
-              leftLabel="Name"
-              path={['Units','Ems','Equipment',"SlaveLocalUM",i,'Name']}
-            />
-            <TextField
-              leftLabel="DisplayName"
-              path={['Units','Ems','Equipment',"SlaveLocalUM",i,'DisplayName']}
-            />
-            <GuidField
-              path={['Units','Ems','Equipment',"SlaveLocalUM",i,'Guid']}
-            />
-            <TextField
-              leftLabel="IP Address"
-              path={['Units','Ems','Equipment',"SlaveLocalUM",i,'Config','IpAddress']}
-            />
-          </div>
-        );
-      })}
+      <div className="card">
+        <div className="row" style={{ justifyContent: 'space-between' }}>
+          <h3>{(getOrCfg(['Units','Ems','Equipment',"LocalSystem",'Type'], 'Unkown Local System') === 'SlaveLocalUM' ? 'LocalSystem' : 'Unknown Local System') + ' (' + getOrCfg(['Units','Ems','Equipment',"LocalSystem",'DisplayName'], '') + ')'}</h3>
+        </div>
+        <TextField
+          path={['Units','Ems','Equipment',"LocalSystem",'Name']}
+          defLink={components.SlaveLocalUM.fields.Name}
+        />
+        <TextField
+          path={['Units','Ems','Equipment',"LocalSystem",'DisplayName']}
+          defLink={components.SlaveLocalUM.fields.DisplayName}
+        />
+        <GuidField
+          path={['Units','Ems','Equipment',"LocalSystem",'Guid']}
+          defLink={components.SlaveLocalUM.fields.Guid}
+        />
+        <TextField
+          path={['Units','Ems','Equipment',"LocalSystem",'Config','IpAddress']}
+          defLink={components.SlaveLocalUM.fields.Config.group.IpAddress}
+        />
+      </div>
 
       {getOrCfg(['Units','Ems','Equipment',"SlaveRemoteUM"], []).map((e: any, i: number) =>
       {
         return (
           <div key={i} className="card">
             <div className="row" style={{ justifyContent: 'space-between' }}>
-              <h3>{getOrCfg(['Units','Ems','Equipment',"SlaveRemoteUM",i,'Type'], 'Unkown Remote Unit') + ' (' + getOrCfg(['Units','Ems','Equipment',"SlaveRemoteUM",i,'Name'], '') + ')'}</h3>
-              <button className="ghost" onClick={() => removeElement(['Units','Ems','Equipment','SlaveRemoteUM'],i)}>Remove</button>
+              <h3>{(getOrCfg(['Units','Ems','Equipment',"RemoteSystems",i,'Type'], 'Unkown Remote System') === 'SlaveRemoteUM' ? 'RemoteSystem' : 'Unknown Remote System') + ' (' + getOrCfg(['Units','Ems','Equipment',"RemoteSystems",i,'DisplayName'], '') + ')'}</h3>
+              <button className="ghost" onClick={() => removeElement(['Units','Ems','Equipment','RemoteSystems'],i)}>Remove</button>
             </div>
-            <SelectField
-              leftIsType
-              options={['SlaveRemoteUM']}
-              value={getOrCfg(['Units','Ems','Equipment',"SlaveRemoteUM",i,'Type'], 'SlaveRemoteUM')}
-              onChange={() => {}}
+            <TextField
+              path={['Units','Ems','Equipment',"RemoteSystems",i,'Name']}
+              defLink={components.SlaveRemoteUM.fields.Name}
             />
             <TextField
-              leftLabel="Name"
-              path={['Units','Ems','Equipment',"SlaveRemoteUM",i,'Name']}
-            />
-            <TextField
-              leftLabel="DisplayName"
-              path={['Units','Ems','Equipment',"SlaveRemoteUM",i,'DisplayName']}
+              path={['Units','Ems','Equipment',"RemoteSystems",i,'DisplayName']}
+              defLink={components.SlaveRemoteUM.fields.DisplayName}
             />
             <GuidField
-              path={['Units','Ems','Equipment',"SlaveRemoteUM",i,'Guid']}
+              path={['Units','Ems','Equipment',"RemoteSystems",i,'Guid']}
+              defLink={components.SlaveRemoteUM.fields.Guid}
             />
             <TextField
-              leftLabel="IP Address"
-              path={['Units','Ems','Equipment',"SlaveRemoteUM",i,'Config','IpAddress']}
+              path={['Units','Ems','Equipment',"RemoteSystems",i,'Config','IpAddress']}
+              defLink={components.SlaveRemoteUM.fields.Config.group.IpAddress}
             />
           </div>
         );

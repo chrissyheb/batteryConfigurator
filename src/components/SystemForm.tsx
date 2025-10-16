@@ -20,48 +20,34 @@ export default function SystemForm(props: { cfg: any; setCfg: (c: any) => void; 
       <div className="card">
         <h3>Battery Balancing</h3>
         <SelectField
-          label="PreemptiveBalancingMode"
           path={['System', 'BatteryBalancing', 'PreemptiveMode']}
+          defLink={components.System.fields.BatteryBalancing.group.PreemptiveMode}
           options={indexStringToString(getBatteryBalancingModes())}
           value={indexStringToString([getOrCfg(['System', 'BatteryBalancing', 'PreemptiveMode'], [0,''])])[0]}
           onChange={(v: string) => { setInCfg(['System', 'BatteryBalancing', 'PreemptiveMode'], stringToIndexString(v)); }}
         />
         <NumberField 
-          leftLabel="PreemptiveDaysToEnable"
           path={['System', 'BatteryBalancing', 'PreemptiveDaysToEnable']}
-          minValue="0"
-          maxValue="365"
-          step="1"
+          defLink={components.System.fields.BatteryBalancing.group.PreemptiveDaysToEnable}
         />
         <NumberField 
-          leftLabel="PreemptiveMaxGridChargePower"
           path={['System', 'BatteryBalancing', 'PreemptiveMaxGridChargePower']}
-          rightLabel={components.System.fields.BatteryBalancing.group.PreemptiveMaxGridChargePower.unit}
-          minValue="0"
-          maxValue="50"
-          step="1"
+          defLink={components.System.fields.BatteryBalancing.group.PreemptiveMaxGridChargePower}
         />
         <NumberField 
-          leftLabel="ForcedDaysToEnable"
           path={['System', 'BatteryBalancing', 'ForcedDaysToEnable']}
-          minValue="0"
-          maxValue="365"
-          step="1"
+          defLink={components.System.fields.BatteryBalancing.group.ForcedDaysToEnable}
         />
         <NumberField 
-          leftLabel="ForcedMaxGridChargePowerPerInverter"
           path={['System', 'BatteryBalancing', 'ForcedMaxGridChargePowerPerInverter']}
-          rightLabel={components.System.fields.BatteryBalancing.group.ForcedMaxGridChargePowerPerInverter.unit}
-          minValue="0"
-          maxValue="50"
-          step="1"
+          defLink={components.System.fields.BatteryBalancing.group.ForcedMaxGridChargePowerPerInverter}
         />
       </div>
       <div className="card">
         <h3>External Control</h3>
         <SelectField
-          label="FallbackMode"
           path={['System', 'ExternalControl', 'FallbackMode']}
+          defLink={components.System.fields.ExternalControl.group.FallbackMode}
           options={indexStringToString(getExternalControlOperationModes())}
           value={indexStringToString([getOrCfg(['System', 'ExternalControl', 'FallbackMode'], [0,''])])[0]}
           onChange={(v: string) => { setInCfg(['System', 'ExternalControl', 'FallbackMode'], stringToIndexString(v)); }}
