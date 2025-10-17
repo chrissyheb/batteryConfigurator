@@ -111,6 +111,7 @@ function BatteryInverterCard(props: { idx: number; cfg: any; setCfg: (c: any) =>
         <h3>Modbus</h3>
         <SelectField 
           path={['Units','Main','Equipment','BatteryInverter',idx,'Modbus','Type']}
+            defLink={components.BatteryInverterModbus.fields.group.Type}
           options={getModbusTypes()} 
           onChange=
           {(v: string) => 

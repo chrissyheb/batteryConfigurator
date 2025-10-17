@@ -133,7 +133,8 @@ input[type="number"] {
   pointer-events: none;
   transition: opacity .12s ease, transform .12s ease;
   z-index: 1000;
-  white-space: normal;
+  /*white-space: normal;*/
+  white-space: pre-line; /* allow line breaks in tooltip */
 }
 
 /* Anzeige bei Hover ODER Fokus (Tastatur) */
