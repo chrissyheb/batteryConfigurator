@@ -93,7 +93,7 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
 
   const countBatteryInverterIPs = new Map<string, number>();
   const countModbusIPs = new Map<string, number>();
-
+  const countNames = new Map<string, number>();
 
   biList.forEach((bi: any, idx: number) =>
   {
@@ -103,9 +103,18 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
     const batType = bi?.Battery?.Config?.BatteryType;
     const hasModbus = !!bi?.Modbus;
     
+    const batInvName:string|undefined = bi?.Name ?? undefined;
+    const invName:string|undefined = bi?.Inverter?.Name ?? undefined;
+    const batName:string|undefined = bi?.Battery?.Name ?? undefined;
+    const modName:string|undefined = bi?.Modbus?.Name ?? undefined;
+
     const invIp:string|undefined = bi?.Inverter?.Config?.IpAddress ?? undefined;
     const batIp:string|undefined = bi?.Battery?.Config?.IpAddress ?? undefined;
     const modIp:string|undefined = bi?.Modbus?.Config?.IpAddress ?? undefined;
+
+    if (batInvName) { countNames.set(batInvName, (countNames.get(batInvName) || 0) + 1); }
+    if (batName) { countNames.set(batName, (countNames.get(batName) || 0) + 1); }
+    if (invName) { countNames.set(invName, (countNames.get(invName) || 0) + 1); }
 
     if (isTerraHV)
     {
@@ -139,6 +148,7 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
         add({ message: 'Terra configured ⇒ Modbus IP must match Battery IP', path: ['Units','Main','Equipment','BatteryInverter',idx,'Battery','Config','IpAddress'] });
       }
       if (modIp) { countModbusIPs.set(modIp, (countModbusIPs.get(modIp) || 0) + 1); }
+      if (modName) { countNames.set(modName, (countNames.get(modName) || 0) + 1); }
     }
     else
     {
@@ -169,10 +179,22 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
   });
 
   config.Units.Main.Equipment.BatteryInverter.map((v:any, idx:number) => 
-  {
+  { 
+    if ((countNames.get(v.Name ?? '') ?? 0) > 1) {
+      add({ message: 'Component name duplicate', path: ['Units','Main','Equipment','BatteryInverter',idx,'Name'] });
+    }
+    if ((countNames.get(v.Battery?.Name ?? '') ?? 0) > 1) {
+      add({ message: 'Component name duplicate', path: ['Units','Main','Equipment','BatteryInverter',idx,'Battery','Name'] });
+    }
+    if ((countNames.get(v.Inverter?.Name ?? '') ?? 0) > 1) {
+      add({ message: 'Component name duplicate', path: ['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Name'] });
+    }
     if (isTerraHV) { 
       if ((countModbusIPs.get(v.Modbus?.Config?.IpAddress ?? '') ?? 0) > 1) {
         add({ message: 'Modbus IP Address duplicate', path: ['Units','Main','Equipment','BatteryInverter',idx,'Modbus','Config','IpAddress'] });
+      }
+      if ((countNames.get(v.Modbus?.Name ?? '') ?? 0) > 1) {
+        add({ message: 'Component name duplicate', path: ['Units','Main','Equipment','BatteryInverter',idx,'Modbus','Name'] });
       }
     }
     else 

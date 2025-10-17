@@ -288,6 +288,11 @@ function fieldSchema(f: any): z.ZodTypeAny
 
     default:
     {
+      if (typeof f?.plcVariableName === 'boolean' && f.plcVariableName === true)
+      {
+        return z.string().min(1).regex(/^[a-zA-Z_][a-zA-Z0-9_]*$/, { message: 'Invalid PLC variable name - only alphanumeric and _ allowed, no leading number'})
+          .refine((val) => val !== '' && val && (val[0] === "_" || val[0] === val[0].toUpperCase()), { message: 'Invalid PLC variable name - first character must be uppercase or "-"' });
+      }
       return z.string().min(1);
     }
   }

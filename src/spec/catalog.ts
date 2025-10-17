@@ -29,6 +29,7 @@ export function TypeNumber(
 export type TypeStringDef = BaseType<'string'>  & { 
   enumRef?: [string, string],
   enum?: string,
+  plcVariableName?: boolean
 };
 export function TypeString(
   opts: Omit<TypeStringDef, 'type'> & {type?: never}
@@ -140,14 +141,14 @@ const cGlobal = {
 
 const cSystem = {
   fields: {
-    SerialNumber: TypeString({ required: true, hint: 'Serial number of the BESS system (e.g. TEMSM-001, TE0000000047)' }),
+    SerialNumber: TypeString({ required: true, plcVariableName: true, hint: 'Serial number of the BESS system \n TEMSM-001 \n TE0000000047 \n BK0000000246' }),
     BatteryBalancing: {
       group: {
         PreemptiveMode: TypeIndexString({ required: true, hint: 'Balancing mode used for preemptive balancing', enumRef: ['system', 'batteryBalancingModes'] }),
-        PreemptiveDaysToEnable: TypeNumber({ required: true, hint: 'Preemptive balancing starts number of days after last successful balancing process. \n 0: preemptive balancing disabled', min: 0, max: 365, int: true }),
-        PreemptiveMaxGridChargePower: TypeNumberUnit({ required: true, hint: 'Max power sum used for charging from grid during preemptive balancing', min: 0, unit: 'kW' }),
-        ForcedDaysToEnable: TypeNumber({ required: true, hint: 'Balancing is forced number of days after last successful balancing process.', min: 0, max: 365, int: true }),
-        ForcedMaxGridChargePowerPerInverter: TypeNumberUnit({ required: true, hint: 'Max power per inverter used for charging from grid during forced balancing', min: 0, unit: 'kW' }),
+        PreemptiveDaysToEnable: TypeNumber({ required: true, hint: 'Preemptive balancing starts number of days after last successful balancing process.\n >= 0 \n 0: preemptive balancing disabled ', min: 0, max: 365, int: true }),
+        PreemptiveMaxGridChargePower: TypeNumberUnit({ required: true, hint: 'Max power sum used for charging from grid during preemptive balancing \n >= 0', min: 0, unit: 'kW' }),
+        ForcedDaysToEnable: TypeNumber({ required: true, hint: 'Balancing is forced number of days after last successful balancing process. \n >= 0', min: 0, max: 365, int: true }),
+        ForcedMaxGridChargePowerPerInverter: TypeNumberUnit({ required: true, hint: 'Max power per inverter used for charging from grid during forced balancing \n >= 0 \n 0: forced balancing disabled', min: 0, unit: 'kW' }),
       }
     },
     ExternalControl: {
@@ -173,21 +174,21 @@ const cSystem = {
 
 const cEmsConfig = {
   fields: {
-    SmartmeterCount: TypeNumber({ required: true, hint: '', min: 0, int: true, readOnly: true }),
-    SystemsInParallelCount: TypeNumber({ required: true, hint: '', min: 1, int: true, readOnly: true }),
+    SmartmeterCount: TypeNumber({ required: true, hint: 'Number of used Smartmeters \n - automatically calculated -', min: 0, int: true, readOnly: true }),
+    SystemsInParallelCount: TypeNumber({ required: true, hint: 'Number of parallel systems within Main/Support combination \n - automatically calculated -', min: 1, int: true, readOnly: true }),
     GridConnectionPoint: {
       group: {
-        PowerGridConsumptionLimit: TypeNumberUnit({ required: true, hint: '', min: 0, unit: 'kW' }),
-        PowerGridFeedInLimit: TypeNumberUnit({ required: true, hint: '', min: 0, unit: 'kW' }),
-        PowerGridConsumptionOffset: TypeNumberUnit({ required: true, hint: '', unit: 'kW' }),
+        PowerGridConsumptionLimit: TypeNumberUnit({ required: true, hint: 'Max. permitted consumption power from grid \n if no limit set to max. fuse power \n >= 0', min: 0, unit: 'kW' }),
+        PowerGridFeedInLimit: TypeNumberUnit({ required: true, hint: 'Max. permitted feed in power from grid \n if no limit set to max. fuse power \n >= 0', min: 0, unit: 'kW' }),
+        PowerGridConsumptionOffset: TypeNumberUnit({ required: true, hint: 'Control offset for grid connection point', unit: 'kW' }),
       }
     },
     MasterSlave: {
       group: {
-        PowerActiveInstalledTotal: TypeNumberUnit({ required: true, hint: '', min: 0, unit: 'kW' }),
-        CapacityInstalledTotal: TypeNumberUnit({ required: true, hint: '', min: 0, unit: 'kWh' }),
-        PowerChargeLimitTotal: TypeNumberUnit({ required: true, hint: '', min: 0, unit: 'kW' }),
-        PowerDischargeLimitTotal: TypeNumberUnit({ required: true, hint: '', min: 0, unit: 'kW' }),
+        PowerActiveInstalledTotal: TypeNumberUnit({ required: true, hint: 'Sum of installed inverter active power (total Main/Support combination) \n > 0', min: 0, unit: 'kW' }),
+        CapacityInstalledTotal: TypeNumberUnit({ required: true, hint: 'Sum of installed battery capacity (total Main/Support combination) \n > 0', min: 0, unit: 'kWh' }),
+        PowerChargeLimitTotal: TypeNumberUnit({ required: true, hint: 'Max charge power (or installed active power) of total Main/Support combination \n >= 0', min: 0, unit: 'kW' }),
+        PowerDischargeLimitTotal: TypeNumberUnit({ required: true, hint: 'Max discharge power (or installed active power) of total Main/Support combination \n >= 0', min: 0, unit: 'kW' }),
       }
     }
   },
@@ -211,16 +212,16 @@ const cEmsConfig = {
 const cSmartmeter = {
   fields: {
     Type: { const: 'Smartmeter', required: true },
-    Name: TypeString({ required: true, hint: '' }),
-    DisplayName: TypeString({ required: true, hint: '' }),
-    HardwareType: TypeString({ required: true, hint: '', enumRef: ['ems', 'smartmeterHardwareToTypes'] }),
-    HardwareModel: TypeString({ required: true, hint: '' }),
-    Guid: TypeUuid({ required: true, hint: '' }),
+    Name: TypeString({ required: true, plcVariableName: true, hint: 'Component name in TwinCAT code \n - no spaces permitted -' }),
+    DisplayName: TypeString({ required: true, hint: 'Component name in Log files' }),
+    HardwareType: TypeString({ required: true, hint: 'Manufacturer of Smartmeter', enumRef: ['ems', 'smartmeterHardwareToTypes'] }),
+    HardwareModel: TypeString({ required: true, hint: 'Hardware model type of Smartmeter' }),
+    Guid: TypeUuid({ required: true, hint: 'GUID of component for TwinCAT project generation/update' }),
     Config: {
       group: {
-        Usecase: TypeIndexString({ required: true, hint: '', enumRef: ['ems','smartmeterUseCaseTypes'] }),
-        IpAddress: TypeIPv4({ required: true, hint: '' }),
-        Port: TypeNumber({ required: true, hint: '', min: 1, max: 65535, int: true })
+        Usecase: TypeIndexString({ required: true, hint: 'Smartmeter usecase for power control', enumRef: ['ems','smartmeterUseCaseTypes'] }),
+        IpAddress: TypeIPv4({ required: true, hint: 'IP address of Smartmeter' }),
+        Port: TypeNumber({ required: true, hint: 'Modbus TCP port for communication with Smartmeter \n default: 502', min: 1, max: 65535, int: true })
       }
     }
   },
@@ -242,12 +243,12 @@ const cSmartmeter = {
 const cSlaveLocalUM = {
   fields: {
     Type: { const: 'SlaveLocalUM', required: true },
-    Name: TypeString({ required: true, hint: '' }),
-    DisplayName: TypeString({ required: true, hint: '' }),
-    Guid: TypeUuid({ required: true, hint: '' }),
+    Name: TypeString({ required: true, plcVariableName: true, hint: 'Component name in TwinCAT code \n - no spaces permitted -' }),
+    DisplayName: TypeString({ required: true, hint: 'Component name in Log files' }),
+    Guid: TypeUuid({ required: true, hint: 'GUID of component for TwinCAT project generation/update' }),
     Config: {
       group: {
-        IpAddress: TypeIPv4({ required: true, hint: '' })
+        IpAddress: TypeIPv4({ required: true, hint: 'IP Address of local system' })
       }
     }
   },
@@ -265,12 +266,12 @@ const cSlaveLocalUM = {
 const cSlaveRemoteUM = {
   fields: {
     Type: { const: 'SlaveRemoteUM', required: true },
-    Name: TypeString({ required: true, hint: '' }),
-    DisplayName: TypeString({ required: true, hint: '' }),
-    Guid: TypeUuid({ required: true, hint: '' }),
+    Name: TypeString({ required: true, plcVariableName: true, hint: 'Component name in TwinCAT code \n - no spaces permitted -' }),
+    DisplayName: TypeString({ required: true, hint: 'Component name in Log files' }),
+    Guid: TypeUuid({ required: true, hint: 'GUID of component for TwinCAT project generation/update' }),
     Config: {
       group: {
-        IpAddress: TypeIPv4({ required: true, hint: '' })
+        IpAddress: TypeIPv4({ required: true, hint: 'IP Address of remote system' })
       }
     }
   },
@@ -287,13 +288,13 @@ const cSlaveRemoteUM = {
 
 const cMainConfig = {
   fields: {
-    InverterCount: TypeNumber({ required: true, hint: '', min: 0, max: 25, int: true, readOnly: true }),
-    BatteryCount: TypeNumber({ required: true, hint: '', min: 0, max: 25, int: true, readOnly: true }),
-    IpAddressInternal: TypeIPv4({ required: true, hint: '' }),
-    PowerSwitchMainAvailable: TypeBool({ required: true, hint: '' }),
-    SafetyRelayAvailable: TypeBool({ required: true, hint: '' }),
-    PowerChargeLimitLocal: TypeNumberUnit({ required: true, hint: '', min: 0, unit: 'kW' }),
-    PowerDischargeLimitLocal: TypeNumberUnit({ required: true, hint: '', min: 0, unit: 'kW' }),
+    InverterCount: TypeNumber({ required: true, hint: 'Number of installed inverters  \n - automatically calculated -', min: 0, max: 25, int: true, readOnly: true }),
+    BatteryCount: TypeNumber({ required: true, hint: 'Number of installed battery systems \n - automatically calculated -', min: 0, max: 25, int: true, readOnly: true }),
+    IpAddressInternal: TypeIPv4({ required: true, hint: 'Internal IP address of the main unit' }),
+    PowerSwitchMainAvailable: TypeBool({ required: true, hint: 'Is a power switch installed within the local system?' }),
+    SafetyRelayAvailable: TypeBool({ required: true, hint: 'Is a safety relay installed within the local system?' }),
+    PowerChargeLimitLocal: TypeNumberUnit({ required: true, hint: 'Max charge power (or installed active power) of local system (Main Unit) \n >= 0', min: 0, unit: 'kW' }),
+    PowerDischargeLimitLocal: TypeNumberUnit({ required: true, hint: 'Max discharge power (or installed active power) of local system (Main Unit) \n >= 0', min: 0, unit: 'kW' }),
   },
   defaults: {
     InverterCount: 1,
@@ -309,16 +310,16 @@ const cMainConfig = {
 const cSmartmeterMain = {
   fields: {
     Type: { const: 'SmartmeterMain', required: true },
-    Name: TypeString({ required: true, hint: '' }),
-    DisplayName: TypeString({ required: true, hint: '' }),
-    HardwareType: TypeString({ required: true, hint: '', enumRef: ['main', 'smartmeterHardwareToTypes'] }),
-    HardwareModel: TypeString({ required: true, hint: '' }),
-    Guid: TypeUuid({ required: true, hint: '' })
+    Name: TypeString({ required: true, plcVariableName: true, hint: 'Component name in TwinCAT code \n - no spaces permitted -' }),
+    DisplayName: TypeString({ required: true, hint: 'Component name in Log files' }),
+    HardwareType: TypeString({ required: true, hint: 'Manufacturer of Smartmeter', enumRef: ['main', 'smartmeterHardwareToTypes'] }),
+    HardwareModel: TypeString({ required: true, hint: 'Hardware model type of Smartmeter' }),
+    Guid: TypeUuid({ required: true, hint: 'GUID of component for TwinCAT project generation/update' })
   },
   defaults:{
     Type: 'SmartmeterMain',
-    Name: 'SmartmeterMain',// ${n}',
-    DisplayName: 'SmartmeterMain',// ${n}',
+    Name: 'SmartmeterMain',
+    DisplayName: 'SmartmeterMain',
     HardwareType: 'Virtual',
     HardwareModel: 'Virtual',
     Guid: '@uuid'
@@ -328,22 +329,22 @@ const cSmartmeterMain = {
 const cBatteryInverterInverter = {
   fields: {
     group: {
-      Type: TypeString({ required: true, hint: '', enumRef: ['batteryInverter', 'inverterTypes'] }),
-      Name: TypeString({ required: true, hint: '' }),
-      Guid: TypeUuid({ required: true, hint: '' }),
+      Type: TypeString({ required: true, hint: 'Inverter component type in TwinCAT project', enumRef: ['batteryInverter', 'inverterTypes'] }),
+      Name: TypeString({ required: true, plcVariableName: true, hint: 'Component name in TwinCAT code \n - no spaces permitted -' }),
+      Guid: TypeUuid({ required: true, hint: 'GUID of component for TwinCAT project generation/update' }),
       Config: {
         group: {
-          InverterType: TypeString({ required: true, hint: '', enum: 'inverterHardwareTypes' }),
-          NominalInverterPower: TypeNumberUnit({ required: true, hint: '', unit: 'kW', min: 1, max: 125 }),
-          IpAddress: TypeIPv4({ required: true, hint: '' }),
-          Port: TypeNumber({ required: true, hint: '', min: 1, max: 65535, int: true })
+          InverterType: TypeString({ required: true, hint: 'Inverter hardware type', enum: 'inverterHardwareTypes' }),
+          NominalInverterPower: TypeNumberUnit({ required: true, hint: 'Nominal active power of installed Inverter', unit: 'kW', min: 1, max: 125 }),
+          IpAddress: TypeIPv4({ required: true, hint: 'IP Address of Inverter' }),
+          Port: TypeNumber({ required: true, hint: 'Modbus TCP port for communication with Inverter \n default: 502', min: 1, max: 65535, int: true })
         }
       }
     }
   },
   defaults:{
     Type:'TerraInverter',
-    Name:'Inverter ${n0}',
+    Name:'Inverter${n0}',
     Guid:'@uuid',
     Config: {
       InverterType:'SofarTerra',
@@ -357,23 +358,23 @@ const cBatteryInverterInverter = {
 const cBatteryInverterBattery = {
   fields:{
     group: {
-      Type: TypeString({ required: true, hint: '', enumRef: ['batteryInverter', 'batteryTypes'] }),
-      Name: TypeString({ required: true, hint: '' }),
-      Guid: TypeUuid({ required: true, hint: '' }),
+      Type: TypeString({ required: true, hint: 'Battery component type in TwinCAT project', enumRef: ['batteryInverter', 'batteryTypes'] }),
+      Name: TypeString({ required: true, plcVariableName: true, hint: 'Component name in TwinCAT code \n - no spaces permitted -' }),
+      Guid: TypeUuid({ required: true, hint: 'GUID of component for TwinCAT project generation/update' }),
       Config: {
         group: {
-          BatteryType: TypeString({ required: true, hint: '', enum: 'batteryHardwareTypes' }),
-          BatteryCabinetCount: TypeNumber({ required: true, hint: '', min: 1, max: 5, int: true }),
-          BatteryCabinetModuleCount: TypeNumber({ required: true, hint: '', min: 1, max: 25, int: true }),
-          IpAddress: TypeIPv4({ required: true, hint: '' }),
-          Port: TypeNumber({ required: true, hint: '', min: 1, max: 65535, int: true })
+          BatteryType: TypeString({ required: true, hint: 'Battery hardware type', enum: 'batteryHardwareTypes' }),
+          BatteryCabinetCount: TypeNumber({ required: true, hint: 'Number of installed Battery cabinets \n [1..5]', min: 1, max: 5, int: true }),
+          BatteryCabinetModuleCount: TypeNumber({ required: true, hint: 'Number of Battery modules within each installed cabinet \n [1..25]', min: 1, max: 25, int: true }),
+          IpAddress: TypeIPv4({ required: true, hint: 'IP Address of Battery' }),
+          Port: TypeNumber({ required: true, hint: 'Modbus TCP port for communication with Battery \n default: 502', min: 1, max: 65535, int: true })
         }
       }
     }
   },
   defaults: {
     Type:'TerraBattery',
-    Name:'Battery ${n0}',
+    Name:'Battery${n0}',
     Guid:'@uuid',
     Config: {
       BatteryType:'SofarTerra',
@@ -389,20 +390,20 @@ const cBatteryInverterModbus = {
   fields: {
     optional: true,
     group: {
-      Type: TypeString({ required: true, hint: '', enumRef: ['batteryInverter', 'modbusTypes'] }),
-      Name: TypeString({ required: true, hint: '' }),
-      Guid: TypeUuid({ required: true, hint: '' }),
+      Type: TypeString({ required: true, hint: 'Modbus component type in TwinCAT project', enumRef: ['batteryInverter', 'modbusTypes'] }),
+      Name: TypeString({ required: true, plcVariableName: true, hint: 'Component name in TwinCAT code \n - no spaces permitted -' }),
+      Guid: TypeUuid({ required: true, hint: 'GUID of component for TwinCAT project generation/update' }),
       Config: {
         group: {
-          IpAddress: TypeIPv4({ required: true, hint: '' }),
-          Port: TypeNumber({ required: true, hint: '', min: 1, max: 65535, int: true })
+          IpAddress: TypeIPv4({ required: true, hint: 'IP Address of Modbus component' }),
+          Port: TypeNumber({ required: true, hint: 'Modbus TCP port for communication with Component \n default: 502', min: 1, max: 65535, int: true })
         }
       }
     }
   },
   defaults: {
     Type:'TerraModbus',
-    Name:'Modbus ${n0}',
+    Name:'Modbus${n0}',
     Guid:'@uuid',
     Config: {
       IpAddress: '192.168.137.40',
@@ -418,7 +419,7 @@ export const components = {
   Smartmeter: cSmartmeter,
   SlaveLocalUM: cSlaveLocalUM,
   SlaveRemoteUM: cSlaveRemoteUM,
-  MainType: TypeString({ required: true, hint: '', enumRef: ['main', 'types'] }),
+  MainType: TypeString({ required: true, hint: 'Main Unit type \n - automatically detected -', enumRef: ['main', 'types'] }),
   MainConfig: cMainConfig,
   SmartmeterMain: cSmartmeterMain,
   BatteryInverterInverter: cBatteryInverterInverter,
@@ -427,8 +428,8 @@ export const components = {
   BatteryInverter: {
     fields: {
       Type: { const: 'BatteryInverter', required: true },
-      Name: TypeString({ required: true, hint: '' }),
-      Index: TypeNumber({ required: true, hint: '', min: 0, max: 14, int: true, readOnly: true }),
+      Name: TypeString({ required: true, plcVariableName: true, hint: 'Component name in TwinCAT code \n - no spaces permitted -' }),
+      Index: TypeNumber({ required: true, hint: 'Index of BatteryInverter component \n - automatically calculated -', min: 0, max: 14, int: true, readOnly: true }),
       Inverter : cBatteryInverterInverter.fields,
       Battery : cBatteryInverterBattery.fields,
       Modbus : cBatteryInverterModbus.fields
@@ -436,7 +437,7 @@ export const components = {
     defaults:{
       Type: 'BatteryInverter',
       Index: 0,
-      Name: 'BatteryInverter ${n0}',
+      Name: 'BatteryInverter${n0}',
       Inverter: cBatteryInverterInverter.defaults,
       Battery: cBatteryInverterBattery.defaults,
       Modbus: cBatteryInverterModbus.defaults
