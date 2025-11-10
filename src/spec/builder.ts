@@ -349,8 +349,7 @@ const configZ = z.object({
     Ems: z.object({
       Equipment: z.object({
         Smartmeter: z.array(smartmeterZ),
-        LocalSystem: slaveLocalZ,
-        RemoteSystems: z.array(slaveRemoteZ),
+        LocalRemoteSystems: z.array(z.union([slaveLocalZ, slaveRemoteZ])).min(1),
       }).strict(),
       Config: emsConfigZ,
     }).strict(),
@@ -390,8 +389,7 @@ export function getInitialConfig(): any
 //    emsEq.push(createByKey('SlaveLocalUM',{n:1}));
   const emsEqSmartmeter:any[] = [];
     emsEqSmartmeter.push(createByKey('Smartmeter',{n:1}));
-  const emsEqSlaveLocalUM:any = createByKey('SlaveLocalUM',{n:1});
-  const emsEqSlaveRemoteUM:any[] = [];
+  const emsEqLocalRemoteUnits:any[] = [createByKey('SlaveLocalUM',{n:1})];
   const emsConfig:any = createByKey('EmsConfig',{n:1});
   const mainEqSmartmeter:any = createByKey('SmartmeterMain',{n:1});
   const mainEqBatteryInverter:any[] = [];
@@ -404,8 +402,7 @@ export function getInitialConfig(): any
       Ems:{ 
         Equipment: { 
           Smartmeter: emsEqSmartmeter,
-          LocalSystem: emsEqSlaveLocalUM,
-          RemoteSystems: emsEqSlaveRemoteUM
+          LocalRemoteSystems: emsEqLocalRemoteUnits
         },
         Config: emsConfig
       }, 

@@ -15,11 +15,11 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
 
   // Effekt: NumberOfArrayEntries automatisch nachführen
   useEffect(() => {
-    const systemsInParallelCount = cfg.Units.Ems.Equipment.RemoteSystems.length+1; // add local unit
+    const systemsInParallelCount = cfg.Units.Ems.Equipment?.LocalRemoteSystems?.length ?? 0; // add local unit
     if (cfg.Units.Ems.Config.SystemsInParallelCount !== systemsInParallelCount) {
       setInCfg(['Units','Ems','Config','SystemsInParallelCount'], systemsInParallelCount);
     }
-  }, [cfg.Units?.Ems?.Equipment?.RemoteSystems?.length ?? 0]); // <— wichtig: auf Länge hören, nicht auf ganze Struktur!
+  }, [cfg.Units?.Ems?.Equipment?.LocalRemoteSystems?.length ?? 0]); // <— wichtig: auf Länge hören, nicht auf ganze Struktur!
   
   // Effekt: NumberOfArrayEntries automatisch nachführen
   useEffect(() => {
@@ -97,7 +97,7 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
 
       <div className="row">
         <button onClick={() => {addElement(['Units','Ems','Equipment','Smartmeter'],'Smartmeter')}}>+ Smartmeter</button>
-        <button onClick={() => {addElement(['Units','Ems','Equipment','RemoteSystems'],'SlaveRemoteUM')}}>+ Remote System</button>
+        <button onClick={() => {addElement(['Units','Ems','Equipment','LocalRemoteSystems'],'SlaveRemoteUM')}}>+ Remote System</button>
       </div>
       <div className="card">
         
@@ -166,54 +166,64 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
         );
       })}
 
-      <div className="card">
-        <div className="row" style={{ justifyContent: 'space-between' }}>
-          <h3>{(getOrCfg(['Units','Ems','Equipment',"LocalSystem",'Type'], 'Unkown Local System') === 'SlaveLocalUM' ? 'LocalSystem' : 'Unknown Local System') + ' (' + getOrCfg(['Units','Ems','Equipment',"LocalSystem",'DisplayName'], '') + ')'}</h3>
-        </div>
-        <TextField
-          path={['Units','Ems','Equipment',"LocalSystem",'Name']}
-          defLink={components.SlaveLocalUM.fields.Name}
-        />
-        <TextField
-          path={['Units','Ems','Equipment',"LocalSystem",'DisplayName']}
-          defLink={components.SlaveLocalUM.fields.DisplayName}
-        />
-        <GuidField
-          path={['Units','Ems','Equipment',"LocalSystem",'Guid']}
-          defLink={components.SlaveLocalUM.fields.Guid}
-        />
-        <TextField
-          path={['Units','Ems','Equipment',"LocalSystem",'Config','IpAddress']}
-          defLink={components.SlaveLocalUM.fields.Config.group.IpAddress}
-        />
-      </div>
+      
 
-      {getOrCfg(['Units','Ems','Equipment',"RemoteSystems"], []).map((e: any, i: number) =>
+      {getOrCfg(['Units','Ems','Equipment','LocalRemoteSystems'], []).map((e: any, i: number) =>
       {
-        return (
-          <div key={i} className="card">
-            <div className="row" style={{ justifyContent: 'space-between' }}>
-              <h3>{(getOrCfg(['Units','Ems','Equipment',"RemoteSystems",i,'Type'], 'Unkown Remote System') === 'SlaveRemoteUM' ? 'RemoteSystem' : 'Unknown Remote System') + ' (' + getOrCfg(['Units','Ems','Equipment',"RemoteSystems",i,'DisplayName'], '') + ')'}</h3>
-              <button className="ghost" onClick={() => removeElement(['Units','Ems','Equipment','RemoteSystems'],i)}>Remove</button>
+        if (e.Type === 'SlaveLocalUM') 
+        { 
+          return (
+            <div key={i} className="card">
+              <div className="row" style={{ justifyContent: 'space-between' }}>
+                <h3>{(getOrCfg(['Units','Ems','Equipment',"LocalRemoteSystems",i,'Type'], 'Unkown Local System') === 'SlaveLocalUM' ? 'Local System' : 'Unknown Local System') + ' (' + getOrCfg(['Units','Ems','Equipment','LocalRemoteSystems',i,'DisplayName'], '') + ')'}</h3>
+              </div>
+              <TextField
+                path={['Units','Ems','Equipment','LocalRemoteSystems',i,'Name']}
+                defLink={components.SlaveLocalUM.fields.Name}
+              />
+              <TextField
+                path={['Units','Ems','Equipment','LocalRemoteSystems',i,'DisplayName']}
+                defLink={components.SlaveLocalUM.fields.DisplayName}
+              />
+              <GuidField
+                path={['Units','Ems','Equipment','LocalRemoteSystems',i,'Guid']}
+                defLink={components.SlaveLocalUM.fields.Guid}
+              />
+              <TextField
+                path={['Units','Ems','Equipment','LocalRemoteSystems',i,'Config','IpAddress']}
+                defLink={components.SlaveLocalUM.fields.Config.group.IpAddress}
+              />
             </div>
-            <TextField
-              path={['Units','Ems','Equipment',"RemoteSystems",i,'Name']}
-              defLink={components.SlaveRemoteUM.fields.Name}
-            />
-            <TextField
-              path={['Units','Ems','Equipment',"RemoteSystems",i,'DisplayName']}
-              defLink={components.SlaveRemoteUM.fields.DisplayName}
-            />
-            <GuidField
-              path={['Units','Ems','Equipment',"RemoteSystems",i,'Guid']}
-              defLink={components.SlaveRemoteUM.fields.Guid}
-            />
-            <TextField
-              path={['Units','Ems','Equipment',"RemoteSystems",i,'Config','IpAddress']}
-              defLink={components.SlaveRemoteUM.fields.Config.group.IpAddress}
-            />
-          </div>
-        );
+          );
+        }
+        else if (e.Type === 'SlaveRemoteUM') 
+        { 
+          return (
+            <div key={i} className="card">
+              <div className="row" style={{ justifyContent: 'space-between' }}>
+                <h3>{(getOrCfg(['Units','Ems','Equipment','LocalRemoteSystems',i,'Type'], 'Unkown Remote System') === 'SlaveRemoteUM' ? 'Remote System' : 'Unknown Remote System') + ' (' + getOrCfg(['Units','Ems','Equipment','LocalRemoteSystems',i,'DisplayName'], '') + ')'}</h3>
+                <button className="ghost" onClick={() => removeElement(['Units','Ems','Equipment','LocalRemoteSystems'],i)}>Remove</button>
+              </div>
+              <TextField
+                path={['Units','Ems','Equipment','LocalRemoteSystems',i,'Name']}
+                defLink={components.SlaveRemoteUM.fields.Name}
+              />
+              <TextField
+                path={['Units','Ems','Equipment','LocalRemoteSystems',i,'DisplayName']}
+                defLink={components.SlaveRemoteUM.fields.DisplayName}
+              />
+              <GuidField
+                path={['Units','Ems','Equipment','LocalRemoteSystems',i,'Guid']}
+                defLink={components.SlaveRemoteUM.fields.Guid}
+              />
+              <TextField
+                path={['Units','Ems','Equipment','LocalRemoteSystems',i,'Config','IpAddress']}
+                defLink={components.SlaveRemoteUM.fields.Config.group.IpAddress}
+              />
+            </div>
+          );
+        }
+        
       })}
     </div>
   );
