@@ -23,7 +23,7 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
   
   // Effekt: NumberOfArrayEntries automatisch nachführen
   useEffect(() => {
-    const smartmeterCount = cfg.Units.Ems.Equipment.Smartmeter.length;
+    const smartmeterCount = cfg.Units.Ems.Equipment.Smartmeter.length ?? 0;
     if (cfg.Units.Ems.Config.SmartmeterCount !== smartmeterCount) {
       setInCfg(['Units','Ems','Config','SmartmeterCount'], smartmeterCount);
     }
@@ -40,20 +40,12 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
     const item: any = createByKey(type, { n: idxNew+1 });
     const pathNew: PathType = path.concat([idxNew]);
     setInCfg(pathNew, item);
-
-    //setInCfg(['Units','Ems','Config','SmartmeterCount'], smartmeterCount);
-    //setInCfg(['Units','Ems','Config','SystemsInParallelCount'],  getOrCfg(['Units','Ems','Equipment','RemoteSystems'], []).length + 1);
-    
   }
 
   function removeElement(path: PathType, i?: number): void 
   {
     if (i !== undefined && i !== null) { delFromCfg(path.concat([i])); }
     else { delFromCfg(path); }
-
-    //setInCfg(['Units','Ems','Config','SmartmeterCount'], smartmeterCount);
-    //setInCfg(['Units','Ems','Config','SystemsInParallelCount'],  getOrCfg(['Units','Ems','Equipment','RemoteSystems'], []).length + 1);
-    
   };
 
   return (
@@ -111,55 +103,55 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
         />
       </div>
 
-      {getOrCfg(['Units','Ems','Equipment',"Smartmeter"], []).map((e: any, i: number) =>
+      {getOrCfg(['Units','Ems','Equipment','Smartmeter'], []).map((e: any, i: number) =>
       {
         return (
           <div key={i} className="card">
             <div className="row" style={{ justifyContent: 'space-between' }}>
-              <h3>{getOrCfg(['Units','Ems','Equipment',"Smartmeter",i,'Type'], 'Unkown Smartmeter') + ' (' + getOrCfg(['Units','Ems','Equipment',"Smartmeter",i,'DisplayName'], '') + ')'}</h3>
+              <h3>{getOrCfg(['Units','Ems','Equipment','Smartmeter',i,'Type'], 'Unkown Smartmeter') + ' (' + getOrCfg(['Units','Ems','Equipment','Smartmeter',i,'DisplayName'], '') + ')'}</h3>
               <button className="ghost" onClick={() => removeElement(['Units','Ems','Equipment','Smartmeter'],i)}>Remove</button>
             </div>
             <TextField 
-              path={['Units','Ems','Equipment',"Smartmeter",i,'Name']}
+              path={['Units','Ems','Equipment','Smartmeter',i,'Name']}
               defLink={components.Smartmeter.fields.Name}
             />
             <TextField
-              path={['Units','Ems','Equipment',"Smartmeter",i,'DisplayName']}
+              path={['Units','Ems','Equipment','Smartmeter',i,'DisplayName']}
               defLink={components.Smartmeter.fields.DisplayName}
             />
             <SelectField
-              path={['Units','Ems','Equipment',"Smartmeter",i,'HardwareType']}
+              path={['Units','Ems','Equipment','Smartmeter',i,'HardwareType']}
               defLink={components.Smartmeter.fields.HardwareType}
               options={getEmsSmartmeterHardwares()}
               onChange={(v: string) =>
               {
                 const models = getEmsSmartmeterModels(v);
-                setInCfg(['Units','Ems','Equipment',"Smartmeter",i,'HardwareType'], v);
-                setInCfg(['Units','Ems','Equipment',"Smartmeter",i,'HardwareModel'], models[0]);
+                setInCfg(['Units','Ems','Equipment','Smartmeter',i,'HardwareType'], v);
+                setInCfg(['Units','Ems','Equipment','Smartmeter',i,'HardwareModel'], models[0]);
               }}
             />
             <SelectField
-              path={['Units','Ems','Equipment',"Smartmeter",i,'HardwareModel']}
+              path={['Units','Ems','Equipment','Smartmeter',i,'HardwareModel']}
               defLink={components.Smartmeter.fields.HardwareModel}
-              options={getEmsSmartmeterModels(getOrCfg(['Units','Ems','Equipment',"Smartmeter",i,'HardwareType'], ''))}
+              options={getEmsSmartmeterModels(getOrCfg(['Units','Ems','Equipment','Smartmeter',i,'HardwareType'], ''))}
             />
             <GuidField
-              path={['Units','Ems','Equipment',"Smartmeter",i,'Guid']}
+              path={['Units','Ems','Equipment','Smartmeter',i,'Guid']}
               defLink={components.Smartmeter.fields.Guid}
             />
             <SelectField
-              path={['Units','Ems','Equipment',"Smartmeter",i,'Config','Usecase']}
+              path={['Units','Ems','Equipment','Smartmeter',i,'Config','Usecase']}
               defLink={components.Smartmeter.fields.Config.group.Usecase}
               options={indexStringToString(getEmsSmartmeterUseCaseTypes())}
-              value={indexStringToString([getOrCfg(['Units','Ems','Equipment',"Smartmeter",i,'Config','Usecase'], [0,''])])[0]}
-              onChange={(v: string) => { setInCfg(['Units','Ems','Equipment',"Smartmeter",i,'Config','Usecase'], stringToIndexString(v)); }}
+              value={indexStringToString([getOrCfg(['Units','Ems','Equipment','Smartmeter',i,'Config','Usecase'], [0,''])])[0]}
+              onChange={(v: string) => { setInCfg(['Units','Ems','Equipment','Smartmeter',i,'Config','Usecase'], stringToIndexString(v)); }}
             />
             <TextField
-              path={['Units','Ems','Equipment',"Smartmeter",i,'Config','IpAddress']}
+              path={['Units','Ems','Equipment','Smartmeter',i,'Config','IpAddress']}
               defLink={components.Smartmeter.fields.Config.group.IpAddress}
             />
             <NumberField 
-              path={['Units','Ems','Equipment',"Smartmeter",i,'Config','Port']}
+              path={['Units','Ems','Equipment','Smartmeter',i,'Config','Port']}
               defLink={components.Smartmeter.fields.Config.group.Port}
             />
           </div>
