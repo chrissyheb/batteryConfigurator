@@ -9,14 +9,20 @@
     "System": {
         "SerialNumber": "TE0000000000",
         "BatteryBalancing": {
-            "PreemptiveMode": [ 0, "BlokkBatteryBalancingMode.None"],
+            "PreemptiveMode": [ 
+                0, 
+                "None"
+            ],
             "PreemptiveDaysToEnable": 60,
             "PreemptiveMaxGridChargePower": "30kW",
             "ForcedDaysToEnable": 90,
             "ForcedMaxGridChargePowerPerInverter": "5kW"
         },
         "ExternalControl": {
-            "FallbackMode": [ 0, "ExternalControlOperationMode.Standard"]
+            "FallbackMode": [ 
+                0, 
+                "Standard"
+            ]
         }
     },
     "Units": {
@@ -31,7 +37,10 @@
                         "HardwareModel": "EM375",
                         "Guid": "3b00e6d4-78f4-4b6b-af34-0f48720606c7",
                         "Config": {
-                            "Usecase": "GridConnectionPointControl",
+                            "Usecase": [
+                                2,
+                                "GridConnectionPointControl"
+                            ],
                             "IpAddress": "192.168.100.5",
                             "Port": 502
                         }
@@ -69,21 +78,21 @@
                     "CapacityInstalledTotal": "0kWh",
                     "PowerChargeLimitTotal": "0kW",
                     "PowerDischargeLimitTotal": "0kW"
-                }
+                },
+                "SmartmeterCount": 1,
+                "SystemsInParallelCount": 2
             }
         },
         "Main": {
             "Equipment": {
-                "Smartmeter": [
-                    {
-                        "Name": "SmartmeterMain 1",
-                        "DisplayName": "SmartmeterMain 1",
-                        "Type": "SmartmeterMain",
-                        "HardwareType": "Virtual",
-                        "HardwareModel": "Virtual",
-                        "Guid": "93f5c406-a7c2-4d9c-988e-db92ee574683"
-                    }
-                ],
+                "SmartmeterMain": {
+                    "Name": "SmartmeterMain 1",
+                    "DisplayName": "SmartmeterMain 1",
+                    "Type": "SmartmeterMain",
+                    "HardwareType": "Virtual",
+                    "HardwareModel": "Virtual",
+                    "Guid": "93f5c406-a7c2-4d9c-988e-db92ee574683"
+                },
                 "BatteryInverter": [
                     {
                         "Name": "BatteryInverter 1",
@@ -166,7 +175,10 @@
                 "IpAddressInternal": "192.168.137.5",
                 "PowerSwitchMainAvailable": false,
                 "PowerChargeLimitLocal": "0kW",
-                "PowerDischargeLimitLocal": "0kW"
+                "PowerDischargeLimitLocal": "0kW",
+                "BatteryCount": 2,
+                "InverterCount": 2,
+                "SafetyRelayAvailable": true
             }
         }
     }

@@ -53,25 +53,18 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
   
 
   // Slave IP check
-  const emsSlaves = config?.Units?.Ems?.Equipment?.RemoteSystems ?? [];
+  const emsSlaves = config?.Units?.Ems?.Equipment?.LocalRemoteSystems ?? [];
   const countSystemIPs = new Map<string, number>();
-  const ipLocal = config?.Units?.Ems?.Equipment?.LocalSystem?.Config?.IpAddress ?? '';
-  if (ipLocal !== '') {
-    countSystemIPs.set(ipLocal, 1);
-  }
   if (emsSlaves.length > 0) { 
-    config.Units.Ems.Equipment.RemoteSystems.map((v:any) => {
+    config.Units.Ems.Equipment.LocalRemoteSystems.map((v:any) => {
       if (v.Config?.IpAddress) { countSystemIPs.set(v.Config.IpAddress, (countSystemIPs.get(v.Config.IpAddress) || 0) + 1); }
     });
-    if ((countSystemIPs.get(ipLocal) || 0) > 1) {
-      add({ message: 'Slave IP Address duplicate', path: ['Units','Ems','Equipment','LocalSystem','Config','IpAddress'] });
-    }
     emsSlaves.map((e: any, idx: number) =>
     {
       const ip = e?.Config?.IpAddress ?? '';
       if ((countSystemIPs.get(ip) || 0) > 1) 
       {
-        add({ message: 'Slave IP Address duplicate', path: ['Units','Ems','Equipment','RemoteSystems',idx,'Config','IpAddress'] });
+        add({ message: 'Slave IP Address duplicate', path: ['Units','Ems','Equipment','LocalRemoteSystems',idx,'Config','IpAddress'] });
       }
     });
   }
@@ -213,15 +206,15 @@ export function applyCardinality(config: any, add: (i: Issue) => void): void
 {
   const emsEq = config?.Units?.Ems?.Equipment ?? {};
   const smCount = emsEq.Smartmeter?.length ?? emsEq.emsEqSmartmeter?.length ?? 0;
-  const localCount = emsEq.LocalSystem?.length ?? emsEq.emsEqSlaveLocalUM?.length ?? 0;
-  const remoteCount = emsEq.RemoteSystems?.length ?? emsEq.emsEqSlaveRemoteUM?.length ?? 0;
-  if (localCount > 1)
-  {
-    add({ message: 'SlaveLocalUM required exactly once', path: ['Units','Ems','Equipment','LocalSystem','Name'] });
-  }
   if (smCount > cardinality.ems.smartmeterMax)
   {
     add({ message: `Smartmeter max. ${cardinality.ems.smartmeterMax}`, path: ['Units','Ems','Equipment','Smartmeter',cardinality.ems.smartmeterMax,'Name'] });
+  }
+  const localCount = emsEq.LocalRemoteSystems?.filter((e: any) => { return e?.Type === 'SlaveLocalUM'; }).length;
+  const remoteCount = emsEq.LocalRemoteSystems?.filter((e: any) => { return e?.Type === 'SlaveRemoteUM'; }).length;
+  if (localCount > 1)
+  {
+    add({ message: 'SlaveLocalUM required exactly once', path: ['Units','Ems','Equipment','LocalSystem','Name'] });
   }
   if (remoteCount > cardinality.ems.slaveRemoteMax)
   {
