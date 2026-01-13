@@ -14,7 +14,7 @@ import { components } from '@/spec/catalog';
 
 export default function App()
 {
-  const { state, dispatch, errorIndex, issues, isValid, flatIssues, addIssue } = useStore();
+  const { state, dispatch, errorIndex, errorPrefixSet, issues, isValid, flatIssues, addIssue } = useStore();
 
   const {get, getOr, setIn, set, has, patch, del } = useConfigAccessors(state, dispatch);
 
@@ -38,7 +38,7 @@ export default function App()
     set(fresh);
   };
 
-  setGlobalProps({get, getOr, setIn, errorIndex, addIssue});
+  setGlobalProps({get, getOr, setIn, errorIndex, errorPrefixSet, addIssue});
 
   return (
     <div className="container">
@@ -87,9 +87,9 @@ export default function App()
           options={getHardwareVariants()}
         />
       </section>
-      <SystemForm cfg={state} setCfg={set} setInCfg={setIn} getCfg={get} getOrCfg={getOr} errorIndex={errorIndex} />
-      <EMSForm cfg={state} setCfg={set} setInCfg={setIn} getCfg={get} getOrCfg={getOr} delFromCfg={del} hasCfg={has} errorIndex={errorIndex} />
-      <MainForm cfg={state} setCfg={set} setInCfg={setIn} getCfg={get} getOrCfg={getOr} delFromCfg={del} hasCfg={has} errorIndex={errorIndex} />
+      <SystemForm cfg={state} setCfg={set} setInCfg={setIn} getCfg={get} getOrCfg={getOr} errorIndex={errorIndex} errorPrefixSet={errorPrefixSet} />
+      <EMSForm cfg={state} setCfg={set} setInCfg={setIn} getCfg={get} getOrCfg={getOr} delFromCfg={del} hasCfg={has} errorIndex={errorIndex} errorPrefixSet={errorPrefixSet} />
+      <MainForm cfg={state} setCfg={set} setInCfg={setIn} getCfg={get} getOrCfg={getOr} delFromCfg={del} hasCfg={has} errorIndex={errorIndex} errorPrefixSet={errorPrefixSet} />
 
     </div>
   );

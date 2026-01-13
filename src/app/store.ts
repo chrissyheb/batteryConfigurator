@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useReducer, useState } from 'react';
 import { loadLocal, saveLocal } from '@/utils/storage';
 import { validate, getInitialConfig, PathType } from '@/spec/builder';
-import { buildErrorIndex, expandUnknownKeyIssues, SimpleIssue } from '@/utils/errors';
+import { buildErrorIndex, expandUnknownKeyIssues, SimpleIssue, buildErrorPrefixSet } from '@/utils/errors';
 
 export function useConfigAccessors(state: JSONObject, dispatch: React.Dispatch<Action>) {
   return {
@@ -161,23 +161,28 @@ export function useStore()
   const [addIssues, setAddIssues] = useState(new Array<SimpleIssue>());
   const [issues, setIssues] = useState(0);
 
-  const { result, flatIssues, errorIndex } = useMemo(() =>
+  const { result, flatIssues, errorIndex, errorPrefixSet } = useMemo(() =>
   {
     const result = validate(state);
     const valIssues = expandUnknownKeyIssues(result.issues);
     const flatIssues = [...valIssues, ...addIssues];
     const errorIndex = buildErrorIndex(flatIssues);
-    return { result, flatIssues, errorIndex };
+    const errorPrefixSet = buildErrorPrefixSet(errorIndex);
+    return { result, flatIssues, errorIndex, errorPrefixSet };
   }, [state, issues]);
 
-  function addIssue(issue:SimpleIssue, ): void {
-    setAddIssues([...addIssues, issue]);
-    setIssues(issues + 1);
+  //function addIssue(issue:SimpleIssue, ): void {
+  //  setAddIssues([...addIssues, issue]);
+  //  setIssues(issues + 1);
+  //}
+  function addIssue(issue: SimpleIssue): void {
+    setAddIssues(prev => [...prev, issue]);
+    setIssues(prev => prev + 1);
   }
 
   useEffect(() => { saveLocal(state); }, [state]);
 
   const isValid = result.issues.length === 0;
 
-  return { state, dispatch, errorIndex, issues: result.issues, isValid, flatIssues, addIssue};
+  return { state, dispatch, errorIndex, errorPrefixSet, issues: result.issues, isValid, flatIssues, addIssue};
 }

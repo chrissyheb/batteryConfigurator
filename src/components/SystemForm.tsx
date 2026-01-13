@@ -7,7 +7,7 @@ import { errorAt } from '@/utils/errors';
 import { indexStringToString, stringToIndexString } from '@/utils/helper';
 import { Collapsible } from '@/components/Cards';
 
-export default function SystemForm(props: { cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; errorIndex: any })
+export default function SystemForm(props: { cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; errorIndex: any, errorPrefixSet:any })
 {
   const { setInCfg, getOrCfg, errorIndex } = props;
 
@@ -15,6 +15,8 @@ export default function SystemForm(props: { cfg: any; setCfg: (c: any) => void; 
     <Collapsible 
       title="System"
       className="card stack"
+      path={['System']}
+      errorPrefixSet={props.errorPrefixSet}
     >
       <TextField 
         path={['System', 'SerialNumber']}
@@ -23,6 +25,8 @@ export default function SystemForm(props: { cfg: any; setCfg: (c: any) => void; 
       <Collapsible 
         title="Battery Balancing"
         className="card"
+        path={['System', 'BatteryBalancing']}
+        errorPrefixSet={props.errorPrefixSet}
       >
         <SelectField
           path={['System', 'BatteryBalancing', 'PreemptiveMode']}
@@ -51,6 +55,8 @@ export default function SystemForm(props: { cfg: any; setCfg: (c: any) => void; 
       <Collapsible 
         title="External Control"
         className="card"
+        path={['System', 'ExternalControl']}
+        errorPrefixSet={props.errorPrefixSet}
       >
         <SelectField
           path={['System', 'ExternalControl', 'FallbackMode']}

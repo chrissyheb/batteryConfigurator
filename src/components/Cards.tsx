@@ -1,4 +1,6 @@
 import React, { createContext, useContext , useId, useLayoutEffect, useRef, useState } from "react";
+import { PathType } from "@/spec/builder";
+import { hasErrorUnder } from "@/utils/errors";
 import { Trash2, ListPlus } from "lucide-react";
 
 type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;
@@ -63,6 +65,9 @@ export type CollapsibleProps = {
   className?: string;
   children: React.ReactNode;
 
+  errorPrefixSet: Set<string>;
+  path: PathType;
+
   /** Optional: eingebaute Aktion rechts im Header */
   actionType?: BuiltInAction;
 
@@ -81,6 +86,8 @@ export function Collapsible({
   onOpenChange,
   className = "",
   children,
+  errorPrefixSet,
+  path,
   actionType,
   onAction,
   actionAriaLabel,
@@ -165,7 +172,7 @@ export function Collapsible({
   const actionNode = renderAction();
 
   return (
-    <div className={className}>
+    <div className={className + `${hasErrorUnder(errorPrefixSet, path) ? " has-error" : ""}`}>
       <HeadingTag className="card-heading">
         <div className="card-header">
           <button

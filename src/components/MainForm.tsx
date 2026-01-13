@@ -7,7 +7,7 @@ import { components } from '@/spec/catalog';
 import { JSONValue } from '@/app/store';
 import { Collapsible } from '@/components/Cards';
 
-function BatteryInverterCard(props: { idx: number; count: number; cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; delFromCfg:(p: any) => void; hasCfg:(p: any) => boolean; errorIndex: any })
+function BatteryInverterCard(props: { idx: number; count: number; cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; delFromCfg:(p: any) => void; hasCfg:(p: any) => boolean; errorIndex: any, errorPrefixSet:any })
 {
   const { idx, count, cfg, setCfg, setInCfg, getOrCfg, delFromCfg } = props;
 
@@ -25,6 +25,8 @@ function BatteryInverterCard(props: { idx: number; count: number; cfg: any; setC
       className="card stack"
       actionType={(count === 1) ? undefined : "delete"}
       onAction={() => removeElement(['Units','Main','Equipment','BatteryInverter'],idx)}
+      path={['Units','Main','Equipment','BatteryInverter',idx]}
+      errorPrefixSet={props.errorPrefixSet}
     >
       <TextField
         path={['Units','Main','Equipment','BatteryInverter',idx,'Name']}
@@ -36,7 +38,12 @@ function BatteryInverterCard(props: { idx: number; count: number; cfg: any; setC
         defLink={components.BatteryInverter.fields.Index}
       />
 
-      <Collapsible title="Inverter" className="card">
+      <Collapsible 
+        title="Inverter"
+        className="card"
+        path={['Units','Main','Equipment','BatteryInverter',idx,'Inverter']}
+        errorPrefixSet={props.errorPrefixSet}
+      >
         <SelectField
           path={['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Type']}
           defLink={components.BatteryInverterInverter.fields.group.Type}
@@ -69,9 +76,14 @@ function BatteryInverterCard(props: { idx: number; count: number; cfg: any; setC
         />
       </Collapsible>
 
-      <Collapsible title="Battery" className="card">
+      <Collapsible
+        title="Battery"
+        className="card"
+        path={['Units','Main','Equipment','BatteryInverter',idx,'Battery']}
+        errorPrefixSet={props.errorPrefixSet}
+      >
         <SelectField
-          path={['Units','Main','Equipment','BatteryInverter',idx, 'Battery','Type']}
+          path={['Units','Main','Equipment','BatteryInverter',idx,'Battery','Type']}
           defLink={components.BatteryInverterBattery.fields.group.Type}
           options={getBatteryTypes()}
         />
@@ -106,7 +118,12 @@ function BatteryInverterCard(props: { idx: number; count: number; cfg: any; setC
         />
       </Collapsible>
 
-      <Collapsible title="Modbus" className="card">
+      <Collapsible
+        title="Modbus"
+        className="card"
+        path={['Units','Main','Equipment','BatteryInverter',idx,'Modbus']}
+        errorPrefixSet={props.errorPrefixSet}
+      >
         <SelectField 
           path={['Units','Main','Equipment','BatteryInverter',idx,'Modbus','Type']}
             defLink={components.BatteryInverterModbus.fields.group.Type}
@@ -143,9 +160,9 @@ function BatteryInverterCard(props: { idx: number; count: number; cfg: any; setC
 }
 
 
-export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; delFromCfg:(p: any) => void; hasCfg:(p: any) => boolean; errorIndex: any })
+export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; delFromCfg:(p: any) => void; hasCfg:(p: any) => boolean; errorIndex: any, errorPrefixSet: any })
 {
-  const { cfg, setCfg, setInCfg, getCfg, getOrCfg, delFromCfg, hasCfg, errorIndex } = props;
+  const { cfg, setCfg, setInCfg, getCfg, getOrCfg, delFromCfg, hasCfg, errorIndex, errorPrefixSet } = props;
   
   function addElement(path: PathType, type: mainEquipmentKeys): void
   {
@@ -179,8 +196,19 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; se
   }, [cfg.Units?.Main?.Equipment?.SmartmeterMain?.HardwareModel ?? 'Virtual']);
 
   return (
-    <Collapsible title="Main" defaultOpen className="card stack">
-      <Collapsible title="Config - Main Unit" className="card">
+    <Collapsible
+      title="Main"
+      defaultOpen
+      className="card stack"
+      path={['Units','Main']}
+      errorPrefixSet={props.errorPrefixSet}
+    >
+      <Collapsible 
+        title="Config - Main Unit"
+        className="card"
+        path={['Units','Main','Config']}
+        errorPrefixSet={props.errorPrefixSet}
+      >
         <TextField
           path={['Units','Main','Config','IpAddressInternal']}
           defLink={components.MainConfig.fields.IpAddressInternal}
@@ -213,7 +241,12 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; se
         />
       </Collapsible>
 
-      <Collapsible title={getOrCfg(['Units','Main','Equipment','SmartmeterMain','Type'], 'Unkown Smartmeter Type') + ' (' + getOrCfg(['Units','Main','Equipment',"SmartmeterMain",'Name'], '') + ')'} className="card">
+      <Collapsible
+        title={getOrCfg(['Units','Main','Equipment','SmartmeterMain','Type'], 'Unkown Smartmeter Type') + ' (' + getOrCfg(['Units','Main','Equipment',"SmartmeterMain",'Name'], '') + ')'}
+        className="card"
+        path={['Units','Main','Equipment','SmartmeterMain']}
+        errorPrefixSet={props.errorPrefixSet}
+      >
         <TextField 
           path={['Units','Main','Equipment','SmartmeterMain','Name']}
           defLink={components.SmartmeterMain.fields.Name}
@@ -248,16 +281,21 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; se
           defLink={components.SmartmeterMain.fields.Guid}
         />
       </Collapsible>
-
-      {((cfg.Units?.Main?.Equipment?.BatteryInverter ?? []).filter((e: any) => { return e.Type === 'BatteryInverter'; })).map((_: any, idx: number, array: any) =>
-        {
-          return <BatteryInverterCard key={idx} idx={idx} count={array.length} cfg={cfg} setCfg={setCfg} setInCfg={setInCfg} getCfg={getCfg} getOrCfg={getOrCfg} delFromCfg={delFromCfg} hasCfg={hasCfg} errorIndex={errorIndex} />;
-        })
-      }
-
-      <div className="row">
-        <button onClick={() => {addElement(['Units','Main','Equipment'],'BatteryInverter')}}>Add BatteryInverter</button>
-      </div>
+      
+      <Collapsible
+        title="Battery & Inverter"
+        className="card"
+        actionType="add"
+        onAction={() => {addElement(['Units','Main','Equipment'],'BatteryInverter')}}
+        path={['Units','Main','Equipment','BatteryInverter']}
+        errorPrefixSet={props.errorPrefixSet}
+      >
+        {((cfg.Units?.Main?.Equipment?.BatteryInverter ?? []).filter((e: any) => { return e.Type === 'BatteryInverter'; })).map((_: any, idx: number, array: any) =>
+          {
+            return <BatteryInverterCard key={idx} idx={idx} count={array.length} cfg={cfg} setCfg={setCfg} setInCfg={setInCfg} getCfg={getCfg} getOrCfg={getOrCfg} delFromCfg={delFromCfg} hasCfg={hasCfg} errorIndex={errorIndex} errorPrefixSet={errorPrefixSet} />;
+          })
+        }
+      </Collapsible>
     </Collapsible>
   );
 }

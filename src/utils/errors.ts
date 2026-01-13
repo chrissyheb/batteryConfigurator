@@ -69,6 +69,22 @@ export function errorAt(index: ErrorIndex, path: PathType): string | undefined
   return msgs[0];
 }
 
+export function buildErrorPrefixSet(index: ErrorIndex): Set<string> {
+  const set = new Set<string>();
+  for (const key of index.keys()) {
+    const parts = key.split(".");
+    for (let i = 1; i <= parts.length; i++) {
+      set.add(parts.slice(0, i).join("."));
+    }
+  }
+  return set;
+}
+
+export function hasErrorUnder(prefixSet: Set<string>, path: PathType): boolean {
+  const key = keyFromPath(path);
+  return key === "" ? prefixSet.size > 0 : prefixSet.has(key);
+}
+
 export function formatPath(path: PathType | undefined): string
 {
   // no or empty path

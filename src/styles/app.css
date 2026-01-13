@@ -237,6 +237,11 @@ input[type="number"] {
   font-weight: 600;
 }
 
+.has-error {
+  border-color: var(--errBorder);
+  background-color: var(--errBg);
+}
+
 .icon-button {
   background: none;
   border: 0;

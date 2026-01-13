@@ -8,7 +8,7 @@ import { components } from '@/spec/catalog';
 import { JSONValue } from '@/app/store';
 import { Collapsible } from '@/components/Cards';
 
-export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; delFromCfg:(p: any) => void; hasCfg:(p: any) => boolean; errorIndex: any })
+export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; delFromCfg:(p: any) => void; hasCfg:(p: any) => boolean; errorIndex: any, errorPrefixSet:any })
 {
   const { cfg, setInCfg, getOrCfg, delFromCfg,  errorIndex } = props;
   
@@ -50,8 +50,19 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
   };
 
   return (
-    <Collapsible title="EMS" defaultOpen className="card stack">
-      <Collapsible title="Config - Grid Connection Point" className="card">
+    <Collapsible 
+      title="EMS" 
+      defaultOpen 
+      className="card stack"
+      path={['Units','Ems']}
+      errorPrefixSet={props.errorPrefixSet}
+    >
+      <Collapsible
+        title="Config - Grid Connection Point"
+        className="card"
+        path={['Units','Ems','Config','GridConnectionPoint']}
+        errorPrefixSet={props.errorPrefixSet}
+      >
         <NumberField 
           path={['Units','Ems','Config','GridConnectionPoint','PowerGridConsumptionLimit']}
           defLink={components.EmsConfig.fields.GridConnectionPoint.group.PowerGridConsumptionLimit}
@@ -66,7 +77,12 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
         />
       </Collapsible>
       
-      <Collapsible title="Config - Master/Slave" className="card">
+      <Collapsible 
+        title="Config - Master/Slave"
+        className="card"
+        path={['Units','Ems','Config','MasterSlave']}
+        errorPrefixSet={props.errorPrefixSet}
+      >
         <NumberField 
           path={['Units','Ems','Config','MasterSlave','PowerActiveInstalledTotal']}
           defLink={components.EmsConfig.fields.MasterSlave.group.PowerActiveInstalledTotal}
@@ -90,6 +106,8 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
         className="card stack"
         actionType="add"
         onAction={() => {addElement(['Units','Ems','Equipment','Smartmeter'],'Smartmeter')}}
+        path={['Units','Ems','Equipment','Smartmeter']}
+        errorPrefixSet={props.errorPrefixSet}
       >
         <NumberField 
           path={['Units','Ems','Config','SmartmeterCount']}
@@ -104,6 +122,8 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
               className="card"
               actionType="delete"
               onAction={() => removeElement(['Units','Ems','Equipment','Smartmeter'],i)}
+              path={['Units','Ems','Equipment','Smartmeter',i]}
+              errorPrefixSet={props.errorPrefixSet}
             >
               <TextField 
                 path={['Units','Ems','Equipment','Smartmeter',i,'Name']}
@@ -159,6 +179,8 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
         className="card stack"
         actionType="add"
         onAction={() => {addElement(['Units','Ems','Equipment','LocalRemoteSystems'],'SlaveRemoteUM')}}
+        path={['Units','Ems','Equipment','LocalRemoteSystems']}
+        errorPrefixSet={props.errorPrefixSet}
       >
         <NumberField 
           path={['Units','Ems','Config','SystemsInParallelCount']}
@@ -173,6 +195,8 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
                 key={i}
                 title={(getOrCfg(['Units','Ems','Equipment',"LocalRemoteSystems",i,'Type'], 'Unkown Local System') === 'SlaveLocalUM' ? 'Local System' : 'Unknown Local System') + ' (' + getOrCfg(['Units','Ems','Equipment','LocalRemoteSystems',i,'DisplayName'], '') + ')'}
                 className="card"
+                path={['Units','Ems','Equipment','LocalRemoteSystems',i]}
+                errorPrefixSet={props.errorPrefixSet}
               >
                 <TextField
                   path={['Units','Ems','Equipment','LocalRemoteSystems',i,'Name']}
@@ -202,6 +226,8 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
                 className="card"
                 actionType="delete"
                 onAction={() => removeElement(['Units','Ems','Equipment','LocalRemoteSystems'],i)}
+                path={['Units','Ems','Equipment','LocalRemoteSystems',i]}
+                errorPrefixSet={props.errorPrefixSet}
               >
                 <TextField
                   path={['Units','Ems','Equipment','LocalRemoteSystems',i,'Name']}

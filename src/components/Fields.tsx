@@ -11,6 +11,7 @@ export interface GlobalFns {
   getOr: (path: PathType, fallback: any) => any; //<T>(value: T, fallback: T) => T;
   setIn: (path: PathType, value: JSONValue) => void;
   errorIndex: ErrorIndex;
+  errorPrefixSet: Set<string>;
   addIssue: (issue: SimpleIssue) => void; 
 }
 
@@ -19,6 +20,7 @@ const defaults: GlobalFns = {
   getOr: (path, fallback) => (path === undefined || path === null ? fallback : path),
   setIn: () => { throw new Error('setIn undefined -> call Fields.setGlobalProps()'); },
   errorIndex: new Map<string, string[]>(),
+  errorPrefixSet: new Set<string>(),
   addIssue: (issue) => issue
 };
 
@@ -30,6 +32,7 @@ function gFun() : GlobalFns {
     getOr: g.getOr ?? defaults.getOr,
     setIn: g.setIn ?? defaults.setIn,
     errorIndex: g.errorIndex ?? defaults.errorIndex,
+    errorPrefixSet: g.errorPrefixSet ?? defaults.errorPrefixSet,
     addIssue: g.addIssue ?? defaults.addIssue
   };
 }
@@ -40,6 +43,7 @@ export function setGlobalProps(props: Partial<GlobalFns>): void {
   if (props.getOr) g.getOr = props.getOr;
   if (props.setIn) g.setIn = props.setIn;
   if (props.errorIndex) g.errorIndex = props.errorIndex;
+  if (props.errorPrefixSet) g.errorPrefixSet = props.errorPrefixSet;
   if (props.addIssue) g.addIssue = props.addIssue;
 }
 
