@@ -45,8 +45,8 @@ button, .btn {
   cursor: pointer;
 }
 button:hover, .btn:hover { filter: brightness(1.15); }
-h2 { font-size: 18px; color: var(--muted); margin: 5px 0 10px; }
-h3 { font-size: 18px; color: var(--muted); margin: 0px 0 10px; }
+h2, h2 button { font-size: 18px; color: var(--muted); margin: 5px 0 10px; }
+h3, h3 button { font-size: 18px; color: var(--muted); margin: 0px 0 10px; }
 .card { background: var(--panel); border: 1px solid var(--panelBorder); border-radius: 16px; padding: 16px; }
 .error-panel { 
   background: var(--errBg);
@@ -142,4 +142,117 @@ input[type="number"] {
 .tooltip-wrapper:focus-within .tooltip-bubble {
   opacity: 1;
   transform: translateY(-10px);
+}
+
+
+
+
+
+
+
+
+/*
+.card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  margin-bottom: 8px;
+  overflow: hidden; /* saubere Kanten beim Animieren */
+/*}*/
+
+/* Header ist jetzt ein Button */
+/*.card-header-btn {
+  width: 100%;
+  padding: 12px 16px;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  cursor: pointer;
+  
+  border: 0;
+  text-align: left;
+}*/
+
+
+
+.icon {
+  font-size: 20px;
+  width: 20px;
+  text-align: center;
+}
+
+.card-content {
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.card-content-inner {
+  padding: 12px 16px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #3b4a86;
+  border-radius: 8px;
+  background-color: #2b3a66;
+  padding: 5px;
+}
+
+.card-heading {
+  margin: 0;
+}
+
+.card-toggle-btn {
+  width: 28px;
+  height: 28px;
+  margin: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.card-header-action > button {
+  margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  
+  margin: auto;
+  padding: 0;
+  border: 0;
+}
+
+.card-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: 600;
+}
+
+.icon-button {
+  background: none;
+  border: 0;
+  padding: 6px;
+  cursor: pointer;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-button:hover {
+  background: rgba(0,0,0,0.06);
+}
+
+.icon-button.danger:hover {
+  background: rgba(220, 38, 38, 0.15);
+  color: rgb(220, 38, 38);
 }

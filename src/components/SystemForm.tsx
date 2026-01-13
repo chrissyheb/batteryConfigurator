@@ -5,20 +5,25 @@ import { components } from '@/spec/catalog';
 import { getBatteryBalancingModes, getExternalControlOperationModes } from '@/spec/builder';
 import { errorAt } from '@/utils/errors';
 import { indexStringToString, stringToIndexString } from '@/utils/helper';
+import { Collapsible } from '@/components/Cards';
 
 export default function SystemForm(props: { cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; errorIndex: any })
 {
   const { setInCfg, getOrCfg, errorIndex } = props;
 
   return (
-    <div className="card stack">
-      <h2>System</h2>
+    <Collapsible 
+      title="System"
+      className="card stack"
+    >
       <TextField 
         path={['System', 'SerialNumber']}
         defLink={components.System.fields.SerialNumber}
       />
-      <div className="card">
-        <h3>Battery Balancing</h3>
+      <Collapsible 
+        title="Battery Balancing"
+        className="card"
+      >
         <SelectField
           path={['System', 'BatteryBalancing', 'PreemptiveMode']}
           defLink={components.System.fields.BatteryBalancing.group.PreemptiveMode}
@@ -42,9 +47,11 @@ export default function SystemForm(props: { cfg: any; setCfg: (c: any) => void; 
           path={['System', 'BatteryBalancing', 'ForcedMaxGridChargePowerPerInverter']}
           defLink={components.System.fields.BatteryBalancing.group.ForcedMaxGridChargePowerPerInverter}
         />
-      </div>
-      <div className="card">
-        <h3>External Control</h3>
+      </Collapsible>
+      <Collapsible 
+        title="External Control"
+        className="card"
+      >
         <SelectField
           path={['System', 'ExternalControl', 'FallbackMode']}
           defLink={components.System.fields.ExternalControl.group.FallbackMode}
@@ -52,7 +59,7 @@ export default function SystemForm(props: { cfg: any; setCfg: (c: any) => void; 
           value={indexStringToString([getOrCfg(['System', 'ExternalControl', 'FallbackMode'], [0,''])])[0]}
           onChange={(v: string) => { setInCfg(['System', 'ExternalControl', 'FallbackMode'], stringToIndexString(v)); }}
         />
-      </div>
-    </div>
+      </Collapsible>
+    </Collapsible>
   );
 }

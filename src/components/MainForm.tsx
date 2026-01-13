@@ -5,10 +5,11 @@ import { SelectField, TextField, GuidField, CheckField, NumberField } from './Fi
 import { PathType, createByKey, getInverterTypes, getBatteryTypes, getModbusTypes, getMainSmartmeterHardwares, getMainSmartmeterModels, getInverterHardwareTypes, getBatteryHardwareTypes, mainEquipmentKeys } from '@/spec/builder';
 import { components } from '@/spec/catalog';
 import { JSONValue } from '@/app/store';
+import { Collapsible } from '@/components/Cards';
 
-function BatteryInverterCard(props: { idx: number; cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; delFromCfg:(p: any) => void; hasCfg:(p: any) => boolean; errorIndex: any })
+function BatteryInverterCard(props: { idx: number; count: number; cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; delFromCfg:(p: any) => void; hasCfg:(p: any) => boolean; errorIndex: any })
 {
-  const { idx, cfg, setCfg, setInCfg, getOrCfg, delFromCfg } = props;
+  const { idx, count, cfg, setCfg, setInCfg, getOrCfg, delFromCfg } = props;
 
   const modbusAvailable = getOrCfg(['Units','Main','Equipment','BatteryInverter',idx,'Modbus'], false); 
 
@@ -19,12 +20,12 @@ function BatteryInverterCard(props: { idx: number; cfg: any; setCfg: (c: any) =>
   };
 
   return (
-    <div className="card">
-      <div className="row" style={{ justifyContent: 'space-between' }}>
-        <h3>{getOrCfg(['Units','Main','Equipment','BatteryInverter',idx,'Type'], 'Unkown Smartmeter Type') + ' (' + getOrCfg(['Units','Main','Equipment','BatteryInverter',idx,'Name'], '') + ')'}</h3>
-        <button className="ghost" onClick={() => removeElement(['Units','Main','Equipment','BatteryInverter'],idx)}>Remove</button>
-      </div>
-
+    <Collapsible 
+      title={getOrCfg(['Units','Main','Equipment','BatteryInverter',idx,'Type'], 'Unkown Smartmeter Type') + ' (' + getOrCfg(['Units','Main','Equipment','BatteryInverter',idx,'Name'], '') + ')'} 
+      className="card stack"
+      actionType={(count === 1) ? undefined : "delete"}
+      onAction={() => removeElement(['Units','Main','Equipment','BatteryInverter'],idx)}
+    >
       <TextField
         path={['Units','Main','Equipment','BatteryInverter',idx,'Name']}
         defLink={components.BatteryInverter.fields.Name}
@@ -35,8 +36,7 @@ function BatteryInverterCard(props: { idx: number; cfg: any; setCfg: (c: any) =>
         defLink={components.BatteryInverter.fields.Index}
       />
 
-      <div className="card">
-        <h3>Inverter</h3>
+      <Collapsible title="Inverter" className="card">
         <SelectField
           path={['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Type']}
           defLink={components.BatteryInverterInverter.fields.group.Type}
@@ -67,10 +67,9 @@ function BatteryInverterCard(props: { idx: number; cfg: any; setCfg: (c: any) =>
           path={['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Config','Port']}
           defLink={components.BatteryInverterInverter.fields.group.Config.group.Port}
         />
-      </div>
+      </Collapsible>
 
-      <div className="card">
-        <h3>Battery</h3>
+      <Collapsible title="Battery" className="card">
         <SelectField
           path={['Units','Main','Equipment','BatteryInverter',idx, 'Battery','Type']}
           defLink={components.BatteryInverterBattery.fields.group.Type}
@@ -105,10 +104,9 @@ function BatteryInverterCard(props: { idx: number; cfg: any; setCfg: (c: any) =>
           path={['Units','Main','Equipment','BatteryInverter',idx,'Battery','Config','Port']}
           defLink={components.BatteryInverterBattery.fields.group.Config.group.Port}
         />
-      </div>
+      </Collapsible>
 
-      <div className="card">
-        <h3>Modbus</h3>
+      <Collapsible title="Modbus" className="card">
         <SelectField 
           path={['Units','Main','Equipment','BatteryInverter',idx,'Modbus','Type']}
             defLink={components.BatteryInverterModbus.fields.group.Type}
@@ -139,10 +137,12 @@ function BatteryInverterCard(props: { idx: number; cfg: any; setCfg: (c: any) =>
             defLink={components.BatteryInverterModbus.fields.group.Config.group.Port}
           />
         </>)}
-      </div>
-    </div>
+      </Collapsible>
+    </Collapsible>
   );
 }
+
+
 export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; delFromCfg:(p: any) => void; hasCfg:(p: any) => boolean; errorIndex: any })
 {
   const { cfg, setCfg, setInCfg, getCfg, getOrCfg, delFromCfg, hasCfg, errorIndex } = props;
@@ -171,12 +171,16 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; se
     }
   }, [cfg.Units?.Main?.Equipment?.BatteryInverter?.length ?? 0]);
 
-  return (
-    <div className="card stack">
-      <h2>Main</h2>
+  // Effect -> get numbers of batteries and inverters -> change value on JSON-Structure change
+  useEffect(() => {
+    if (cfg.Units.Main.Equipment.SmartmeterMain.HardwareModel !== 'El34x3') {
+      setInCfg(['Units','Main','Equipment','SmartmeterMain','CurrentTransformerPrimaryCurrent'], '0A');
+    }
+  }, [cfg.Units?.Main?.Equipment?.SmartmeterMain?.HardwareModel ?? 'Virtual']);
 
-      <div className="card">
-        <h3>Config - Main Unit</h3>
+  return (
+    <Collapsible title="Main" defaultOpen className="card stack">
+      <Collapsible title="Config - Main Unit" className="card">
         <TextField
           path={['Units','Main','Config','IpAddressInternal']}
           defLink={components.MainConfig.fields.IpAddressInternal}
@@ -207,9 +211,9 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; se
           path={['Units','Main','Config','BatteryCount']}
           defLink={components.MainConfig.fields.BatteryCount}
         />
-      </div>
-      <div className="card">
-        <h3>{getOrCfg(['Units','Main','Equipment','SmartmeterMain','Type'], 'Unkown Smartmeter Type') + ' (' + getOrCfg(['Units','Main','Equipment',"SmartmeterMain",'Name'], '') + ')'}</h3>
+      </Collapsible>
+
+      <Collapsible title={getOrCfg(['Units','Main','Equipment','SmartmeterMain','Type'], 'Unkown Smartmeter Type') + ' (' + getOrCfg(['Units','Main','Equipment',"SmartmeterMain",'Name'], '') + ')'} className="card">
         <TextField 
           path={['Units','Main','Equipment','SmartmeterMain','Name']}
           defLink={components.SmartmeterMain.fields.Name}
@@ -234,21 +238,26 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; se
           defLink={components.SmartmeterMain.fields.HardwareModel}
           options={getMainSmartmeterModels(getCfg(['Units','Main','Equipment','SmartmeterMain','HardwareType']))}
         />
+        <NumberField 
+          path={['Units','Main','Equipment','SmartmeterMain','CurrentTransformerPrimaryCurrent']}
+          defLink={components.SmartmeterMain.fields.CurrentTransformerPrimaryCurrent}
+          readOnly={getOrCfg(['Units','Main','Equipment','SmartmeterMain','HardwareModel'], 'Virtual') !== 'El34x3'}
+        />
         <GuidField
           path={['Units','Main','Equipment','SmartmeterMain','Guid']}
           defLink={components.SmartmeterMain.fields.Guid}
         />
-      </div>
+      </Collapsible>
 
-      <div className="row">
-        <button onClick={() => {addElement(['Units','Main','Equipment'],'BatteryInverter')}}>+ BatteryInverter</button>
-      </div>
-
-      {((cfg.Units?.Main?.Equipment?.BatteryInverter ?? []).filter((e: any) => { return e.Type === 'BatteryInverter'; })).map((_: any, idx: number) =>
+      {((cfg.Units?.Main?.Equipment?.BatteryInverter ?? []).filter((e: any) => { return e.Type === 'BatteryInverter'; })).map((_: any, idx: number, array: any) =>
         {
-          return <BatteryInverterCard key={idx} idx={idx} cfg={cfg} setCfg={setCfg} setInCfg={setInCfg} getCfg={getCfg} getOrCfg={getOrCfg} delFromCfg={delFromCfg} hasCfg={hasCfg} errorIndex={errorIndex} />;
+          return <BatteryInverterCard key={idx} idx={idx} count={array.length} cfg={cfg} setCfg={setCfg} setInCfg={setInCfg} getCfg={getCfg} getOrCfg={getOrCfg} delFromCfg={delFromCfg} hasCfg={hasCfg} errorIndex={errorIndex} />;
         })
       }
-    </div>
+
+      <div className="row">
+        <button onClick={() => {addElement(['Units','Main','Equipment'],'BatteryInverter')}}>Add BatteryInverter</button>
+      </div>
+    </Collapsible>
   );
 }

@@ -314,6 +314,7 @@ const cSmartmeterMain = {
     DisplayName: TypeString({ required: true, hint: 'Component name in Log files' }),
     HardwareType: TypeString({ required: true, hint: 'Manufacturer of Smartmeter', enumRef: ['main', 'smartmeterHardwareToTypes'] }),
     HardwareModel: TypeString({ required: true, hint: 'Hardware model type of Smartmeter' }),
+    CurrentTransformerPrimaryCurrent: TypeNumberUnit({ required: true, hint: 'Nominal transformer primary current for BLOKK/TERRA power Measurement with Beckhoff EL34x3 \n >= 0', min: 0, unit: 'A' }),
     Guid: TypeUuid({ required: true, hint: 'GUID of component for TwinCAT project generation/update' })
   },
   defaults:{
@@ -322,6 +323,7 @@ const cSmartmeterMain = {
     DisplayName: 'SmartmeterMain',
     HardwareType: 'Virtual',
     HardwareModel: 'Virtual',
+    CurrentTransformerPrimaryCurrent: "0A",
     Guid: '@uuid'
   }
 };

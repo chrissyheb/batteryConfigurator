@@ -6,6 +6,7 @@ import { PathType, emsEquipmentKeys, createByKey, getEmsSmartmeterHardwares, get
 import { indexStringToString, stringToIndexString } from '@/utils/helper';
 import { components } from '@/spec/catalog';
 import { JSONValue } from '@/app/store';
+import { Collapsible } from '@/components/Cards';
 
 export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; delFromCfg:(p: any) => void; hasCfg:(p: any) => boolean; errorIndex: any })
 {
@@ -49,10 +50,8 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
   };
 
   return (
-    <div className="card stack">
-      <h2>EMS</h2>
-      <div className="card">
-        <h3>Config - Grid Connection Point</h3>
+    <Collapsible title="EMS" defaultOpen className="card stack">
+      <Collapsible title="Config - Grid Connection Point" className="card">
         <NumberField 
           path={['Units','Ems','Config','GridConnectionPoint','PowerGridConsumptionLimit']}
           defLink={components.EmsConfig.fields.GridConnectionPoint.group.PowerGridConsumptionLimit}
@@ -65,10 +64,9 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
           path={['Units','Ems','Config','GridConnectionPoint','PowerGridConsumptionOffset']}
           defLink={components.EmsConfig.fields.GridConnectionPoint.group.PowerGridConsumptionOffset}
         />
-      </div>
+      </Collapsible>
       
-      <div className="card">
-        <h3>Config - Master/Slave</h3>
+      <Collapsible title="Config - Master/Slave" className="card">
         <NumberField 
           path={['Units','Ems','Config','MasterSlave','PowerActiveInstalledTotal']}
           defLink={components.EmsConfig.fields.MasterSlave.group.PowerActiveInstalledTotal}
@@ -85,138 +83,148 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
           path={['Units','Ems','Config','MasterSlave','PowerDischargeLimitTotal']}
           defLink={components.EmsConfig.fields.MasterSlave.group.PowerDischargeLimitTotal}
         />
-      </div>
+      </Collapsible>
 
-      <div className="row">
-        <button onClick={() => {addElement(['Units','Ems','Equipment','Smartmeter'],'Smartmeter')}}>+ Smartmeter</button>
-        <button onClick={() => {addElement(['Units','Ems','Equipment','LocalRemoteSystems'],'SlaveRemoteUM')}}>+ Remote System</button>
-      </div>
-      <div className="card">
-        
+      <Collapsible 
+        title="Smartmeter" 
+        className="card stack"
+        actionType="add"
+        onAction={() => {addElement(['Units','Ems','Equipment','Smartmeter'],'Smartmeter')}}
+      >
         <NumberField 
           path={['Units','Ems','Config','SmartmeterCount']}
           defLink={components.EmsConfig.fields.SmartmeterCount}
         />
+        {getOrCfg(['Units','Ems','Equipment','Smartmeter'], []).map((e: any, i: number) =>
+        {
+          return (
+            <Collapsible 
+              key={i}
+              title={getOrCfg(['Units','Ems','Equipment','Smartmeter',i,'Type'], 'Unkown Smartmeter') + ' (' + getOrCfg(['Units','Ems','Equipment','Smartmeter',i,'DisplayName'], '') + ')'}
+              className="card"
+              actionType="delete"
+              onAction={() => removeElement(['Units','Ems','Equipment','Smartmeter'],i)}
+            >
+              <TextField 
+                path={['Units','Ems','Equipment','Smartmeter',i,'Name']}
+                defLink={components.Smartmeter.fields.Name}
+              />
+              <TextField
+                path={['Units','Ems','Equipment','Smartmeter',i,'DisplayName']}
+                defLink={components.Smartmeter.fields.DisplayName}
+              />
+              <SelectField
+                path={['Units','Ems','Equipment','Smartmeter',i,'HardwareType']}
+                defLink={components.Smartmeter.fields.HardwareType}
+                options={getEmsSmartmeterHardwares()}
+                onChange={(v: string) =>
+                {
+                  const models = getEmsSmartmeterModels(v);
+                  setInCfg(['Units','Ems','Equipment','Smartmeter',i,'HardwareType'], v);
+                  setInCfg(['Units','Ems','Equipment','Smartmeter',i,'HardwareModel'], models[0]);
+                }}
+              />
+              <SelectField
+                path={['Units','Ems','Equipment','Smartmeter',i,'HardwareModel']}
+                defLink={components.Smartmeter.fields.HardwareModel}
+                options={getEmsSmartmeterModels(getOrCfg(['Units','Ems','Equipment','Smartmeter',i,'HardwareType'], ''))}
+              />
+              <GuidField
+                path={['Units','Ems','Equipment','Smartmeter',i,'Guid']}
+                defLink={components.Smartmeter.fields.Guid}
+              />
+              <SelectField
+                path={['Units','Ems','Equipment','Smartmeter',i,'Config','Usecase']}
+                defLink={components.Smartmeter.fields.Config.group.Usecase}
+                options={indexStringToString(getEmsSmartmeterUseCaseTypes())}
+                value={indexStringToString([getOrCfg(['Units','Ems','Equipment','Smartmeter',i,'Config','Usecase'], [0,''])])[0]}
+                onChange={(v: string) => { setInCfg(['Units','Ems','Equipment','Smartmeter',i,'Config','Usecase'], stringToIndexString(v)); }}
+              />
+              <TextField
+                path={['Units','Ems','Equipment','Smartmeter',i,'Config','IpAddress']}
+                defLink={components.Smartmeter.fields.Config.group.IpAddress}
+              />
+              <NumberField 
+                path={['Units','Ems','Equipment','Smartmeter',i,'Config','Port']}
+                defLink={components.Smartmeter.fields.Config.group.Port}
+              />
+            </Collapsible>
+          );
+        })}
+      </Collapsible>
+
+      
+      <Collapsible 
+        title="Local/Remote Main Units" 
+        className="card stack"
+        actionType="add"
+        onAction={() => {addElement(['Units','Ems','Equipment','LocalRemoteSystems'],'SlaveRemoteUM')}}
+      >
         <NumberField 
           path={['Units','Ems','Config','SystemsInParallelCount']}
           defLink={components.EmsConfig.fields.SystemsInParallelCount}
         />
-      </div>
-
-      {getOrCfg(['Units','Ems','Equipment','Smartmeter'], []).map((e: any, i: number) =>
-      {
-        return (
-          <div key={i} className="card">
-            <div className="row" style={{ justifyContent: 'space-between' }}>
-              <h3>{getOrCfg(['Units','Ems','Equipment','Smartmeter',i,'Type'], 'Unkown Smartmeter') + ' (' + getOrCfg(['Units','Ems','Equipment','Smartmeter',i,'DisplayName'], '') + ')'}</h3>
-              <button className="ghost" onClick={() => removeElement(['Units','Ems','Equipment','Smartmeter'],i)}>Remove</button>
-            </div>
-            <TextField 
-              path={['Units','Ems','Equipment','Smartmeter',i,'Name']}
-              defLink={components.Smartmeter.fields.Name}
-            />
-            <TextField
-              path={['Units','Ems','Equipment','Smartmeter',i,'DisplayName']}
-              defLink={components.Smartmeter.fields.DisplayName}
-            />
-            <SelectField
-              path={['Units','Ems','Equipment','Smartmeter',i,'HardwareType']}
-              defLink={components.Smartmeter.fields.HardwareType}
-              options={getEmsSmartmeterHardwares()}
-              onChange={(v: string) =>
-              {
-                const models = getEmsSmartmeterModels(v);
-                setInCfg(['Units','Ems','Equipment','Smartmeter',i,'HardwareType'], v);
-                setInCfg(['Units','Ems','Equipment','Smartmeter',i,'HardwareModel'], models[0]);
-              }}
-            />
-            <SelectField
-              path={['Units','Ems','Equipment','Smartmeter',i,'HardwareModel']}
-              defLink={components.Smartmeter.fields.HardwareModel}
-              options={getEmsSmartmeterModels(getOrCfg(['Units','Ems','Equipment','Smartmeter',i,'HardwareType'], ''))}
-            />
-            <GuidField
-              path={['Units','Ems','Equipment','Smartmeter',i,'Guid']}
-              defLink={components.Smartmeter.fields.Guid}
-            />
-            <SelectField
-              path={['Units','Ems','Equipment','Smartmeter',i,'Config','Usecase']}
-              defLink={components.Smartmeter.fields.Config.group.Usecase}
-              options={indexStringToString(getEmsSmartmeterUseCaseTypes())}
-              value={indexStringToString([getOrCfg(['Units','Ems','Equipment','Smartmeter',i,'Config','Usecase'], [0,''])])[0]}
-              onChange={(v: string) => { setInCfg(['Units','Ems','Equipment','Smartmeter',i,'Config','Usecase'], stringToIndexString(v)); }}
-            />
-            <TextField
-              path={['Units','Ems','Equipment','Smartmeter',i,'Config','IpAddress']}
-              defLink={components.Smartmeter.fields.Config.group.IpAddress}
-            />
-            <NumberField 
-              path={['Units','Ems','Equipment','Smartmeter',i,'Config','Port']}
-              defLink={components.Smartmeter.fields.Config.group.Port}
-            />
-          </div>
-        );
-      })}
-
-      
-
-      {getOrCfg(['Units','Ems','Equipment','LocalRemoteSystems'], []).map((e: any, i: number) =>
-      {
-        if (e.Type === 'SlaveLocalUM') 
-        { 
-          return (
-            <div key={i} className="card">
-              <div className="row" style={{ justifyContent: 'space-between' }}>
-                <h3>{(getOrCfg(['Units','Ems','Equipment',"LocalRemoteSystems",i,'Type'], 'Unkown Local System') === 'SlaveLocalUM' ? 'Local System' : 'Unknown Local System') + ' (' + getOrCfg(['Units','Ems','Equipment','LocalRemoteSystems',i,'DisplayName'], '') + ')'}</h3>
-              </div>
-              <TextField
-                path={['Units','Ems','Equipment','LocalRemoteSystems',i,'Name']}
-                defLink={components.SlaveLocalUM.fields.Name}
-              />
-              <TextField
-                path={['Units','Ems','Equipment','LocalRemoteSystems',i,'DisplayName']}
-                defLink={components.SlaveLocalUM.fields.DisplayName}
-              />
-              <GuidField
-                path={['Units','Ems','Equipment','LocalRemoteSystems',i,'Guid']}
-                defLink={components.SlaveLocalUM.fields.Guid}
-              />
-              <TextField
-                path={['Units','Ems','Equipment','LocalRemoteSystems',i,'Config','IpAddress']}
-                defLink={components.SlaveLocalUM.fields.Config.group.IpAddress}
-              />
-            </div>
-          );
-        }
-        else if (e.Type === 'SlaveRemoteUM') 
-        { 
-          return (
-            <div key={i} className="card">
-              <div className="row" style={{ justifyContent: 'space-between' }}>
-                <h3>{(getOrCfg(['Units','Ems','Equipment','LocalRemoteSystems',i,'Type'], 'Unkown Remote System') === 'SlaveRemoteUM' ? 'Remote System' : 'Unknown Remote System') + ' (' + getOrCfg(['Units','Ems','Equipment','LocalRemoteSystems',i,'DisplayName'], '') + ')'}</h3>
-                <button className="ghost" onClick={() => removeElement(['Units','Ems','Equipment','LocalRemoteSystems'],i)}>Remove</button>
-              </div>
-              <TextField
-                path={['Units','Ems','Equipment','LocalRemoteSystems',i,'Name']}
-                defLink={components.SlaveRemoteUM.fields.Name}
-              />
-              <TextField
-                path={['Units','Ems','Equipment','LocalRemoteSystems',i,'DisplayName']}
-                defLink={components.SlaveRemoteUM.fields.DisplayName}
-              />
-              <GuidField
-                path={['Units','Ems','Equipment','LocalRemoteSystems',i,'Guid']}
-                defLink={components.SlaveRemoteUM.fields.Guid}
-              />
-              <TextField
-                path={['Units','Ems','Equipment','LocalRemoteSystems',i,'Config','IpAddress']}
-                defLink={components.SlaveRemoteUM.fields.Config.group.IpAddress}
-              />
-            </div>
-          );
-        }
-        
-      })}
-    </div>
+        {getOrCfg(['Units','Ems','Equipment','LocalRemoteSystems'], []).map((e: any, i: number) =>
+        {
+          if (e.Type === 'SlaveLocalUM') 
+          { 
+            return (
+              <Collapsible 
+                key={i}
+                title={(getOrCfg(['Units','Ems','Equipment',"LocalRemoteSystems",i,'Type'], 'Unkown Local System') === 'SlaveLocalUM' ? 'Local System' : 'Unknown Local System') + ' (' + getOrCfg(['Units','Ems','Equipment','LocalRemoteSystems',i,'DisplayName'], '') + ')'}
+                className="card"
+              >
+                <TextField
+                  path={['Units','Ems','Equipment','LocalRemoteSystems',i,'Name']}
+                  defLink={components.SlaveLocalUM.fields.Name}
+                />
+                <TextField
+                  path={['Units','Ems','Equipment','LocalRemoteSystems',i,'DisplayName']}
+                  defLink={components.SlaveLocalUM.fields.DisplayName}
+                />
+                <GuidField
+                  path={['Units','Ems','Equipment','LocalRemoteSystems',i,'Guid']}
+                  defLink={components.SlaveLocalUM.fields.Guid}
+                />
+                <TextField
+                  path={['Units','Ems','Equipment','LocalRemoteSystems',i,'Config','IpAddress']}
+                  defLink={components.SlaveLocalUM.fields.Config.group.IpAddress}
+                />
+              </Collapsible>
+            );
+          }
+          else if (e.Type === 'SlaveRemoteUM') 
+          { 
+            return (
+              <Collapsible 
+                key={i}
+                title={(getOrCfg(['Units','Ems','Equipment','LocalRemoteSystems',i,'Type'], 'Unkown Remote System') === 'SlaveRemoteUM' ? 'Remote System' : 'Unknown Remote System') + ' (' + getOrCfg(['Units','Ems','Equipment','LocalRemoteSystems',i,'DisplayName'], '') + ')'}
+                className="card"
+                actionType="delete"
+                onAction={() => removeElement(['Units','Ems','Equipment','LocalRemoteSystems'],i)}
+              >
+                <TextField
+                  path={['Units','Ems','Equipment','LocalRemoteSystems',i,'Name']}
+                  defLink={components.SlaveRemoteUM.fields.Name}
+                />
+                <TextField
+                  path={['Units','Ems','Equipment','LocalRemoteSystems',i,'DisplayName']}
+                  defLink={components.SlaveRemoteUM.fields.DisplayName}
+                />
+                <GuidField
+                  path={['Units','Ems','Equipment','LocalRemoteSystems',i,'Guid']}
+                  defLink={components.SlaveRemoteUM.fields.Guid}
+                />
+                <TextField
+                  path={['Units','Ems','Equipment','LocalRemoteSystems',i,'Config','IpAddress']}
+                  defLink={components.SlaveRemoteUM.fields.Config.group.IpAddress}
+                />
+              </Collapsible>
+            );
+          }
+          
+        })}
+      </Collapsible>
+    </Collapsible>
   );
 }
