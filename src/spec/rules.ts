@@ -69,6 +69,19 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
     });
   }
 
+  // Main smartmeter Transformer current for Beckhoff smartmeters
+  const smMain = config?.Units?.Main?.Equipment?.SmartmeterMain ?? {};
+  const smMainHwType = smMain?.HardwareType ?? '';
+  const smMainHwModel = smMain?.HardwareModel ?? '';
+  if (smMainHwType === 'Beckhoff' && smMainHwModel === 'El34x3')
+  {
+    const current = smMain?.CurrentTransformerPrimaryCurrent ?? '';
+    if (current === '' || current === '0A' || current === '0.0A')
+    {
+      add({ message: 'SmartmeterMain CurrentTransformerPrimaryCurrent must be > 0A', path: ['Units','Main','Equipment','SmartmeterMain','CurrentTransformerPrimaryCurrent'] });
+    }
+  }
+
   // Main/HV Terra/Blokk cross rules
   const hv = config?.Global?.ModularPlc?.HardwareVariant;
   const main = config?.Units?.Main;
