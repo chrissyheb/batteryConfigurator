@@ -94,6 +94,13 @@ export const getEmsSmartmeterPowerSignTypes =(): IndexStringType[] =>
   return enums.ems.smartmeterPowerSignTypes;
 };
 
+export const getEmsRippleControlDiContactTypes =(): IndexStringType[] =>
+{
+  return enums.ems.rippleControlElectricalContactTypes;
+};
+
+
+
 export const getMainTypes = (): readonly string[] =>
 {
   return enums.main.types;

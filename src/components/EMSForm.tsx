@@ -2,7 +2,7 @@
 import React from 'react';
 import { useEffect } from 'react';
 import { SelectField, TextField, GuidField, NumberField, CheckField } from './Fields';
-import { PathType, emsEquipmentKeys, createByKey, getEmsSmartmeterHardwares, getEmsSmartmeterModels, getEmsSmartmeterUseCaseTypes } from '@/spec/builder';
+import { PathType, emsEquipmentKeys, emsConfigKeys, createByKey, getEmsSmartmeterHardwares, getEmsSmartmeterModels, getEmsSmartmeterUseCaseTypes, getEmsSmartmeterPowerSignTypes, getEmsRippleControlDiContactTypes } from '@/spec/builder';
 import { indexStringToString, stringToIndexString } from '@/utils/helper';
 import { components } from '@/spec/catalog';
 import { JSONValue } from '@/app/store';
@@ -98,6 +98,55 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
         <NumberField 
           path={['Units','Ems','Config','MasterSlave','PowerDischargeLimitTotal']}
           defLink={components.EmsConfig.fields.MasterSlave.group.PowerDischargeLimitTotal}
+        />
+      </Collapsible>
+      
+
+      <Collapsible 
+        title="Config - Ripple Control"
+        className="card"
+        path={['Units','Ems','Config','RippleControl']}
+        errorPrefixSet={props.errorPrefixSet}
+      >
+        <SelectField
+          path={['Units','Ems','Config','RippleControl','DiContactType']}
+          defLink={components.EmsConfig.fields.RippleControl.group.DiContactType}
+          options={indexStringToString(getEmsRippleControlDiContactTypes())}
+          value={indexStringToString([getOrCfg(['Units','Ems','Config','RippleControl','DiContactType'], [0,''])])[0]}
+          onChange={(v: string) => { setInCfg(['Units','Ems','Config','RippleControl','DiContactType'], stringToIndexString(v)); }}
+        />
+        <CheckField 
+          path={['Units','Ems','Config','RippleControl','ForceBatterySystemDischargePowerReduction']}
+          defLink={components.EmsConfig.fields.RippleControl.group.ForceBatterySystemDischargePowerReduction}
+        />
+        <NumberField 
+          path={['Units','Ems','Config','RippleControl','NominalPowerPV']}
+          defLink={components.EmsConfig.fields.RippleControl.group.NominalPowerPV}
+        />
+        <NumberField 
+          path={['Units','Ems','Config','RippleControl','NominalPowerProductionTotal']}
+          defLink={components.EmsConfig.fields.RippleControl.group.NominalPowerProductionTotal}
+        />
+        <NumberField 
+          label="MaxPowerRates"
+          items={[
+            {
+              path:['Units','Ems','Config','RippleControl','MaxPowerRate0'],
+              defLink: components.EmsConfig.fields.RippleControl.group.MaxPowerRate0
+            },
+            {
+              path:['Units','Ems','Config','RippleControl','MaxPowerRate1'],
+              defLink:components.EmsConfig.fields.RippleControl.group.MaxPowerRate1
+            },
+            {
+              path:['Units','Ems','Config','RippleControl','MaxPowerRate2'],
+              defLink:components.EmsConfig.fields.RippleControl.group.MaxPowerRate2
+            },
+            {
+              path:['Units','Ems','Config','RippleControl','MaxPowerRate3'],
+              defLink:components.EmsConfig.fields.RippleControl.group.MaxPowerRate3
+            }
+          ]}
         />
       </Collapsible>
 

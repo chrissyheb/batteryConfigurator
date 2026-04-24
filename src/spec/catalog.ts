@@ -101,6 +101,7 @@ export const enums = {
     },
     smartmeterUseCaseTypes: [[0,'Undefined'], [2,'GridConnectionPointControl'], [3,'PowerLimitationGroupEms1'], [4,'PowerLimitationGroupEms2'], [5,'PowerLimitationGroupMain1'], [6,'PowerLimitationGroupMain2']] as IndexStringType[],
     smartmeterPowerSignTypes: [[0,'Positive'], [1,'Negative']] as IndexStringType[],
+    rippleControlElectricalContactTypes: [[0,'Unknown'], [1,'NormallyClosed'], [2,'NormallyOpen']] as IndexStringType[],
   },
   main: {
     smartmeterHardwareToTypes: {
@@ -209,6 +210,18 @@ const cEmsConfig = {
         PowerChargeLimitTotal: TypeNumberUnit({ required: true, hint: 'Max charge power (or installed active power) of total Main/Support combination \n >= 0', min: 0, unit: 'kW' }),
         PowerDischargeLimitTotal: TypeNumberUnit({ required: true, hint: 'Max discharge power (or installed active power) of total Main/Support combination \n >= 0', min: 0, unit: 'kW' }),
       }
+    },
+    RippleControl: {
+      group: {
+        DiContactType: TypeIndexString({ required: true, hint: 'Contact evaluation type \n Normally Closed (NC): limitation by lowest input with 0V (wire break proof) \n Normally Open (NO): limitation by lowest input with 24V', enumRef: ['ems', 'rippleControlElectricalContactTypes'] }),
+        ForceBatterySystemDischargePowerReduction: TypeBool({ required: true, hint: 'TRUE: power at BESS output is relevant and has to be reduces according to EVU setpoint \n FALSE: power at grid connection point is relevant' }),
+        NominalPowerPV: TypeNumberUnit({ required: true, hint: 'used to limit PV max power setpoint \n >= 0', min: 0, unit: 'kW' }),
+        NominalPowerProductionTotal: TypeNumberUnit({ required: true, hint: 'Sum of installed generator power wihtin the whole plant \n used for limitation at grid connection point (ForceBatterySystemDischargePowerReduction = FALSE) \n >= 0', min: 0, unit: 'kW' }),
+        MaxPowerRate0: TypeNumber({ required: true, hint: 'Power rates for EVU control \n 0 <= MaxPowerRates <= 1', min: 0, max: 1}),
+        MaxPowerRate1: TypeNumber({ required: true, hint: 'Power rates for EVU control \n 0 <= MaxPowerRates <= 1', min: 0, max: 1}),
+        MaxPowerRate2: TypeNumber({ required: true, hint: 'Power rates for EVU control \n 0 <= MaxPowerRates <= 1', min: 0, max: 1}),
+        MaxPowerRate3: TypeNumber({ required: true, hint: 'Power rates for EVU control \n 0 <= MaxPowerRates <= 1', min: 0, max: 1}),
+      }
     }
   },
   defaults: {
@@ -225,7 +238,17 @@ const cEmsConfig = {
       PowerChargeLimitTotal: "0kW",
       PowerDischargeLimitTotal: "0kW"
     },
-    PowerLimitGroups: []
+    PowerLimitGroups: [],
+    RippleControl: {
+      DiContactType: [0,"Unknown"],
+      ForceBatterySystemDischargePowerReduction: false,
+      NominalPowerPV: "1000000000kW",
+      NominalPowerProductionTotal: "1000000000kW",
+      MaxPowerRate0: 1,
+      MaxPowerRate1: 0.6,
+      MaxPowerRate2: 0.3,
+      MaxPowerRate3: 0,
+    }
   }
 };
 
