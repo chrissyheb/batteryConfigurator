@@ -100,6 +100,7 @@ export const enums = {
       Virtual: ['Virtual']
     },
     smartmeterUseCaseTypes: [[0,'Undefined'], [2,'GridConnectionPointControl']] as IndexStringType[]
+    smartmeterPowerSignTypes: [[0,'Positive'], [1,'Negative']] as IndexStringType[],
   },
   main: {
     smartmeterHardwareToTypes: {
@@ -221,6 +222,7 @@ const cSmartmeter = {
     Config: {
       group: {
         Usecase: TypeIndexString({ required: true, hint: 'Smartmeter usecase for power control', enumRef: ['ems','smartmeterUseCaseTypes'] }),
+        PowerSign: TypeIndexString({ required: true, hint: 'Sign of measuered power: Positive (+ consumption / - feed in) or Negative (- consumption / + feed in)', enumRef: ['ems','smartmeterPowerSignTypes'] }),
         IpAddress: TypeIPv4({ required: true, hint: 'IP address of Smartmeter' }),
         Port: TypeNumber({ required: true, hint: 'Modbus TCP port for communication with Smartmeter \n default: 502', min: 1, max: 65535, int: true })
       }
@@ -235,6 +237,7 @@ const cSmartmeter = {
     Guid:'@uuid',
     Config:{ 
       Usecase: [ 0, "Undefined"],
+      PowerSign: [ 0, "Positive"],
       IpAddress: '192.168.100.5',
       Port:502
     }

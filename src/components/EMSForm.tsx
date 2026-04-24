@@ -160,6 +160,13 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
                 value={indexStringToString([getOrCfg(['Units','Ems','Equipment','Smartmeter',i,'Config','Usecase'], [0,''])])[0]}
                 onChange={(v: string) => { setInCfg(['Units','Ems','Equipment','Smartmeter',i,'Config','Usecase'], stringToIndexString(v)); }}
               />
+              <SelectField
+                path={['Units','Ems','Equipment','Smartmeter',i,'Config','PowerSign']}
+                defLink={components.Smartmeter.fields.Config.group.PowerSign}
+                options={indexStringToString(getEmsSmartmeterPowerSignTypes())}
+                value={indexStringToString([getOrCfg(['Units','Ems','Equipment','Smartmeter',i,'Config','PowerSign'], [0,''])])[0]}
+                onChange={(v: string) => { setInCfg(['Units','Ems','Equipment','Smartmeter',i,'Config','PowerSign'], stringToIndexString(v)); }}
+              />
               <TextField
                 path={['Units','Ems','Equipment','Smartmeter',i,'Config','IpAddress']}
                 defLink={components.Smartmeter.fields.Config.group.IpAddress}
