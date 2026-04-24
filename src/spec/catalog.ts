@@ -83,7 +83,7 @@ export type NumberParameters = { type:string , min:number, max:number, int:boole
 
 export const enums = {
   global: {
-    libVersion: ['0.0.3', '0.0.2', '0.0.1'],
+    libVersion: ['0.0.8', '0.0.7', '0.0.6', '0.0.5'],
     hardwareVariant: ['Terra', 'BlokkV3']
   },
   system: {
@@ -138,7 +138,7 @@ const cGlobal = {
   defaults: {
     Customer: '',
     ModularPlc: { 
-      Version:'0.0.3',
+      Version:'0.0.8',
       HardwareVariant:'Terra' 
     }
   }
