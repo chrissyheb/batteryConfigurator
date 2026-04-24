@@ -57,6 +57,7 @@ h3, h3 button { font-size: 18px; color: var(--muted); margin: 0px 0 10px; }
   margin: 16px 0;
   width: 100%;
 }
+
 .field {
   display: grid;
   grid-template-columns: var(--fieldLeftColumn) minmax(0, 1fr) var(--fieldRightColumn);
@@ -65,7 +66,62 @@ h3, h3 button { font-size: 18px; color: var(--muted); margin: 0px 0 10px; }
   margin-bottom: 10px;
   font-size: 15px; 
 }
-.field label { color: #c7d3ff; }
+
+.field > label {
+  grid-column: 1;
+  align-self: center;
+  color: #c7d3ff;
+}
+
+.numberWithUnit { 
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--fieldLeftColumn) minmax(0, 1fr) var(--fieldRightColumn);
+  gap: 0 8px;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 15px;
+}
+
+.number-field-list {
+  grid-column: 2 / 4;
+  display: grid;
+  row-gap: 8px;
+}
+
+.number-entry {
+  display: grid;
+  grid-template-columns: 1fr var(--fieldRightColumn);
+  column-gap: 12px;
+  align-items: center;
+}
+
+.input-with-unit {
+  position: relative;
+  min-width: 0;
+}
+
+.input-with-unit input {
+  width: 100%;
+  padding: 8px;
+  padding-right: 3.2rem;
+  border-radius: 8px;
+  border: 1px solid #38476f;
+  background: #0f1730;
+  color: var(--txt);
+  font-size: 15px;
+}
+
+.input-with-unit .unit {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  white-space: nowrap;
+  color: #c7d3ff;
+}
+
 .field input, .field select {
   width: 100%;
   padding: 8px;
@@ -75,17 +131,14 @@ h3, h3 button { font-size: 18px; color: var(--muted); margin: 0px 0 10px; }
   color: var(--txt);
   font-size: 15px; 
 }
-.numberWithUnit { 
-  position: relative;
+
+
+
+.inline-error { 
+  color: var(--err);
+  font-size: 12px;
 }
-.numberWithUnit .unit {
-  position: absolute;
-  right: calc(var(--fieldRightColumn) + 20px);
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-}
-.inline-error { color: var(--err); font-size: 12px; }
+
 .badge {
   display: inline-block;
   padding: 2px 8px;
@@ -94,9 +147,21 @@ h3, h3 button { font-size: 18px; color: var(--muted); margin: 0px 0 10px; }
   border: 1px solid #3b4a86;
   background: #1a2341;
 }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.ghost { background: transparent; border: 1px dashed #3b4a86; }
-small.hint { color: #9fb0ff; }
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.ghost {
+  background: transparent;
+  border: 1px dashed #3b4a86;
+}
+
+small.hint {
+  color: #9fb0ff;
+}
 
 /* Chrome, Edge (Chromium), Safari, Opera */
 input[type="number"]::-webkit-outer-spin-button,
@@ -112,6 +177,26 @@ input[type="number"] {
 }
 
 
+.tooltip-portal {
+  position: fixed;
+  z-index: 99999;
+  pointer-events: none;
+}
+
+.tooltip-bubble {
+  max-width: 380px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #111;
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.2;
+  box-shadow: 0 6px 16px rgba(0,0,0,.2);
+  white-space: pre-line;
+  transform: translate(-50%, -100%);
+}
+
+/*
 .tooltip-wrapper {
   position: relative;
 }
@@ -133,16 +218,15 @@ input[type="number"] {
   pointer-events: none;
   transition: opacity .12s ease, transform .12s ease;
   z-index: 1000;
-  /*white-space: normal;*/
   white-space: pre-line; /* allow line breaks in tooltip */
-}
+/*}*(/
 
 /* Anzeige bei Hover ODER Fokus (Tastatur) */
-.tooltip-wrapper:hover .tooltip-bubble,
+/*.tooltip-wrapper:hover .tooltip-bubble,
 .tooltip-wrapper:focus-within .tooltip-bubble {
   opacity: 1;
   transform: translateY(-10px);
-}
+}*/
 
 
 
