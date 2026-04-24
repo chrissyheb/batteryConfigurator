@@ -83,6 +83,10 @@ export const getEmsSmartmeterUseCaseTypes =(): IndexStringType[] =>
   return enums.ems.smartmeterUseCaseTypes;
 };
 
+export const getEmsSmartmeterPowerSignTypes =(): IndexStringType[] =>
+{
+  return enums.ems.smartmeterPowerSignTypes;
+};
 
 export const getMainTypes = (): readonly string[] =>
 {
