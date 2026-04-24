@@ -334,7 +334,7 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; se
         title="Battery & Inverter"
         className="card"
         actionType="add"
-        onAction={() => {addElement(['Units','Main','Equipment'],'BatteryInverter')}}
+        onAction={() => {addElement(['Units','Main','Equipment','BatteryInverter'],'BatteryInverter')}}
         path={['Units','Main','Equipment','BatteryInverter']}
         errorPrefixSet={props.errorPrefixSet}
       >
