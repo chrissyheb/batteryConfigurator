@@ -1,6 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import { z, ZodIssue, ZodObject } from 'zod';
-import { IndexStringType, ui, enums, components, emsComponentTypes, mainComponentTypes } from './catalog';
+import { IndexStringType, ui, enums, components, emsComponentTypes, emsConfigTypes, mainComponentTypes, mainConfigTypes } from './catalog';
 import { applyCrossRules, applyCardinality } from './rules';
 import { TupleToRecord } from '@/utils/helper';
 import { ZodIPv4 } from 'zod/v4';
@@ -23,9 +23,15 @@ export type componentType = keyof typeof components;
 export type emsComponentType = keyof typeof emsComponentTypes;
 export type emsEquipmentLists = TupleToRecord<typeof emsComponentTypes, any[]>;
 export type emsEquipmentKeys = keyof emsEquipmentLists;
+export type emsConfigType = keyof typeof emsConfigTypes;
+export type emsConfigLists = TupleToRecord<typeof emsConfigTypes, any[]>;
+export type emsConfigKeys = keyof emsConfigLists;
 export type mainComponentType = typeof mainComponentTypes;
 export type mainEquipmentLists = TupleToRecord<typeof mainComponentTypes, any[]>;
 export type mainEquipmentKeys = keyof mainEquipmentLists;
+export type mainConfigType = keyof typeof mainConfigTypes;
+export type mainConfigLists = TupleToRecord<typeof mainConfigTypes, any[]>;
+export type mainConfigKeys = keyof mainConfigLists;
 
 export const getEmsComponents = (): readonly string[] => 
 { 
@@ -305,28 +311,43 @@ function fieldSchema(f: any): z.ZodTypeAny
 
 function groupSchema(g: any): z.ZodTypeAny
 {
-  const shape: Record<string, z.ZodTypeAny> = {};
-  for (const [k, spec] of Object.entries<any>(g))
-  {
-    const s: any = spec;
-    if (s.group)
-    {
-      const inner = groupSchema(s.group);
-      shape[k] = s.optional ? inner.optional() : inner;
-    }
-    else
-    {
-      let zod = fieldSchema(s);
-
-      if (s.optional)
-      {
-        zod = zod.optional();
-      }
-
-      shape[k] = zod;
-    }
+  
+  if (Array.isArray(g)) {
+    const shape: Record<string, z.ZodTypeAny> = {};
+    console.log('array', g);
+    g.forEach((k, spec) => {
+      const s: any = k;
+      console.log('element', k, s);
+      shape[k] = groupSchema(s);
+    }); 
+    return z.object(shape).strict();
   }
-  return z.object(shape).strict();
+  else
+  {
+    const shape: Record<string, z.ZodTypeAny> = {};
+    for (const [k, spec] of Object.entries<any>(g))
+    {
+      const s: any = spec;
+      if (Array.isArray(s)) {
+        s.forEach((element) => {
+          shape[k] = groupSchema(element);
+        });
+      }
+      else if (s.group)
+      {
+        const inner = groupSchema(s.group);
+        shape[k] = s.optional ? inner.optional() : inner;
+      }
+      else{
+        let zod = fieldSchema(s);
+        if (s.optional) {
+          zod = zod.optional();
+        }
+        shape[k] = zod;
+      }
+    }
+    return z.object(shape).strict();
+  }
 }
 
 
@@ -336,8 +357,29 @@ const slaveRemoteZ = groupSchema(components.SlaveRemoteUM.fields);
 const smartmeterMainZ = groupSchema(components.SmartmeterMain.fields);
 const batteryInverterZ = groupSchema(components.BatteryInverter.fields);
 const systemZ = groupSchema(components.System.fields);
-const emsConfigZ = groupSchema(components.EmsConfig.fields);
-const mainConfigZ = groupSchema(components.MainConfig.fields,);
+const configPowerLimitZ = groupSchema(components.PowerLimitGroup.fields);
+const emsConfigTmpZ = groupSchema(components.EmsConfig.fields);
+const emsConfigZ = (() => {
+  if (emsConfigTmpZ instanceof ZodObject) {
+    return emsConfigTmpZ.extend({
+      PowerLimitGroups: z.array(configPowerLimitZ).max(2, 'PowerLimitGroup max. 2')
+    });
+  }
+  else {
+    return emsConfigTmpZ;
+  }
+})();
+const mainConfigTmpZ = groupSchema(components.MainConfig.fields);
+const mainConfigZ = (() => {
+  if (mainConfigTmpZ instanceof ZodObject) {
+    return mainConfigTmpZ.extend({
+      PowerLimitGroups: z.array(configPowerLimitZ).max(2, 'PowerLimitGroup max. 2')
+    });
+  }
+  else {
+    return mainConfigTmpZ;
+  }
+})();
 
 
 const configZ = z.object({
@@ -355,7 +397,7 @@ const configZ = z.object({
         Smartmeter: z.array(smartmeterZ),
         LocalRemoteSystems: z.array(z.union([slaveLocalZ, slaveRemoteZ])).min(1),
       }).strict(),
-      Config: emsConfigZ,
+      Config: emsConfigZ
     }).strict(),
     Main: z.object({
       Type: z.enum(enums.main.types),
@@ -368,6 +410,7 @@ const configZ = z.object({
     }).strict()
   }).strict()
 }).strict();
+
 
 export function validate(cfg: any): { issues: ZodIssue[] }
 {

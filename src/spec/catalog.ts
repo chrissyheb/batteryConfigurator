@@ -99,7 +99,7 @@ export const enums = {
       Beckhoff: ['El34x3'],
       Virtual: ['Virtual']
     },
-    smartmeterUseCaseTypes: [[0,'Undefined'], [2,'GridConnectionPointControl']] as IndexStringType[]
+    smartmeterUseCaseTypes: [[0,'Undefined'], [2,'GridConnectionPointControl'], [3,'PowerLimitationGroupEms1'], [4,'PowerLimitationGroupEms2'], [5,'PowerLimitationGroupMain1'], [6,'PowerLimitationGroupMain2']] as IndexStringType[],
     smartmeterPowerSignTypes: [[0,'Positive'], [1,'Negative']] as IndexStringType[],
   },
   main: {
@@ -119,8 +119,10 @@ export const enums = {
 } as const;
 
 export const emsComponentTypes = ['Smartmeter', 'SlaveLocalUM', 'SlaveRemoteUM'] as const;
+export const emsConfigTypes = ['PowerLimitGroup'] as const;
 
 export const mainComponentTypes = ['SmartmeterMain', 'BatteryInverter'] as const;
+export const mainConfigTypes = ['PowerLimitGroup'] as const;
 
 const cGlobal = {
   fields: {
@@ -174,6 +176,21 @@ const cSystem = {
   }
 };
 
+const cPowerLimitGroup = {
+  fields: {
+    Active: TypeBool({ required: false, hint: 'Enable power limit group' }),
+    PowerActiveLimit: TypeNumberUnit({ required: false, hint: 'Max active power at the smartmeters of this power limit group \n > 0', min: 0, unit: 'kW' }),
+    FallbackPowerLimitCharge: TypeNumberUnit({ required: false, hint: 'Max charge power if not all smartmeters of this power limit group are online \n >= 0', min: 0, unit: 'kW' }),
+    FallbackPowerLimitDischarge: TypeNumberUnit({ required: false, hint: 'Max discharge power if not all smartmeters of this power limit group are online \n >= 0', min: 0, unit: 'kW' }),
+  },
+  defaults: {
+    Active: true,
+    PowerActiveLimit: '3kW',
+    FallbackPowerLimitCharge: '2kW',
+    FallbackPowerLimitDischarge: '1kW'
+  }
+}
+
 const cEmsConfig = {
   fields: {
     SmartmeterCount: TypeNumber({ required: true, hint: 'Number of used Smartmeters \n - automatically calculated -', min: 0, int: true, readOnly: true }),
@@ -207,7 +224,8 @@ const cEmsConfig = {
       CapacityInstalledTotal: "0kWh",
       PowerChargeLimitTotal: "0kW",
       PowerDischargeLimitTotal: "0kW"
-    }
+    },
+    PowerLimitGroups: []
   }
 };
 
@@ -307,7 +325,8 @@ const cMainConfig = {
     PowerSwitchMainAvailable: false,
     SafetyRelayAvailable: false,
     PowerChargeLimitLocal: "0kW",
-    PowerDischargeLimitLocal: "0kW"
+    PowerDischargeLimitLocal: "0kW",
+    PowerLimitGroups: [],
   }
 };
 
@@ -422,6 +441,7 @@ export const components = {
   Global: cGlobal,
   System: cSystem,
   EmsConfig: cEmsConfig,
+  PowerLimitGroup: cPowerLimitGroup,
   Smartmeter: cSmartmeter,
   SlaveLocalUM: cSlaveLocalUM,
   SlaveRemoteUM: cSlaveRemoteUM,

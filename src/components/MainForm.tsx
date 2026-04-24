@@ -2,7 +2,7 @@
 import React from 'react';
 import { useEffect } from 'react';
 import { SelectField, TextField, GuidField, CheckField, NumberField } from './Fields';
-import { PathType, createByKey, getInverterTypes, getBatteryTypes, getModbusTypes, getMainSmartmeterHardwares, getMainSmartmeterModels, getInverterHardwareTypes, getBatteryHardwareTypes, mainEquipmentKeys } from '@/spec/builder';
+import { PathType, createByKey, getInverterTypes, getBatteryTypes, getModbusTypes, getMainSmartmeterHardwares, getMainSmartmeterModels, getInverterHardwareTypes, getBatteryHardwareTypes, mainEquipmentKeys, mainConfigKeys } from '@/spec/builder';
 import { components } from '@/spec/catalog';
 import { JSONValue } from '@/app/store';
 import { Collapsible } from '@/components/Cards';
@@ -164,17 +164,24 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; se
 {
   const { cfg, setCfg, setInCfg, getCfg, getOrCfg, delFromCfg, hasCfg, errorIndex, errorPrefixSet } = props;
   
-  function addElement(path: PathType, type: mainEquipmentKeys): void
+  function addElement(path: PathType, type: mainEquipmentKeys|mainConfigKeys): void
   {
-    const pathExt: PathType = path.concat([type]);
-    const list:JSONValue = getOrCfg(pathExt, []);
+    const list:JSONValue = getOrCfg(path, []);
     let idxNew: number = 0;
     if (!Array.isArray(list)) { return; }
     idxNew = list.length;
     const item: any = createByKey(type, { n: idxNew+1 });
-    const pathNew: PathType = pathExt.concat([idxNew]);
+    const pathNew: PathType = path.concat([idxNew]);
     setInCfg(pathNew, item);
   }
+
+  
+  function removeElement(path: PathType, i?: number): void 
+  {
+    if (i !== undefined && i !== null) { delFromCfg(path.concat([i])); }
+    else { delFromCfg(path); }
+  };
+
   
   // Effect -> get numbers of batteries and inverters -> change value on JSON-Structure change
   useEffect(() => {
@@ -194,7 +201,7 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; se
       setInCfg(['Units','Main','Equipment','SmartmeterMain','CurrentTransformerPrimaryCurrent'], '0A');
     }
   }, [cfg.Units?.Main?.Equipment?.SmartmeterMain?.HardwareModel ?? 'Virtual']);
-
+  
   return (
     <Collapsible
       title="Main"
@@ -239,6 +246,47 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; se
           path={['Units','Main','Config','BatteryCount']}
           defLink={components.MainConfig.fields.BatteryCount}
         />
+      </Collapsible>
+      
+      <Collapsible 
+        title="Config - Power Limit Groups" 
+        className="card stack"
+        actionType="add"
+        onAction={() => {addElement(['Units','Main','Config','PowerLimitGroups'],'PowerLimitGroup')}}
+        path={['Units','Main','Config','PowerLimitGroups']}
+        errorPrefixSet={props.errorPrefixSet}
+      >
+        { getOrCfg(['Units','Main','Config','PowerLimitGroups'], []).map((e: any, i: number) =>
+        {
+          return (
+            <Collapsible 
+              key={i}
+              title={'Power Limitation Group Main ' + (i+1)}
+              className="card"
+              actionType="delete"
+              onAction={() => removeElement(['Units','Main','Config','PowerLimitGroups'],i)}
+              path={['Units','Main','Config','PowerLimitGroups',i]}
+              errorPrefixSet={props.errorPrefixSet}
+            >
+              <CheckField 
+                path={['Units','Main','Config','PowerLimitGroups',i,'Active']}
+                defLink={components.PowerLimitGroup.fields.Active}
+              />
+              <NumberField
+                path={['Units','Main','Config','PowerLimitGroups',i,'PowerActiveLimit']}
+                defLink={components.PowerLimitGroup.fields.PowerActiveLimit}
+              />
+              <NumberField
+                path={['Units','Main','Config','PowerLimitGroups',i,'FallbackPowerLimitCharge']}
+                defLink={components.PowerLimitGroup.fields.FallbackPowerLimitCharge}
+              />
+              <NumberField
+                path={['Units','Main','Config','PowerLimitGroups',i,'FallbackPowerLimitDischarge']}
+                defLink={components.PowerLimitGroup.fields.FallbackPowerLimitDischarge}
+              />
+            </Collapsible>
+          );
+        })}
       </Collapsible>
 
       <Collapsible

@@ -31,7 +31,7 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
   }, [cfg.Units?.Ems?.Equipment?.Smartmeter?.length ?? 0]); // <— wichtig: auf Länge hören, nicht auf ganze Struktur!
   
 
-  function addElement(path: PathType, type: emsEquipmentKeys): void
+  function addElement(path: PathType, type: emsEquipmentKeys|emsConfigKeys): void
   {
     //const pathExt: PathType = path.concat([type]);
     const list:JSONValue = getOrCfg(path, []);
@@ -99,6 +99,47 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
           path={['Units','Ems','Config','MasterSlave','PowerDischargeLimitTotal']}
           defLink={components.EmsConfig.fields.MasterSlave.group.PowerDischargeLimitTotal}
         />
+      </Collapsible>
+
+      <Collapsible 
+        title="Config - Power Limit Groups" 
+        className="card stack"
+        actionType="add"
+        onAction={() => {addElement(['Units','Ems','Config','PowerLimitGroups'],'PowerLimitGroup')}}
+        path={['Units','Ems','Config','PowerLimitGroups']}
+        errorPrefixSet={props.errorPrefixSet}
+      >
+        {getOrCfg(['Units','Ems','Config','PowerLimitGroups'], []).map((e: any, i: number) =>
+        {
+          return (
+            <Collapsible 
+              key={i}
+              title={'Power Limitation Group Ems ' + (i+1)}
+              className="card"
+              actionType="delete"
+              onAction={() => removeElement(['Units','Ems','Config','PowerLimitGroups'],i)}
+              path={['Units','Ems','Config','PowerLimitGroups',i]}
+              errorPrefixSet={props.errorPrefixSet}
+            >
+              <CheckField 
+                path={['Units','Ems','Config','PowerLimitGroups',i,'Active']}
+                defLink={components.PowerLimitGroup.fields.Active}
+              />
+              <NumberField
+                path={['Units','Ems','Config','PowerLimitGroups',i,'PowerActiveLimit']}
+                defLink={components.PowerLimitGroup.fields.PowerActiveLimit}
+              />
+              <NumberField
+                path={['Units','Ems','Config','PowerLimitGroups',i,'FallbackPowerLimitCharge']}
+                defLink={components.PowerLimitGroup.fields.FallbackPowerLimitCharge}
+              />
+              <NumberField
+                path={['Units','Ems','Config','PowerLimitGroups',i,'FallbackPowerLimitDischarge']}
+                defLink={components.PowerLimitGroup.fields.FallbackPowerLimitDischarge}
+              />
+            </Collapsible>
+          );
+        })}
       </Collapsible>
 
       <Collapsible 
