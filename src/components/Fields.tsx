@@ -1,5 +1,6 @@
 
-import React, { useEffect, useId } from 'react';
+import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { v4 as uuid } from 'uuid';
 import { errorAt, ErrorIndex, SimpleIssue } from '@/utils/errors';
 import { PathType } from '@/spec/builder';
@@ -63,62 +64,168 @@ function handleOnChange(s: string|number|boolean, pathDefined: boolean, onChange
 }
 
 function setNoPathError():string {
-    const issue:SimpleIssue = { message: 'path not defined', path: ['unknown'] };
-    gFun().addIssue(issue);
-    return issue.message;
-  }
+  const issue:SimpleIssue = { message: 'path not defined', path: ['unknown'] };
+  gFun().addIssue(issue);
+  return issue.message;
+}
 
 
-export function NumberField(props: any)
-{
+type TooltipProps = {
+  anchorRef: React.RefObject<HTMLElement>;
+  visible: boolean;
+  children: React.ReactNode;
+};
+
+function TooltipPortal({ anchorRef, visible, children }: TooltipProps) {
+  const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+
+  useLayoutEffect(() => {
+    if (!visible || !anchorRef.current) return;
+
+    const rect = anchorRef.current.getBoundingClientRect();
+
+    setPos({
+      top: rect.top - 8,   // Abstand nach oben
+      left: (rect.left + rect.right) * 0.5,     // links ausrichten
+    });
+  }, [visible]);
+
+  if (!visible) return null;
+
+  return createPortal(
+    <div
+      className="tooltip-bubble tooltip-portal"
+      style={{
+        position: 'fixed',
+        top: pos.top,
+        left: pos.left,
+      }}
+    >
+      {children}
+    </div>,
+    document.body
+  );
+}
+
+
+type NumberFieldItem = {
+  path?: PathType;
+  defLink?: any;
+  unit?: string;
+  value?: number;
+  error?: string;
+  minValue?: number;
+  maxValue?: number;
+  step?: number;
+  readOnly?: boolean;
+  onChange?: any;
+};
+
+type NumberFieldProps = NumberFieldItem & {
+  label?: string;
+  items?: NumberFieldItem[];
+};
+
+export function NumberField(props: NumberFieldProps) {
+  const { items, label, defLink } = props;
+
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const [tooltipVisible, setTooltipVisible] = useState(false);
+
+  const isArray = Array.isArray(items) && items.length > 0;
+  const firstItem = isArray ? items[0] : undefined;
+
   useEffect(() => {
-    if (!props.path) { setNoPathError(); return; } // run once on mount
-  }, []); // ← empty depts Array -> important for run once
+    const invalid = isArray
+      ? items.some(i => !isPath(i.path))
+      : !isPath(props.path);
 
-  const { path, defLink, unit, label, value, onChange, error, minValue, maxValue, step, readOnly } = props;
+    if (invalid) setNoPathError();
+  }, []);
 
-  const pathDefined: boolean = (path !== null && path !== undefined && Array.isArray(path) && path.length > 0);
-  const rl: string = unit ?? defLink?.unit ?? '';
-  const minVal: number = minValue ?? defLink?.min ?? Number.NEGATIVE_INFINITY;
-  const maxVal: number = maxValue ?? defLink?.max ?? Number.POSITIVE_INFINITY;
-  const st: number = step ?? (defLink?.int ?? false) ? 1 : 0.1;
-  const rightLabelDefined: boolean = (rl !== '');
-  const l = label ?? pathDefined ? path.at(-1) : 'UnknownComponent';
-  const ro = readOnly ?? defLink?.readOnly ?? false
-  const hint = defLink?.hint ?? '';
-  const id = useId();
+  const l = label ?? (props.path?.[props.path.length - 1]?.toString() ?? (firstItem?.path?.[firstItem.path.length - 1]?.toString()) ?? 'UnknownComponent');
+  const hint = defLink?.hint ?? (firstItem?.defLink?.hint ?? '');
 
-  const v:number = (() => {
-    if (value !== undefined && !Number.isNaN(value) && typeof value === 'number') 
-    {
-      return value;
+  const isPath = (p?: PathType): p is PathType => Array.isArray(p) && p.length > 0;
+
+  const getVal = (p: NumberFieldItem): number => {
+    if (typeof p.value === 'number' && !Number.isNaN(p.value)) return p.value;
+    if (!isPath(p.path)) return 0;
+
+    const unit = p.unit ?? p.defLink?.unit ?? '';
+    const raw = gFun().getOr(p.path, unit ? '0x' : 0);
+    const stripped = stripUnit(raw);
+    //console.log(raw, p.unit, unit, p.defLink?.unit, stripped);
+    return unit ? stripped : raw;
+  };
+
+  const getErr = (p: NumberFieldItem): string | undefined =>
+    p.error ?? (isPath(p.path) ? errorAt(gFun().errorIndex, p.path) : 'path not defined');
+
+  const handle = (p: NumberFieldItem, val: number): void => {
+    if (!isPath(p.path)) {
+      setNoPathError();
+      return;
     }
-    if (rightLabelDefined) 
-    {
-      let t = stripUnit(gFun().getOr(path ?? [],'0x'));
-      return t;
-    }
-    let t = gFun().getOr(path ?? [], 0);
-    return t;
-  })();
 
-  function handleUnitOnChange(s: number):void {
-    if (!pathDefined) { setNoPathError(); return; }
-    if (rightLabelDefined) { handleOnChange(addUnit(s, rl), pathDefined, onChange, path); }
-    else { handleOnChange(s, pathDefined, onChange, path); }
-  }
+    const unit = p.unit ?? p.defLink?.unit ?? '';
+    const fn = p.onChange ?? props.onChange;
 
-  const err = error ?? (pathDefined ? errorAt(gFun().errorIndex, path) : 'path not defined');
+    handleOnChange(unit ? addUnit(val, unit) : val, true, fn, p.path);
+  };
+
+  const renderEntry = (p: NumberFieldItem, key: React.Key) => {
+    const unit = p.unit ?? p.defLink?.unit ?? '';
+    const min = p.minValue ?? p.defLink?.min ?? Number.NEGATIVE_INFINITY;
+    const max = p.maxValue ?? p.defLink?.max ?? Number.POSITIVE_INFINITY;
+    const step = p.step ?? ((p.defLink?.int ?? false) ? 1 : 0.1);
+    const ro = p.readOnly ?? p.defLink?.readOnly ?? false;
+    const entryHint = p.defLink?.hint ?? '';
+    const val = getVal(p);
+    const err = getErr(p);
+    //console.log('NumberField', unit, min, max, step, ro, entryHint, val, err);
+    return (
+      <div key={key} className="number-entry">
+        <div className="input-with-unit">
+          <input
+            type="number"
+            min={min}
+            max={max}
+            step={step}
+            value={val}
+            readOnly={ro}
+            aria-describedby={entryHint}
+            onChange={e => handle(p, Number(e.target.value))}
+          />
+          {unit && <span className="unit">{unit}</span>}
+        </div>
+        <div className="inline-error">{err ?? ''}</div>
+      </div>
+    );
+  };
+
+  const list: NumberFieldItem[] = isArray ? items.map(i => ({ ...props, ...i })) : [props];
 
   return (
-    <div className="field numberWithUnit tooltip-wrapper">
+    <div 
+      className="field numberWithUnit"
+      ref={tooltipRef}
+      onMouseEnter={() => setTooltipVisible(true)}
+      onMouseLeave={() => setTooltipVisible(false)}
+      onFocus={() => setTooltipVisible(true)}
+      onBlur={() => setTooltipVisible(false)}
+    >
       <label>{l}</label>
-      <input type="number" min={minVal} max={maxVal} step={st} value={v} readOnly={ro} title={hint} onChange={(e) => handleUnitOnChange(Number(e.target.value))} onPlay={() => pathDefined ? () => {} : setNoPathError()}/>
-      {err ? <div className="inline-error">{err}</div> : <span />}
-      <div role="tooltip" id={id} className={`tooltip-bubble`}>
-        {hint}
+
+      <div className="number-field-list">
+        {list.map((p, idx) => renderEntry(p, idx))}
       </div>
-      <span className="unit">{rl}</span>
+
+      {hint && (
+        <TooltipPortal anchorRef={tooltipRef} visible={tooltipVisible}>
+          {hint}
+        </TooltipPortal>
+      )}
     </div>
   );
 }
@@ -130,6 +237,9 @@ export function SelectField(props: any)
   }, []); // ← empty depts Array -> important for run once
 
   const { path, defLink, label, options, value, onChange, error, readOnly } = props;
+
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const [tooltipVisible, setTooltipVisible] = useState(false);
   
   const pathDefined: boolean = (path !== null && path !== undefined && Array.isArray(path) && path.length > 0);
   const v:string = value ?? gFun().getOr(path ?? [], '');
@@ -137,18 +247,26 @@ export function SelectField(props: any)
   const l = label ?? pathDefined ? path.at(-1) : 'UnknownComponent';
   const ro = readOnly ?? defLink?.readOnly ?? false
   const hint = defLink?.hint ?? '';
-  const id = useId();
   
   return (
-    <div className="field tooltip-wrapper">
+    <div
+      className="field"
+      ref={tooltipRef}
+      onMouseEnter={() => setTooltipVisible(true)}
+      onMouseLeave={() => setTooltipVisible(false)}
+      onFocus={() => setTooltipVisible(true)}
+      onBlur={() => setTooltipVisible(false)}
+    >
       <label>{l}</label>
-      <select title={hint} value={v} onChange={(e) => handleOnChange(e.target.value, pathDefined, onChange, path)} disabled={ro}>
+      <select aria-describedby={hint} value={v} onChange={(e) => handleOnChange(e.target.value, pathDefined, onChange, path)} disabled={ro}>
         {options.map((o: string) => { return <option key={o} value={o}>{o}</option>; })}
       </select>
       {err ? <div className="inline-error">{err}</div> : <span />}
-      <div role="tooltip" id={id} className={`tooltip-bubble`}>
-        {hint}
-      </div>
+      {hint && (
+        <TooltipPortal anchorRef={tooltipRef} visible={tooltipVisible}>
+          {hint}
+        </TooltipPortal>
+      )}
     </div>
   );
 }
@@ -161,26 +279,37 @@ export function CheckField(props: any)
 
   const { path, defLink, label, checked, onChange, error, readOnly } = props;
 
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const [tooltipVisible, setTooltipVisible] = useState(false);
+
   const pathDefined: boolean = path ? true : false;
   const v:boolean = checked ?? gFun().getOr(path ?? [], false);
   const err = error ?? (pathDefined ? errorAt(gFun().errorIndex, path) : 'path not defined');
   const l = label ?? pathDefined ? path.at(-1) : 'UnknownComponent';
   const ro = readOnly ?? defLink?.readOnly ?? false
   const hint = defLink?.hint ?? '';
-  const id = useId();
 
   if (!pathDefined) { 
 
   }
 
   return (
-    <div className="field tooltip-wrapper">
+    <div
+      className="field"
+      ref={tooltipRef}
+      onMouseEnter={() => setTooltipVisible(true)}
+      onMouseLeave={() => setTooltipVisible(false)}
+      onFocus={() => setTooltipVisible(true)}
+      onBlur={() => setTooltipVisible(false)}
+    >
       <label>{l}</label>
-      <input type="checkbox" readOnly={ro} checked={v} title={hint} onChange={(e) => handleOnChange(e.target.checked, pathDefined, onChange, path)} />
+      <input type="checkbox" readOnly={ro} checked={v} aria-describedby={hint} onChange={(e) => handleOnChange(e.target.checked, pathDefined, onChange, path)} />
       {err ? <div className="inline-error">{err}</div> : <span />}
-      <div role="tooltip" id={id} className={`tooltip-bubble`}>
-        {hint}
-      </div>
+      {hint && (
+        <TooltipPortal anchorRef={tooltipRef} visible={tooltipVisible}>
+          {hint}
+        </TooltipPortal>
+      )}
     </div>
   );
 }
@@ -194,23 +323,34 @@ export function TextField(props: any)
 
   const { path, defLink, label, value, onChange, error, readOnly } = props;
 
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const [tooltipVisible, setTooltipVisible] = useState(false);
+
   const pathDefined: boolean = path ? true : false;
   const v:string = value ?? gFun().getOr(path ?? [], '');
   const err =  error ?? (pathDefined ? errorAt(gFun().errorIndex, path) : 'path not defined');
   const l = label ?? pathDefined ? path.at(-1) : 'UnknownComponent';
   const ro = readOnly ?? defLink?.readOnly ?? false
   const hint = defLink?.hint ?? 'Bla';
-  const id = useId();
   const plcVar = defLink?.plcVariableName ?? false;
 
   return (
-    <div className="field tooltip-wrapper">
+    <div
+      className="field"
+      ref={tooltipRef}
+      onMouseEnter={() => setTooltipVisible(true)}
+      onMouseLeave={() => setTooltipVisible(false)}
+      onFocus={() => setTooltipVisible(true)}
+      onBlur={() => setTooltipVisible(false)}
+    >
       <label>{l}</label>
-      <input value={v} readOnly={ro} title={hint} onChange={(e) => handleOnChange(plcVar ? clearVariableName(e.target.value) : e.target.value, pathDefined, onChange, path)} />
+      <input value={v} readOnly={ro} aria-describedby={hint} onChange={(e) => handleOnChange(plcVar ? clearVariableName(e.target.value) : e.target.value, pathDefined, onChange, path)} />
       {err ? <div className="inline-error">{err}</div> : <span />}
-      <div role="tooltip" id={id} className={`tooltip-bubble`}>
-        {hint}
-      </div>
+      {hint && (
+        <TooltipPortal anchorRef={tooltipRef} visible={tooltipVisible}>
+          {hint}
+        </TooltipPortal>
+      )}
     </div>
   );
 }
@@ -225,25 +365,36 @@ export function GuidField(props: any)
   //const { label = 'Guid', value, readOnly, onChange, error, path } = props;
   const { path, defLink, label, value, readOnly, onChange, error,  } = props;
 
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const [tooltipVisible, setTooltipVisible] = useState(false);
+
   const pathDefined: boolean = path ? true : false;
   const v:string = value ?? gFun().getOr(path ?? [], '');
   const err =  error ?? (pathDefined ? errorAt(gFun().errorIndex, path) : 'path not defined');
   const l = label ?? pathDefined ? path.at(-1) : 'UnknownComponent';
   const ro = readOnly ?? defLink?.readOnly ?? false
   const hint = defLink?.hint ?? '';
-  const id = useId();
 
   return (
-    <div className="field tooltip-wrapper">
+    <div
+      className="field"
+      ref={tooltipRef}
+      onMouseEnter={() => setTooltipVisible(true)}
+      onMouseLeave={() => setTooltipVisible(false)}
+      onFocus={() => setTooltipVisible(true)}
+      onBlur={() => setTooltipVisible(false)}
+    >
       <label>{l}</label>
-      <input value={v} readOnly={ro} title={hint} onChange={(e) => handleOnChange(e.target.value, pathDefined, onChange, path)} />
-      <div role="tooltip" id={id} className={`tooltip-bubble`}>
-        {hint}
-      </div>
+      <input value={v} readOnly={ro} aria-describedby={hint} onChange={(e) => handleOnChange(e.target.value, pathDefined, onChange, path)} />
       <div className="row" style={{ gap: 8 }}>
         <button className="ghost" onClick={() => handleOnChange(uuid(), pathDefined, onChange, path)}>Generate</button>
         {err ? <div className="inline-error">{err}</div> : <span />}
       </div>
+      {hint && (
+        <TooltipPortal anchorRef={tooltipRef} visible={tooltipVisible}>
+          {hint}
+        </TooltipPortal>
+      )}
     </div>
   );
 }
