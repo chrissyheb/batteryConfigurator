@@ -105,6 +105,7 @@ export function Collapsible({
   const ctxLevel = useHeadingLevel();
   const level = headingLevel ?? ctxLevel;
   const HeadingTag = `h${level}` as const;
+  const hasChildren = React.Children.count(children) > 0;
 
   const setOpen = (next: boolean) => {
     if (isControlled) onOpenChange?.(next);
@@ -112,6 +113,7 @@ export function Collapsible({
   };
 
   const toggle = () => setOpen(!open);
+
 
   // sorgt dafür, dass Parent (z.B. Stack) bei Änderungen in Child-Collapsibles mitwächst
   useLayoutEffect(() => {
@@ -126,7 +128,7 @@ export function Collapsible({
     const ro = new ResizeObserver(() => update());
     ro.observe(el);
     return () => ro.disconnect();
-  }, [open]);
+  }, [open, hasChildren]);
 
   // Built-in Action Renderer (später leicht erweiterbar)
   const renderAction = () => {
@@ -184,6 +186,7 @@ export function Collapsible({
             aria-controls={panelId}
             aria-label={open ? `${title} expand` : `${title} collapse`}
             title={open ? "collapse" : "expand"}
+            style={{ visibility: hasChildren ? "visible" : "hidden" }}
           >
             <span aria-hidden="true">{open ? "−" : "+"}</span>
           </button>
@@ -200,18 +203,20 @@ export function Collapsible({
           )}
         </div>
       </HeadingTag>
-
-      <div
-        id={panelId}
-        className="card-content"
-        role="region"
-        aria-labelledby={headerId}
-        style={{ maxHeight }}
-      >
-        <div ref={innerRef} className="card-content-inner">
-          <HeadingSection>{children}</HeadingSection>
+      
+      {hasChildren && 
+        <div
+          id={panelId}
+          className="card-content"
+          role="region"
+          aria-labelledby={headerId}
+          style={{ maxHeight }} //, padding: hasChildren ? "12px" : "0" }} 
+        >
+          <div ref={innerRef} className="card-content-inner">
+            <HeadingSection>{children}</HeadingSection>
+          </div>
         </div>
-      </div>
+      }
     </div>
   );
 }
