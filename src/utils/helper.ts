@@ -31,24 +31,21 @@ export function clearVariableName(str: string): string
 }
 
 
-export function stripUnit(s: string): number
+export function stripUnit(s: unknown): number
 {
-  if (!s) { 
-    return 0; 
+  if (s === null || s === undefined) {
+    return 0;
   }
-  const t: string = s.trim();
-  const m: RegExpMatchArray | null = t.match(/^([+-]?\d+(?:\.\d+)?)(.*)$/);
+  const t = String(s).trim();
+
+  const m = t.match(/^([+-]?\d+(?:\.\d+)?)(.*)$/);
+  //console.log(s, m)
   if (m)
   {
-    const num: number = parseFloat(m[1]);
-    return num;
+    return parseFloat(m[1]);
   }
-  else
-  {
-    const num: number = 0;
-    const unit: string = t;
-    return num;
-  }
+
+  return 0;
 }
 
 
