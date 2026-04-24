@@ -95,6 +95,7 @@ export const enums = {
       CarloGavazzi: ['EM24'],
       Phoenix: ['EM375'],
       Janitza: ['UMG 96 PA', 'UMG 96 RM', 'UMG 509 Pro', 'UMG 801'],
+      Custom: ['Custom'],
       Beckhoff: ['El34x3'],
       Virtual: ['Virtual']
     },
