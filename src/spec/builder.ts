@@ -106,6 +106,12 @@ export const getMainTypes = (): readonly string[] =>
   return enums.main.types;
 };
 
+export const getMainControlCabinetTypes = (): IndexStringType[] =>
+{
+  return enums.main.controlCabinetTypes;
+};
+
+
 export const getInverterTypes = (): readonly string[] =>
 {
   return enums.batteryInverter.inverterTypes;

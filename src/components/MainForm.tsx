@@ -2,7 +2,8 @@
 import React from 'react';
 import { useEffect } from 'react';
 import { SelectField, TextField, GuidField, CheckField, NumberField } from './Fields';
-import { PathType, createByKey, getInverterTypes, getBatteryTypes, getModbusTypes, getMainSmartmeterHardwares, getMainSmartmeterModels, getInverterHardwareTypes, getBatteryHardwareTypes, mainEquipmentKeys, mainConfigKeys } from '@/spec/builder';
+import { PathType, createByKey, getInverterTypes, getBatteryTypes, getModbusTypes, getMainSmartmeterHardwares, getMainSmartmeterModels, getInverterHardwareTypes, getBatteryHardwareTypes, mainEquipmentKeys, mainConfigKeys, getMainControlCabinetTypes } from '@/spec/builder';
+import { indexStringToString, stringToIndexString } from '@/utils/helper';
 import { components } from '@/spec/catalog';
 import { JSONValue } from '@/app/store';
 import { Collapsible } from '@/components/Cards';
@@ -219,6 +220,13 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; se
         <TextField
           path={['Units','Main','Config','IpAddressInternal']}
           defLink={components.MainConfig.fields.IpAddressInternal}
+        />
+        <SelectField
+          path={['Units','Main','Config','MainControlCabinetType']}
+          defLink={components.MainConfig.fields.MainControlCabinetType}
+          options={indexStringToString(getMainControlCabinetTypes())}
+          value={indexStringToString([getOrCfg(['Units','Main','Config','MainControlCabinetType'], getMainControlCabinetTypes()[0])])[0]}
+          onChange={(v: string) => { setInCfg(['Units','Main','Config','MainControlCabinetType'], stringToIndexString(v)); }}
         />
         <CheckField 
           path={['Units','Main','Config','PowerSwitchMainAvailable']}

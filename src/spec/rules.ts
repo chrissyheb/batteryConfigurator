@@ -1,6 +1,6 @@
 
-import { PathType } from './builder';
-import { enums, IndexStringType } from './catalog';
+import { PathType, getEmsRippleControlDiContactTypes, getMainControlCabinetTypes } from '@/spec/builder';
+import { enums, IndexStringType } from '@/spec/catalog';
 
 export const cardinality = {
   ems: { smartmeterMax: 10, slaveRemoteMax: 9 },
@@ -90,7 +90,31 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
   const biList = eqBI.filter((e: any) => { return e?.Type === 'BatteryInverter'; });
 
   const isTerraHV = typeof hv === 'string' && /terra/i.test(hv);
-  main.Type = isTerraHV ? 'Terra' : 'Blokk';
+
+  const MainControlCabinetType = config?.Units?.Main?.Config?.MainControlCabinetType ?? getMainControlCabinetTypes()[0];
+  if (isTerraHV) {
+    const isValidTerraSystem = getMainControlCabinetTypes().some(
+      ([id, name]) =>
+        id === MainControlCabinetType[0] &&
+        name.includes('Terra')
+    );
+    if (!isValidTerraSystem) {
+      add({ message: 'Terra configured ⇒ MainControlCabinetType must be Terra', path: ['Units','Main','Config','MainControlCabinetType'] });
+    }
+  } else {
+    const isValidBlokkSystem = getMainControlCabinetTypes().some(
+      ([id, name]) =>
+        id === MainControlCabinetType[0] &&
+        name.includes('Blokk')
+    );
+    if (!isValidBlokkSystem) {
+      add({ message: 'Blokk configured ⇒ MainControlCabinetType must be Blokk', path: ['Units','Main','Config','MainControlCabinetType'] });
+    }
+  }
+
+
+
+//  main.Type = isTerraHV ? 'Terra' : 'Blokk';
 //  const expectedMainType = isTerraHV ? 'Terra' : 'Blokk';
 //  if (main.Type !== expectedMainType)
 //  {
