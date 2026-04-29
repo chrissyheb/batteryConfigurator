@@ -147,7 +147,7 @@ const cGlobal = {
 
 const cSystem = {
   fields: {
-    SerialNumber: TypeString({ required: true, plcVariableName: true, hint: 'Serial number of the BESS system \n TEMSM-001 \n TE0000000047 \n BK0000000246' }),
+    SerialNumber: TypeString({ required: true, hint: 'Serial number of the BESS system \n TEMSM-001 \n TE0000000047 \n BK0000000246' }),
     BatteryBalancing: {
       group: {
         PreemptiveMode: TypeIndexString({ required: true, hint: 'Balancing mode used for preemptive balancing', enumRef: ['system', 'batteryBalancingModes'] }),
