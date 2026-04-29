@@ -16,16 +16,16 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
 
   // Effekt: NumberOfArrayEntries automatisch nachführen
   useEffect(() => {
-    const systemsInParallelCount = cfg.Units.Ems.Equipment?.LocalRemoteSystems?.length ?? 0; // add local unit
-    if (cfg.Units.Ems.Config.SystemsInParallelCount !== systemsInParallelCount) {
+    const systemsInParallelCount = cfg.Units?.Ems?.Equipment?.LocalRemoteSystems?.length ?? 0; // add local unit
+    if (cfg.Units?.Ems?.Config?.SystemsInParallelCount !== systemsInParallelCount) {
       setInCfg(['Units','Ems','Config','SystemsInParallelCount'], systemsInParallelCount);
     }
   }, [cfg.Units?.Ems?.Equipment?.LocalRemoteSystems?.length ?? 0]); // <— wichtig: auf Länge hören, nicht auf ganze Struktur!
   
   // Effekt: NumberOfArrayEntries automatisch nachführen
   useEffect(() => {
-    const smartmeterCount = cfg.Units.Ems.Equipment.Smartmeter.length ?? 0;
-    if (cfg.Units.Ems.Config.SmartmeterCount !== smartmeterCount) {
+    const smartmeterCount = cfg.Units?.Ems?.Equipment?.Smartmeter?.length ?? 0;
+    if (cfg.Units?.Ems?.Config?.SmartmeterCount !== smartmeterCount) {
       setInCfg(['Units','Ems','Config','SmartmeterCount'], smartmeterCount);
     }
   }, [cfg.Units?.Ems?.Equipment?.Smartmeter?.length ?? 0]); // <— wichtig: auf Länge hören, nicht auf ganze Struktur!

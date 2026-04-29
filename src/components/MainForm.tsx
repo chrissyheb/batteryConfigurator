@@ -185,19 +185,19 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; se
   
   // Effect -> get numbers of batteries and inverters -> change value on JSON-Structure change
   useEffect(() => {
-    const BatteryCount = cfg.Units.Main.Equipment.BatteryInverter.length; 
-    if (cfg.Units.Main.Config.BatteryCount !== BatteryCount) {
+    const BatteryCount = cfg.Units?.Main?.Equipment?.BatteryInverter?.length ?? 0; 
+    if (cfg.Units?.Main?.Config?.BatteryCount !== BatteryCount) {
       setInCfg(['Units','Main','Config','BatteryCount'], BatteryCount);
     }
-    const InverterCount = cfg.Units.Main.Equipment.BatteryInverter.length;
-    if (cfg.Units.Main.Config.InverterCount !== InverterCount) {
+    const InverterCount = cfg.Units?.Main?.Equipment?.BatteryInverter?.length ?? 0;
+    if (cfg.Units?.Main?.Config?.InverterCount !== InverterCount) {
       setInCfg(['Units','Main','Config','InverterCount'], InverterCount);
     }
   }, [cfg.Units?.Main?.Equipment?.BatteryInverter?.length ?? 0]);
 
   // Effect -> get numbers of batteries and inverters -> change value on JSON-Structure change
   useEffect(() => {
-    if (cfg.Units.Main.Equipment.SmartmeterMain.HardwareModel !== 'El34x3') {
+    if (cfg.Units?.Main?.Equipment?.SmartmeterMain?.HardwareModel !== 'El34x3') {
       setInCfg(['Units','Main','Equipment','SmartmeterMain','CurrentTransformerPrimaryCurrent'], '0A');
     }
   }, [cfg.Units?.Main?.Equipment?.SmartmeterMain?.HardwareModel ?? 'Virtual']);
