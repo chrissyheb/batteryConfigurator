@@ -208,7 +208,7 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
     }
   });
 
-  config.Units.Main.Equipment.BatteryInverter.map((v:any, idx:number) => 
+  config.Units?.Main?.Equipment?.BatteryInverter?.map((v:any, idx:number) => 
   { 
     if ((countNames.get(v.Name ?? '') ?? 0) > 1) {
       add({ message: 'Component name duplicate', path: ['Units','Main','Equipment','BatteryInverter',idx,'Name'] });
