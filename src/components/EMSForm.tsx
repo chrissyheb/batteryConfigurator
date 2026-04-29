@@ -128,6 +128,10 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
           defLink={components.EmsConfig.fields.RippleControl.group.NominalPowerProductionTotal}
         />
         <NumberField 
+          path={['Units','Ems','Config','RippleControl','DefaultMaxPowerRate']}
+          defLink={components.EmsConfig.fields.RippleControl.group.DefaultMaxPowerRate}
+        />
+        <NumberField 
           label="MaxPowerRates"
           items={[
             {
