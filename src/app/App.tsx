@@ -2,15 +2,15 @@
 import React from 'react';
 import { useRef } from 'react';
 import { useStore, useConfigAccessors } from './store';
-import { SelectField, TextField, setGlobalProps } from '@/components/Fields';
+import { SelectField, TextField, setGlobalProps } from '@/ui/Fields';
 import { getInitialConfig, getLibraryVersion, getHardwareVariants, PathType } from '@/spec/builder';
-import SystemForm from '@/components/SystemForm';
-import EMSForm from '@/components/EMSForm';
-import MainForm from '@/components/MainForm';
+import SystemSection from '@/forms/SystemSection';
+import EmsSection from '@/forms/EmsSection';
+import MainSection from '@/forms/MainSection';
 import { exportJSON, importJSON } from '@/utils/io';
 import { clearLocal } from '@/utils/storage';
 import { formatPath, errorAt } from '@/utils/errors';
-import { components } from '@/spec/catalog';
+import { components } from '@/registry';
 
 export default function App()
 {
@@ -87,9 +87,9 @@ export default function App()
           options={getHardwareVariants()}
         />
       </section>
-      <SystemForm cfg={state} setCfg={set} setInCfg={setIn} getCfg={get} getOrCfg={getOr} errorIndex={errorIndex} errorPrefixSet={errorPrefixSet} />
-      <EMSForm cfg={state} setCfg={set} setInCfg={setIn} getCfg={get} getOrCfg={getOr} delFromCfg={del} hasCfg={has} errorIndex={errorIndex} errorPrefixSet={errorPrefixSet} />
-      <MainForm cfg={state} setCfg={set} setInCfg={setIn} getCfg={get} getOrCfg={getOr} delFromCfg={del} hasCfg={has} errorIndex={errorIndex} errorPrefixSet={errorPrefixSet} />
+      <SystemSection cfg={state} setCfg={set} setInCfg={setIn} getCfg={get} getOrCfg={getOr} errorIndex={errorIndex} errorPrefixSet={errorPrefixSet} />
+      <EmsSection cfg={state} setCfg={set} setInCfg={setIn} getCfg={get} getOrCfg={getOr} delFromCfg={del} hasCfg={has} errorIndex={errorIndex} errorPrefixSet={errorPrefixSet} />
+      <MainSection cfg={state} setCfg={set} setInCfg={setIn} getCfg={get} getOrCfg={getOr} delFromCfg={del} hasCfg={has} errorIndex={errorIndex} errorPrefixSet={errorPrefixSet} />
 
     </div>
   );

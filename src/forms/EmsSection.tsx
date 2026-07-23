@@ -1,17 +1,17 @@
 
 import React from 'react';
 import { useEffect } from 'react';
-import { SelectField, TextField, GuidField, NumberField, CheckField } from './Fields';
+import { SelectField, TextField, GuidField, NumberField, CheckField } from '@/ui/Fields';
 import { PathType, emsEquipmentKeys, emsConfigKeys, createByKey, getEmsSmartmeterHardwares, getEmsSmartmeterModels, getEmsSmartmeterUseCaseTypes, getEmsSmartmeterPowerSignTypes, getEmsRippleControlDiContactTypes, getEmsRippleControlPowerLimitDirections } from '@/spec/builder';
 import { indexStringToString, stringToIndexString } from '@/utils/helper';
-import { components } from '@/spec/catalog';
+import { components } from '@/registry';
 import { JSONValue } from '@/app/store';
-import { Collapsible } from '@/components/Cards';
+import { Collapsible } from '@/ui/Cards';
 
-export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; delFromCfg:(p: any) => void; hasCfg:(p: any) => boolean; errorIndex: any, errorPrefixSet:any })
+export default function EmsSection(props: { cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; delFromCfg:(p: any) => void; hasCfg:(p: any) => boolean; errorIndex: any, errorPrefixSet:any })
 {
   const { cfg, setInCfg, getOrCfg, delFromCfg,  errorIndex } = props;
-  
+
   let systemsInParallelCount: number = 0;
 
   // Effekt: NumberOfArrayEntries automatisch nachführen
@@ -21,7 +21,7 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
       setInCfg(['Units','Ems','Config','SystemsInParallelCount'], systemsInParallelCount);
     }
   }, [cfg.Units?.Ems?.Equipment?.LocalRemoteSystems?.length ?? 0]); // <— wichtig: auf Länge hören, nicht auf ganze Struktur!
-  
+
   // Effekt: NumberOfArrayEntries automatisch nachführen
   useEffect(() => {
     const smartmeterCount = cfg.Units?.Ems?.Equipment?.Smartmeter?.length ?? 0;
@@ -29,7 +29,7 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
       setInCfg(['Units','Ems','Config','SmartmeterCount'], smartmeterCount);
     }
   }, [cfg.Units?.Ems?.Equipment?.Smartmeter?.length ?? 0]); // <— wichtig: auf Länge hören, nicht auf ganze Struktur!
-  
+
 
   function addElement(path: PathType, type: emsEquipmentKeys|emsConfigKeys): void
   {
@@ -43,16 +43,16 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
     setInCfg(pathNew, item);
   }
 
-  function removeElement(path: PathType, i?: number): void 
+  function removeElement(path: PathType, i?: number): void
   {
     if (i !== undefined && i !== null) { delFromCfg(path.concat([i])); }
     else { delFromCfg(path); }
   };
 
   return (
-    <Collapsible 
-      title="EMS" 
-      defaultOpen 
+    <Collapsible
+      title="EMS"
+      defaultOpen
       className="card stack"
       path={['Units','Ems']}
       errorPrefixSet={props.errorPrefixSet}
@@ -63,46 +63,46 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
         path={['Units','Ems','Config','GridConnectionPoint']}
         errorPrefixSet={props.errorPrefixSet}
       >
-        <NumberField 
+        <NumberField
           path={['Units','Ems','Config','GridConnectionPoint','PowerGridConsumptionLimit']}
           defLink={components.EmsConfig.fields.GridConnectionPoint.group.PowerGridConsumptionLimit}
         />
-        <NumberField 
+        <NumberField
           path={['Units','Ems','Config','GridConnectionPoint','PowerGridFeedInLimit']}
           defLink={components.EmsConfig.fields.GridConnectionPoint.group.PowerGridFeedInLimit}
         />
-        <NumberField 
+        <NumberField
           path={['Units','Ems','Config','GridConnectionPoint','PowerGridConsumptionOffset']}
           defLink={components.EmsConfig.fields.GridConnectionPoint.group.PowerGridConsumptionOffset}
         />
       </Collapsible>
-      
-      <Collapsible 
+
+      <Collapsible
         title="Config - Master/Slave"
         className="card"
         path={['Units','Ems','Config','MasterSlave']}
         errorPrefixSet={props.errorPrefixSet}
       >
-        <NumberField 
+        <NumberField
           path={['Units','Ems','Config','MasterSlave','PowerActiveInstalledTotal']}
           defLink={components.EmsConfig.fields.MasterSlave.group.PowerActiveInstalledTotal}
         />
-        <NumberField 
+        <NumberField
           path={['Units','Ems','Config','MasterSlave','CapacityInstalledTotal']}
           defLink={components.EmsConfig.fields.MasterSlave.group.CapacityInstalledTotal}
         />
-        <NumberField 
+        <NumberField
           path={['Units','Ems','Config','MasterSlave','PowerChargeLimitTotal']}
           defLink={components.EmsConfig.fields.MasterSlave.group.PowerChargeLimitTotal}
         />
-        <NumberField 
+        <NumberField
           path={['Units','Ems','Config','MasterSlave','PowerDischargeLimitTotal']}
           defLink={components.EmsConfig.fields.MasterSlave.group.PowerDischargeLimitTotal}
         />
       </Collapsible>
-      
 
-      <Collapsible 
+
+      <Collapsible
         title="Config - Ripple Control"
         className="card"
         path={['Units','Ems','Config','RippleControl']}
@@ -122,23 +122,23 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
           value={indexStringToString([getOrCfg(['Units','Ems','Config','RippleControl','PowerLimitDirection'], [0,''])])[0]}
           onChange={(v: string) => { setInCfg(['Units','Ems','Config','RippleControl','PowerLimitDirection'], stringToIndexString(v)); }}
         />
-        <CheckField 
+        <CheckField
           path={['Units','Ems','Config','RippleControl','ForceBessPowerReduction']}
           defLink={components.EmsConfig.fields.RippleControl.group.ForceBessPowerReduction}
         />
-        <CheckField 
+        <CheckField
           path={['Units','Ems','Config','RippleControl','LimitToZeroOnMultipleSelection']}
           defLink={components.EmsConfig.fields.RippleControl.group.LimitToZeroOnMultipleSelection}
         />
-        <NumberField 
+        <NumberField
           path={['Units','Ems','Config','RippleControl','NominalPowerPV']}
           defLink={components.EmsConfig.fields.RippleControl.group.NominalPowerPV}
         />
-        <NumberField 
+        <NumberField
           path={['Units','Ems','Config','RippleControl','NominalPowerProductionTotal']}
           defLink={components.EmsConfig.fields.RippleControl.group.NominalPowerProductionTotal}
         />
-        <NumberField 
+        <NumberField
           label="MaxPowerRates"
           items={[
             {
@@ -161,8 +161,8 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
         />
       </Collapsible>
 
-      <Collapsible 
-        title="Config - Power Limit Groups" 
+      <Collapsible
+        title="Config - Power Limit Groups"
         className="card stack"
         actionType="add"
         onAction={() => {addElement(['Units','Ems','Config','PowerLimitGroups'],'PowerLimitGroup')}}
@@ -172,7 +172,7 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
         {getOrCfg(['Units','Ems','Config','PowerLimitGroups'], []).map((e: any, i: number) =>
         {
           return (
-            <Collapsible 
+            <Collapsible
               key={i}
               title={'Power Limitation Group Ems ' + (i+1)}
               className="card"
@@ -181,7 +181,7 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
               path={['Units','Ems','Config','PowerLimitGroups',i]}
               errorPrefixSet={props.errorPrefixSet}
             >
-              <CheckField 
+              <CheckField
                 path={['Units','Ems','Config','PowerLimitGroups',i,'Active']}
                 defLink={components.PowerLimitGroup.fields.Active}
               />
@@ -202,22 +202,22 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
         })}
       </Collapsible>
 
-      <Collapsible 
-        title="Smartmeter" 
+      <Collapsible
+        title="Smartmeter"
         className="card stack"
         actionType="add"
         onAction={() => {addElement(['Units','Ems','Equipment','Smartmeter'],'Smartmeter')}}
         path={['Units','Ems','Equipment','Smartmeter']}
         errorPrefixSet={props.errorPrefixSet}
       >
-        <NumberField 
+        <NumberField
           path={['Units','Ems','Config','SmartmeterCount']}
           defLink={components.EmsConfig.fields.SmartmeterCount}
         />
         {getOrCfg(['Units','Ems','Equipment','Smartmeter'], []).map((e: any, i: number) =>
         {
           return (
-            <Collapsible 
+            <Collapsible
               key={i}
               title={getOrCfg(['Units','Ems','Equipment','Smartmeter',i,'Type'], 'Unkown Smartmeter') + ' (' + getOrCfg(['Units','Ems','Equipment','Smartmeter',i,'DisplayName'], '') + ')'}
               className="card"
@@ -226,7 +226,7 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
               path={['Units','Ems','Equipment','Smartmeter',i]}
               errorPrefixSet={props.errorPrefixSet}
             >
-              <TextField 
+              <TextField
                 path={['Units','Ems','Equipment','Smartmeter',i,'Name']}
                 defLink={components.Smartmeter.fields.Name}
               />
@@ -272,7 +272,7 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
                 path={['Units','Ems','Equipment','Smartmeter',i,'Config','IpAddress']}
                 defLink={components.Smartmeter.fields.Config.group.IpAddress}
               />
-              <NumberField 
+              <NumberField
                 path={['Units','Ems','Equipment','Smartmeter',i,'Config','Port']}
                 defLink={components.Smartmeter.fields.Config.group.Port}
               />
@@ -281,25 +281,25 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
         })}
       </Collapsible>
 
-      
-      <Collapsible 
-        title="Local/Remote Main Units" 
+
+      <Collapsible
+        title="Local/Remote Main Units"
         className="card stack"
         actionType="add"
         onAction={() => {addElement(['Units','Ems','Equipment','LocalRemoteSystems'],'SlaveRemoteUM')}}
         path={['Units','Ems','Equipment','LocalRemoteSystems']}
         errorPrefixSet={props.errorPrefixSet}
       >
-        <NumberField 
+        <NumberField
           path={['Units','Ems','Config','SystemsInParallelCount']}
           defLink={components.EmsConfig.fields.SystemsInParallelCount}
         />
         {getOrCfg(['Units','Ems','Equipment','LocalRemoteSystems'], []).map((e: any, i: number) =>
         {
-          if (e.Type === 'SlaveLocalUM') 
-          { 
+          if (e.Type === 'SlaveLocalUM')
+          {
             return (
-              <Collapsible 
+              <Collapsible
                 key={i}
                 title={(getOrCfg(['Units','Ems','Equipment',"LocalRemoteSystems",i,'Type'], 'Unkown Local System') === 'SlaveLocalUM' ? 'Local System' : 'Unknown Local System') + ' (' + getOrCfg(['Units','Ems','Equipment','LocalRemoteSystems',i,'DisplayName'], '') + ')'}
                 className="card"
@@ -325,10 +325,10 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
               </Collapsible>
             );
           }
-          else if (e.Type === 'SlaveRemoteUM') 
-          { 
+          else if (e.Type === 'SlaveRemoteUM')
+          {
             return (
-              <Collapsible 
+              <Collapsible
                 key={i}
                 title={(getOrCfg(['Units','Ems','Equipment','LocalRemoteSystems',i,'Type'], 'Unkown Remote System') === 'SlaveRemoteUM' ? 'Remote System' : 'Unknown Remote System') + ' (' + getOrCfg(['Units','Ems','Equipment','LocalRemoteSystems',i,'DisplayName'], '') + ')'}
                 className="card"
@@ -356,7 +356,7 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
               </Collapsible>
             );
           }
-          
+
         })}
       </Collapsible>
     </Collapsible>

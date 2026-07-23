@@ -1,4 +1,4 @@
-import { IndexStringType } from '@/spec/catalog';
+import { IndexStringType } from '@/core/field-types';
 
 export function addUnit(n: number, unit: string): string
 {

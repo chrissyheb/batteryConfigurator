@@ -1,28 +1,28 @@
 
 import React from 'react';
-import { SelectField, TextField, NumberField, CheckField } from './Fields';
-import { components } from '@/spec/catalog';
+import { SelectField, TextField, NumberField, CheckField } from '@/ui/Fields';
+import { components } from '@/registry';
 import { getBatteryBalancingModes, getExternalControlOperationModes } from '@/spec/builder';
 import { errorAt } from '@/utils/errors';
 import { indexStringToString, stringToIndexString } from '@/utils/helper';
-import { Collapsible } from '@/components/Cards';
+import { Collapsible } from '@/ui/Cards';
 
-export default function SystemForm(props: { cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; errorIndex: any, errorPrefixSet:any })
+export default function SystemSection(props: { cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; errorIndex: any, errorPrefixSet:any })
 {
   const { setInCfg, getOrCfg, errorIndex } = props;
 
   return (
-    <Collapsible 
+    <Collapsible
       title="System"
       className="card stack"
       path={['System']}
       errorPrefixSet={props.errorPrefixSet}
     >
-      <TextField 
+      <TextField
         path={['System', 'SerialNumber']}
         defLink={components.System.fields.SerialNumber}
       />
-      <Collapsible 
+      <Collapsible
         title="Battery Balancing"
         className="card"
         path={['System', 'BatteryBalancing']}
@@ -35,24 +35,24 @@ export default function SystemForm(props: { cfg: any; setCfg: (c: any) => void; 
           value={indexStringToString([getOrCfg(['System', 'BatteryBalancing', 'PreemptiveMode'], [0,''])])[0]}
           onChange={(v: string) => { setInCfg(['System', 'BatteryBalancing', 'PreemptiveMode'], stringToIndexString(v)); }}
         />
-        <NumberField 
+        <NumberField
           path={['System', 'BatteryBalancing', 'PreemptiveDaysToEnable']}
           defLink={components.System.fields.BatteryBalancing.group.PreemptiveDaysToEnable}
         />
-        <NumberField 
+        <NumberField
           path={['System', 'BatteryBalancing', 'PreemptiveMaxGridChargePower']}
           defLink={components.System.fields.BatteryBalancing.group.PreemptiveMaxGridChargePower}
         />
-        <NumberField 
+        <NumberField
           path={['System', 'BatteryBalancing', 'ForcedDaysToEnable']}
           defLink={components.System.fields.BatteryBalancing.group.ForcedDaysToEnable}
         />
-        <NumberField 
+        <NumberField
           path={['System', 'BatteryBalancing', 'ForcedMaxGridChargePowerPerInverter']}
           defLink={components.System.fields.BatteryBalancing.group.ForcedMaxGridChargePowerPerInverter}
         />
       </Collapsible>
-      <Collapsible 
+      <Collapsible
         title="External Control"
         className="card"
         path={['System', 'ExternalControl']}
@@ -65,7 +65,7 @@ export default function SystemForm(props: { cfg: any; setCfg: (c: any) => void; 
           value={indexStringToString([getOrCfg(['System', 'ExternalControl', 'FallbackMode'], [0,''])])[0]}
           onChange={(v: string) => { setInCfg(['System', 'ExternalControl', 'FallbackMode'], stringToIndexString(v)); }}
         />
-        <CheckField 
+        <CheckField
           path={['System', 'ExternalControl', 'EmsEzaCommunicationRequired']}
           defLink={components.System.fields.ExternalControl.group.EmsEzaCommunicationRequired}
         />

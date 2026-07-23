@@ -203,14 +203,14 @@ export function Collapsible({
           )}
         </div>
       </HeadingTag>
-      
-      {hasChildren && 
+
+      {hasChildren &&
         <div
           id={panelId}
           className="card-content"
           role="region"
           aria-labelledby={headerId}
-          style={{ maxHeight }} //, padding: hasChildren ? "12px" : "0" }} 
+          style={{ maxHeight }} //, padding: hasChildren ? "12px" : "0" }}
         >
           <div ref={innerRef} className="card-content-inner">
             <HeadingSection>{children}</HeadingSection>

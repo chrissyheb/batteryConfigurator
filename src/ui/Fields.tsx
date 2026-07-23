@@ -13,7 +13,7 @@ export interface GlobalFns {
   setIn: (path: PathType, value: JSONValue) => void;
   errorIndex: ErrorIndex;
   errorPrefixSet: Set<string>;
-  addIssue: (issue: SimpleIssue) => void; 
+  addIssue: (issue: SimpleIssue) => void;
 }
 
 const defaults: GlobalFns = {
@@ -49,16 +49,16 @@ export function setGlobalProps(props: Partial<GlobalFns>): void {
 }
 
 
-function handleOnChange(s: string|number|boolean, pathDefined: boolean, onChange: any, path: PathType) : void { 
+function handleOnChange(s: string|number|boolean, pathDefined: boolean, onChange: any, path: PathType) : void {
   if (!pathDefined) { return; }
-  if (onChange === undefined) 
+  if (onChange === undefined)
   {
-    //console.log(path, ': onChange default: ', s); 
-    gFun().setIn(path, s); 
+    //console.log(path, ': onChange default: ', s);
+    gFun().setIn(path, s);
   }
-  else 
-  { 
-    //console.log(path, ': onChange custom: ', s); 
+  else
+  {
+    //console.log(path, ': onChange custom: ', s);
     onChange(s);
   }
 }
@@ -207,7 +207,7 @@ export function NumberField(props: NumberFieldProps) {
   const list: NumberFieldItem[] = isArray ? items.map(i => ({ ...props, ...i })) : [props];
 
   return (
-    <div 
+    <div
       className="field numberWithUnit"
       ref={tooltipRef}
       onMouseEnter={() => setTooltipVisible(true)}
@@ -240,14 +240,14 @@ export function SelectField(props: any)
 
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [tooltipVisible, setTooltipVisible] = useState(false);
-  
+
   const pathDefined: boolean = (path !== null && path !== undefined && Array.isArray(path) && path.length > 0);
   const v:string = value ?? gFun().getOr(path ?? [], '');
   const err = error ?? (pathDefined ? errorAt(gFun().errorIndex, path) : 'path not defined');
   const l = label ?? pathDefined ? path.at(-1) : 'UnknownComponent';
   const ro = readOnly ?? defLink?.readOnly ?? false
   const hint = defLink?.hint ?? '';
-  
+
   return (
     <div
       className="field"
@@ -289,7 +289,7 @@ export function CheckField(props: any)
   const ro = readOnly ?? defLink?.readOnly ?? false
   const hint = defLink?.hint ?? '';
 
-  if (!pathDefined) { 
+  if (!pathDefined) {
 
   }
 

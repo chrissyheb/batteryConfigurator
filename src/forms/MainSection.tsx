@@ -1,28 +1,36 @@
 
 import React from 'react';
 import { useEffect } from 'react';
-import { SelectField, TextField, GuidField, CheckField, NumberField } from './Fields';
+import { SelectField, TextField, GuidField, CheckField, NumberField } from '@/ui/Fields';
 import { PathType, createByKey, getInverterTypes, getBatteryTypes, getModbusTypes, getMainSmartmeterHardwares, getMainSmartmeterModels, getInverterHardwareTypes, getBatteryHardwareTypes, mainEquipmentKeys, mainConfigKeys, getMainControlCabinetTypes } from '@/spec/builder';
 import { indexStringToString, stringToIndexString } from '@/utils/helper';
-import { components } from '@/spec/catalog';
+import { components } from '@/registry';
+import { getVersionContext, isAvailable } from '@/core/versioning';
 import { JSONValue } from '@/app/store';
-import { Collapsible } from '@/components/Cards';
+import { Collapsible } from '@/ui/Cards';
 
 function BatteryInverterCard(props: { idx: number; count: number; cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; delFromCfg:(p: any) => void; hasCfg:(p: any) => boolean; errorIndex: any, errorPrefixSet:any })
 {
   const { idx, count, cfg, setCfg, setInCfg, getOrCfg, delFromCfg } = props;
 
-  const modbusAvailable = getOrCfg(['Units','Main','Equipment','BatteryInverter',idx,'Modbus'], false); 
+  const modbusAvailable = getOrCfg(['Units','Main','Equipment','BatteryInverter',idx,'Modbus'], false);
 
-  function removeElement(path: PathType, i?: number): void 
+  // Versionierung: Modbus ist als Komponente nur für bestimmte HardwareVariants
+  // verfügbar (siehe components/battery-inverter/spec.ts -> BatteryInverterModbus.availability).
+  // Statt das Formular immer zu zeigen und erst per Cross-Rule (spec/rules.ts)
+  // nachträglich einen Fehler zu melden, blenden wir es hier direkt aus.
+  const versionCtx = getVersionContext(cfg);
+  const modbusComponentAvailable = isAvailable(components.BatteryInverterModbus.availability, versionCtx, cfg);
+
+  function removeElement(path: PathType, i?: number): void
   {
     if (i !== undefined && i !== null) { delFromCfg(path.concat([i])); }
     else { delFromCfg(path); }
   };
 
   return (
-    <Collapsible 
-      title={getOrCfg(['Units','Main','Equipment','BatteryInverter',idx,'Type'], 'Unkown Smartmeter Type') + ' (' + getOrCfg(['Units','Main','Equipment','BatteryInverter',idx,'Name'], '') + ')'} 
+    <Collapsible
+      title={getOrCfg(['Units','Main','Equipment','BatteryInverter',idx,'Type'], 'Unkown Smartmeter Type') + ' (' + getOrCfg(['Units','Main','Equipment','BatteryInverter',idx,'Name'], '') + ')'}
       className="card stack"
       actionType={(count === 1) ? undefined : "delete"}
       onAction={() => removeElement(['Units','Main','Equipment','BatteryInverter'],idx)}
@@ -33,13 +41,13 @@ function BatteryInverterCard(props: { idx: number; count: number; cfg: any; setC
         path={['Units','Main','Equipment','BatteryInverter',idx,'Name']}
         defLink={components.BatteryInverter.fields.Name}
       />
-      <NumberField 
+      <NumberField
         value={idx}
         path={['Units','Main','Equipment','BatteryInverter',idx,'Index']}
         defLink={components.BatteryInverter.fields.Index}
       />
 
-      <Collapsible 
+      <Collapsible
         title="Inverter"
         className="card"
         path={['Units','Main','Equipment','BatteryInverter',idx,'Inverter']}
@@ -54,7 +62,7 @@ function BatteryInverterCard(props: { idx: number; count: number; cfg: any; setC
           path={['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Name']}
           defLink={components.BatteryInverterInverter.fields.group.Name}
         />
-        <GuidField 
+        <GuidField
           path={['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Guid']}
           defLink={components.BatteryInverterInverter.fields.group.Guid}
         />
@@ -113,58 +121,65 @@ function BatteryInverterCard(props: { idx: number; count: number; cfg: any; setC
           path={['Units','Main','Equipment','BatteryInverter',idx,'Battery','Config','IpAddress']}
           defLink={components.BatteryInverterBattery.fields.group.Config.group.IpAddress}
         />
-        <NumberField 
+        <NumberField
           path={['Units','Main','Equipment','BatteryInverter',idx,'Battery','Config','Port']}
           defLink={components.BatteryInverterBattery.fields.group.Config.group.Port}
         />
       </Collapsible>
 
-      <Collapsible
-        title="Modbus"
-        className="card"
-        path={['Units','Main','Equipment','BatteryInverter',idx,'Modbus']}
-        errorPrefixSet={props.errorPrefixSet}
-      >
-        <SelectField 
-          path={['Units','Main','Equipment','BatteryInverter',idx,'Modbus','Type']}
-            defLink={components.BatteryInverterModbus.fields.group.Type}
-          options={getModbusTypes()} 
-          onChange=
-          {(v: string) => 
-            {
-              if (v === getModbusTypes()[0]) { delFromCfg(['Units','Main','Equipment','BatteryInverter',idx,'Modbus']); }
-              else { setInCfg(['Units','Main','Equipment','BatteryInverter',idx,'Modbus'], createByKey('BatteryInverterModbus',{n: idx})); }
+      {modbusComponentAvailable && (
+        <Collapsible
+          title="Modbus"
+          className="card"
+          path={['Units','Main','Equipment','BatteryInverter',idx,'Modbus']}
+          errorPrefixSet={props.errorPrefixSet}
+        >
+          <SelectField
+            path={['Units','Main','Equipment','BatteryInverter',idx,'Modbus','Type']}
+              defLink={components.BatteryInverterModbus.fields.group.Type}
+            options={getModbusTypes()}
+            onChange=
+            {(v: string) =>
+              {
+                if (v === getModbusTypes()[0]) { delFromCfg(['Units','Main','Equipment','BatteryInverter',idx,'Modbus']); }
+                else { setInCfg(['Units','Main','Equipment','BatteryInverter',idx,'Modbus'], createByKey('BatteryInverterModbus',{n: idx})); }
+              }
             }
-          }
-        />
-        {modbusAvailable && (<>
-          <TextField 
-            path={['Units','Main','Equipment','BatteryInverter',idx,'Modbus','Name']}
-            defLink={components.BatteryInverterModbus.fields.group.Name}
           />
-          <GuidField 
-            path={['Units','Main','Equipment','BatteryInverter',idx,'Modbus','Guid']}
-            defLink={components.BatteryInverterModbus.fields.group.Guid}
-          />
-          <TextField
-            path={['Units','Main','Equipment','BatteryInverter',idx,'Modbus','Config','IpAddress']}
-            defLink={components.BatteryInverterModbus.fields.group.Config.group.IpAddress}
-          />
-          <NumberField 
-            path={['Units','Main','Equipment','BatteryInverter',idx,'Modbus','Config','Port']}
-            defLink={components.BatteryInverterModbus.fields.group.Config.group.Port}
-          />
-        </>)}
-      </Collapsible>
+          {modbusAvailable && (<>
+            <TextField
+              path={['Units','Main','Equipment','BatteryInverter',idx,'Modbus','Name']}
+              defLink={components.BatteryInverterModbus.fields.group.Name}
+            />
+            <GuidField
+              path={['Units','Main','Equipment','BatteryInverter',idx,'Modbus','Guid']}
+              defLink={components.BatteryInverterModbus.fields.group.Guid}
+            />
+            <TextField
+              path={['Units','Main','Equipment','BatteryInverter',idx,'Modbus','Config','IpAddress']}
+              defLink={components.BatteryInverterModbus.fields.group.Config.group.IpAddress}
+            />
+            <NumberField
+              path={['Units','Main','Equipment','BatteryInverter',idx,'Modbus','Config','Port']}
+              defLink={components.BatteryInverterModbus.fields.group.Config.group.Port}
+            />
+          </>)}
+        </Collapsible>
+      )}
     </Collapsible>
   );
 }
 
 
-export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; delFromCfg:(p: any) => void; hasCfg:(p: any) => boolean; errorIndex: any, errorPrefixSet: any })
+export default function MainSection(props: { cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; delFromCfg:(p: any) => void; hasCfg:(p: any) => boolean; errorIndex: any, errorPrefixSet: any })
 {
   const { cfg, setCfg, setInCfg, getCfg, getOrCfg, delFromCfg, hasCfg, errorIndex, errorPrefixSet } = props;
-  
+
+  const versionCtx = getVersionContext(cfg);
+  // Versionierungs-Beispiel auf Feldebene (siehe components/smartmeter-main/spec.ts):
+  // CurrentTransformerPrimaryCurrent ist illustrativ an eine PLC-Lib-Version gebunden.
+  const currentTransformerAvailable = isAvailable(components.SmartmeterMain.fields.CurrentTransformerPrimaryCurrent.availability, versionCtx, cfg);
+
   function addElement(path: PathType, type: mainEquipmentKeys|mainConfigKeys): void
   {
     const list:JSONValue = getOrCfg(path, []);
@@ -176,17 +191,17 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; se
     setInCfg(pathNew, item);
   }
 
-  
-  function removeElement(path: PathType, i?: number): void 
+
+  function removeElement(path: PathType, i?: number): void
   {
     if (i !== undefined && i !== null) { delFromCfg(path.concat([i])); }
     else { delFromCfg(path); }
   };
 
-  
+
   // Effect -> get numbers of batteries and inverters -> change value on JSON-Structure change
   useEffect(() => {
-    const BatteryCount = cfg.Units?.Main?.Equipment?.BatteryInverter?.length ?? 0; 
+    const BatteryCount = cfg.Units?.Main?.Equipment?.BatteryInverter?.length ?? 0;
     if (cfg.Units?.Main?.Config?.BatteryCount !== BatteryCount) {
       setInCfg(['Units','Main','Config','BatteryCount'], BatteryCount);
     }
@@ -202,7 +217,7 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; se
       setInCfg(['Units','Main','Equipment','SmartmeterMain','CurrentTransformerPrimaryCurrent'], '0A');
     }
   }, [cfg.Units?.Main?.Equipment?.SmartmeterMain?.HardwareModel ?? 'Virtual']);
-  
+
   return (
     <Collapsible
       title="Main"
@@ -211,7 +226,7 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; se
       path={['Units','Main']}
       errorPrefixSet={props.errorPrefixSet}
     >
-      <Collapsible 
+      <Collapsible
         title="Config - Main Unit"
         className="card"
         path={['Units','Main','Config']}
@@ -228,36 +243,36 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; se
           value={indexStringToString([getOrCfg(['Units','Main','Config','MainControlCabinetType'], getMainControlCabinetTypes()[0])])[0]}
           onChange={(v: string) => { setInCfg(['Units','Main','Config','MainControlCabinetType'], stringToIndexString(v)); }}
         />
-        <CheckField 
+        <CheckField
           path={['Units','Main','Config','PowerSwitchMainAvailable']}
           defLink={components.MainConfig.fields.PowerSwitchMainAvailable}
         />
-        <CheckField 
+        <CheckField
           path={['Units','Main','Config','SafetyRelayAvailable']}
           defLink={components.MainConfig.fields.SafetyRelayAvailable}
         />
-        <NumberField 
+        <NumberField
           path={['Units','Main','Config','PowerChargeLimitLocal']}
           defLink={components.MainConfig.fields.PowerChargeLimitLocal}
         />
-        <NumberField 
+        <NumberField
           path={['Units','Main','Config','PowerDischargeLimitLocal']}
           defLink={components.MainConfig.fields.PowerDischargeLimitLocal}
         />
-        <NumberField 
+        <NumberField
           readOnly
           path={['Units','Main','Config','InverterCount']}
           defLink={components.MainConfig.fields.InverterCount}
         />
-        <NumberField 
+        <NumberField
           readOnly
           path={['Units','Main','Config','BatteryCount']}
           defLink={components.MainConfig.fields.BatteryCount}
         />
       </Collapsible>
-      
-      <Collapsible 
-        title="Config - Power Limit Groups" 
+
+      <Collapsible
+        title="Config - Power Limit Groups"
         className="card stack"
         actionType="add"
         onAction={() => {addElement(['Units','Main','Config','PowerLimitGroups'],'PowerLimitGroup')}}
@@ -267,7 +282,7 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; se
         { getOrCfg(['Units','Main','Config','PowerLimitGroups'], []).map((e: any, i: number) =>
         {
           return (
-            <Collapsible 
+            <Collapsible
               key={i}
               title={'Power Limitation Group Main ' + (i+1)}
               className="card"
@@ -276,7 +291,7 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; se
               path={['Units','Main','Config','PowerLimitGroups',i]}
               errorPrefixSet={props.errorPrefixSet}
             >
-              <CheckField 
+              <CheckField
                 path={['Units','Main','Config','PowerLimitGroups',i,'Active']}
                 defLink={components.PowerLimitGroup.fields.Active}
               />
@@ -303,7 +318,7 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; se
         path={['Units','Main','Equipment','SmartmeterMain']}
         errorPrefixSet={props.errorPrefixSet}
       >
-        <TextField 
+        <TextField
           path={['Units','Main','Equipment','SmartmeterMain','Name']}
           defLink={components.SmartmeterMain.fields.Name}
         />
@@ -327,17 +342,19 @@ export default function MainForm(props: { cfg: any; setCfg: (c: any) => void; se
           defLink={components.SmartmeterMain.fields.HardwareModel}
           options={getMainSmartmeterModels(getCfg(['Units','Main','Equipment','SmartmeterMain','HardwareType']))}
         />
-        <NumberField 
-          path={['Units','Main','Equipment','SmartmeterMain','CurrentTransformerPrimaryCurrent']}
-          defLink={components.SmartmeterMain.fields.CurrentTransformerPrimaryCurrent}
-          readOnly={getOrCfg(['Units','Main','Equipment','SmartmeterMain','HardwareModel'], 'Virtual') !== 'El34x3'}
-        />
+        {currentTransformerAvailable && (
+          <NumberField
+            path={['Units','Main','Equipment','SmartmeterMain','CurrentTransformerPrimaryCurrent']}
+            defLink={components.SmartmeterMain.fields.CurrentTransformerPrimaryCurrent}
+            readOnly={getOrCfg(['Units','Main','Equipment','SmartmeterMain','HardwareModel'], 'Virtual') !== 'El34x3'}
+          />
+        )}
         <GuidField
           path={['Units','Main','Equipment','SmartmeterMain','Guid']}
           defLink={components.SmartmeterMain.fields.Guid}
         />
       </Collapsible>
-      
+
       <Collapsible
         title="Battery & Inverter"
         className="card"
