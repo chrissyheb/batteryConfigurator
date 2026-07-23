@@ -56,7 +56,7 @@ function BatteryInverterCard(props: { idx: number; count: number; cfg: any; setC
         <SelectField
           path={['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Type']}
           defLink={components.BatteryInverterInverter.fields.group.Type}
-          options={getInverterTypes()}
+          options={getInverterTypes(versionCtx, cfg)}
         />
         <TextField
           path={['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Name']}
@@ -69,7 +69,7 @@ function BatteryInverterCard(props: { idx: number; count: number; cfg: any; setC
         <SelectField
           path={['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Config','InverterType']}
           defLink={components.BatteryInverterInverter.fields.group.Config.group.InverterType}
-          options={getInverterHardwareTypes()}
+          options={getInverterHardwareTypes(versionCtx, cfg)}
         />
         <NumberField
           path={['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Config','NominalInverterPower']}
@@ -94,7 +94,7 @@ function BatteryInverterCard(props: { idx: number; count: number; cfg: any; setC
         <SelectField
           path={['Units','Main','Equipment','BatteryInverter',idx,'Battery','Type']}
           defLink={components.BatteryInverterBattery.fields.group.Type}
-          options={getBatteryTypes()}
+          options={getBatteryTypes(versionCtx, cfg)}
         />
         <TextField
           path={['Units','Main','Equipment','BatteryInverter',idx,'Battery','Name']}
@@ -107,7 +107,7 @@ function BatteryInverterCard(props: { idx: number; count: number; cfg: any; setC
         <SelectField
           path={['Units','Main','Equipment','BatteryInverter',idx,'Battery','Config','BatteryType']}
           defLink={components.BatteryInverterBattery.fields.group.Config.group.BatteryType}
-          options={getBatteryHardwareTypes()}
+          options={getBatteryHardwareTypes(versionCtx, cfg)}
         />
         <NumberField
           path={['Units','Main','Equipment','BatteryInverter',idx,'Battery','Config','BatteryCabinetCount']}
@@ -239,8 +239,8 @@ export default function MainSection(props: { cfg: any; setCfg: (c: any) => void;
         <SelectField
           path={['Units','Main','Config','MainControlCabinetType']}
           defLink={components.MainConfig.fields.MainControlCabinetType}
-          options={indexStringToString(getMainControlCabinetTypes())}
-          value={indexStringToString([getOrCfg(['Units','Main','Config','MainControlCabinetType'], getMainControlCabinetTypes()[0])])[0]}
+          options={indexStringToString(getMainControlCabinetTypes(versionCtx, cfg))}
+          value={indexStringToString([getOrCfg(['Units','Main','Config','MainControlCabinetType'], getMainControlCabinetTypes(versionCtx, cfg)[0])])[0]}
           onChange={(v: string) => { setInCfg(['Units','Main','Config','MainControlCabinetType'], stringToIndexString(v)); }}
         />
         <CheckField

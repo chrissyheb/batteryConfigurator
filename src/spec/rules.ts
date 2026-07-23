@@ -1,7 +1,28 @@
 
-import { PathType, getMainControlCabinetTypes } from '@/spec/builder';
+import { PathType } from '@/spec/builder';
 import { components } from '@/registry';
-import { getVersionContext, isAvailable } from '@/core/versioning';
+import { getVersionContext, isAvailable, type VersionContext } from '@/core/versioning';
+import { findEnumOptionAvailability, type EnumOption, type IndexStringType } from '@/core/field-types';
+import { inverterTypes, inverterHardwareTypes, batteryTypes, batteryHardwareTypes } from '@/components/battery-inverter/spec';
+import { controlCabinetTypes } from '@/components/main-config/spec';
+
+/**
+ * Prüft, ob `value` laut seiner Availability-Angabe in `list` (siehe
+ * components/battery-inverter/spec.ts bzw. components/main-config/spec.ts)
+ * für den aktuellen VersionContext zulässig ist. Ersetzt die vormals hier
+ * hart verdrahteten Terra/Blokk-if/else-Vergleiche durch einen einzigen,
+ * generischen Check pro Wert - funktioniert für beliebige HardwareVariants,
+ * nicht nur für die binäre Terra/Blokk-Unterscheidung.
+ */
+function checkHardwareVariantValue<T>(list: readonly EnumOption<T>[], value: T, path: PathType, label: string, add: (i: Issue) => void, versionCtx: VersionContext, config: any): void
+{
+  const avail = findEnumOptionAvailability(list, value);
+  if (avail && !isAvailable(avail, versionCtx, config))
+  {
+    const displayValue = Array.isArray(value) ? (value as any)[1] : value;
+    add({ message: `${label} '${displayValue}' requires HardwareVariant ${JSON.stringify(avail.hardwareVariants ?? [])} (current: '${versionCtx.hardwareVariant}')`, path });
+  }
+}
 
 export const cardinality = {
   ems: { smartmeterMax: 10, slaveRemoteMax: 9 },
@@ -50,34 +71,21 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
   const smMainIssues = components.SmartmeterMain.validate?.(smMain) ?? [];
   smMainIssues.forEach((li) => add({ message: li.message, path: ['Units', 'Main', 'Equipment', 'SmartmeterMain', ...li.path] }));
 
-  // Main/HV Terra/Blokk cross rules
-  const hv = config?.Global?.ModularPlc?.HardwareVariant;
+  // Main/HV cross rules
   const main = config?.Units?.Main;
   if (!main) { return; }
 
   const versionCtx = getVersionContext(config);
-  const isTerraHV = typeof hv === 'string' && /terra/i.test(hv);
 
-  const MainControlCabinetType = config?.Units?.Main?.Config?.MainControlCabinetType ?? getMainControlCabinetTypes()[0];
-  if (isTerraHV) {
-    const isValidTerraSystem = getMainControlCabinetTypes().some(
-      ([id, name]) =>
-        id === MainControlCabinetType[0] &&
-        name.includes('Terra')
-    );
-    if (!isValidTerraSystem) {
-      add({ message: 'Terra configured ⇒ MainControlCabinetType must be Terra', path: ['Units', 'Main', 'Config', 'MainControlCabinetType'] });
-    }
-  } else {
-    const isValidBlokkSystem = getMainControlCabinetTypes().some(
-      ([id, name]) =>
-        id === MainControlCabinetType[0] &&
-        name.includes('Blokk')
-    );
-    if (!isValidBlokkSystem) {
-      add({ message: 'Blokk configured ⇒ MainControlCabinetType must be Blokk', path: ['Units', 'Main', 'Config', 'MainControlCabinetType'] });
-    }
-  }
+  // "Noch nicht konfiguriert" ist eine lokale Regel der Komponente selbst
+  // (siehe components/main-config/spec.ts), unabhängig vom HardwareVariant.
+  const mainConfig = config?.Units?.Main?.Config ?? {};
+  const mainConfigIssues = components.MainConfig.validate?.(mainConfig) ?? [];
+  mainConfigIssues.forEach((li) => add({ message: li.message, path: ['Units', 'Main', 'Config', ...li.path] }));
+
+  // Ist der gewählte MainControlCabinetType für den aktuellen HardwareVariant zulässig?
+  const MainControlCabinetType: IndexStringType = mainConfig?.MainControlCabinetType ?? [0, 'Undefined'];
+  checkHardwareVariantValue(controlCabinetTypes, MainControlCabinetType, ['Units', 'Main', 'Config', 'MainControlCabinetType'], 'MainControlCabinetType', add, versionCtx, config);
 
   const eqBI = main.Equipment.BatteryInverter || [];
   const biList = eqBI.filter((e: any) => { return e?.Type === 'BatteryInverter'; });
@@ -87,8 +95,7 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
 
   // Modbus ist nur verfügbar, wenn die Komponente selbst (siehe
   // components/battery-inverter/spec.ts -> BatteryInverterModbus.availability)
-  // für den aktuellen VersionContext freigeschaltet ist. Aktuell deckungsgleich
-  // mit "isTerraHV", aber zentral an der Komponente gepflegt statt hier verstreut.
+  // für den aktuellen VersionContext freigeschaltet ist.
   const modbusAvailable = isAvailable(components.BatteryInverterModbus.availability, versionCtx, config);
 
   biList.forEach((bi: any, idx: number) =>
@@ -112,61 +119,41 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
     if (batName) { countNames.set(batName, (countNames.get(batName) || 0) + 1); }
     if (invName) { countNames.set(invName, (countNames.get(invName) || 0) + 1); }
 
-    if (isTerraHV)
+    // Ist Inverter-/Battery-Typ (jeweils Komponenten-Typ und Hardware-Typ) für
+    // den aktuellen HardwareVariant zulässig? Ersetzt die vormals hier vier Mal
+    // duplizierte Terra/Blokk-if/else-Prüfung durch einen generischen Check pro Wert.
+    checkHardwareVariantValue(inverterTypes, inv, ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Inverter', 'Type'], 'Inverter Type', add, versionCtx, config);
+    checkHardwareVariantValue(inverterHardwareTypes, invType, ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Inverter', 'Config', 'InverterType'], 'Inverter hardware type', add, versionCtx, config);
+    checkHardwareVariantValue(batteryTypes, bat, ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Battery', 'Type'], 'Battery Type', add, versionCtx, config);
+    checkHardwareVariantValue(batteryHardwareTypes, batType, ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Battery', 'Config', 'BatteryType'], 'Battery hardware type', add, versionCtx, config);
+
+    // Modbus-Vorhandensein und IP-Abgleich richten sich danach, ob die Modbus-
+    // Komponente selbst für den aktuellen HardwareVariant verfügbar ist (siehe
+    // components/battery-inverter/spec.ts -> BatteryInverterModbus.availability),
+    // nicht mehr nach einem separat hier verdrahteten Terra-Vergleich.
+    if (modbusAvailable)
     {
-      if (inv !== 'InverterTerra')
+      if (!hasModbus)
       {
-        add({ message: 'Terra configured ⇒ InverterTerra required', path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Inverter', 'Type'] });
-      }
-      if (invType !== 'SofarTerra')
-      {
-        add({ message: 'InverterTerra configured ⇒ InverterType SofarTerra required', path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Inverter', 'Config', 'InverterType'] });
-      }
-      if (bat !== 'BatteryTerra')
-      {
-        add({ message: 'Terra configured ⇒ BatteryTerra required', path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Battery', 'Type'] });
-      }
-      if (batType !== 'SofarTerra')
-      {
-        add({ message: 'BatteryTerra configured ⇒ BatteryType SofarTerra required', path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Battery', 'Config', 'BatteryType'] });
-      }
-      if (modbusAvailable && !hasModbus)
-      {
-        add({ message: 'Terra configured ⇒ Modbus component required', path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Modbus', 'Type'] });
+        add({ message: 'Modbus component required for current HardwareVariant', path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Modbus', 'Type'] });
       }
 
       if (modIp !== invIp)
       {
-        add({ message: 'Terra configured ⇒ Modbus IP must match Inverter IP', path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Inverter', 'Config', 'IpAddress'] });
+        add({ message: 'Modbus IP must match Inverter IP', path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Inverter', 'Config', 'IpAddress'] });
       }
       if (modIp !== batIp)
       {
-        add({ message: 'Terra configured ⇒ Modbus IP must match Battery IP', path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Battery', 'Config', 'IpAddress'] });
+        add({ message: 'Modbus IP must match Battery IP', path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Battery', 'Config', 'IpAddress'] });
       }
       if (modIp) { countModbusIPs.set(modIp, (countModbusIPs.get(modIp) || 0) + 1); }
       if (modName) { countNames.set(modName, (countNames.get(modName) || 0) + 1); }
     }
     else
     {
-      if (inv === 'InverterTerra')
+      if (hasModbus)
       {
-        add({ message: 'Terra not configured ⇒ InverterTerra not allowed', path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Inverter', 'Type'] });
-      }
-      if (invType === 'SofarTerra')
-      {
-        add({ message: 'Terra not configured ⇒ InverterType SofarTerra not allowed', path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Inverter', 'Config', 'InverterType'] });
-      }
-      if (bat === 'BatteryTerra')
-      {
-        add({ message: 'Terra not configured ⇒ BatteryTerra not allowed', path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Battery', 'Type'] });
-      }
-      if (batType === 'SofarTerra')
-      {
-        add({ message: 'Terra not configured ⇒ BatteryType SofarTerra not allowed', path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Battery', 'Config', 'BatteryType'] });
-      }
-      if (!modbusAvailable && hasModbus)
-      {
-        add({ message: 'Terra not configured ⇒ Modbus not allowed', path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Modbus', 'Type'] });
+        add({ message: 'Modbus not allowed for current HardwareVariant', path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Modbus', 'Type'] });
       }
 
       if (invIp) { countBatteryInverterIPs.set(invIp, (countBatteryInverterIPs.get(invIp) || 0) + 1); }
@@ -185,7 +172,7 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
     if ((countNames.get(v.Inverter?.Name ?? '') ?? 0) > 1) {
       add({ message: 'Component name duplicate', path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Inverter', 'Name'] });
     }
-    if (isTerraHV) {
+    if (modbusAvailable) {
       if ((countModbusIPs.get(v.Modbus?.Config?.IpAddress ?? '') ?? 0) > 1) {
         add({ message: 'Modbus IP Address duplicate', path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Modbus', 'Config', 'IpAddress'] });
       }

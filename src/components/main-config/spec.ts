@@ -1,8 +1,20 @@
-import { TypeString, TypeNumber, TypeNumberUnit, TypeBool, TypeIndexString, TypeIPv4, IndexStringType } from '@/core/field-types';
+import { TypeString, TypeNumber, TypeNumberUnit, TypeBool, TypeIndexString, TypeIPv4, IndexStringType, EnumOption } from '@/core/field-types';
 import type { ComponentDefinition } from '@/registry/types';
 
 export const mainTypes = ['Terra', 'Blokk'] as const;
-export const controlCabinetTypes: IndexStringType[] = [[0, 'Undefined'], [10, 'TerraEmsBoxV1'], [11, 'TerraEmsBoxV1.5'], [12, 'TerraEmsBoxV2'], [20, 'TerraHub'], [50, 'BlokkNNV3']];
+
+// Terra/Blokk-abhängige Werteliste (siehe components/battery-inverter/spec.ts für
+// dasselbe Muster): "Undefined" bleibt bewusst ohne availability - das ist kein
+// Hardware-Variant-Mismatch, sondern "noch nicht konfiguriert" (siehe validate
+// unten), unabhängig vom gewählten HardwareVariant.
+export const controlCabinetTypes: EnumOption<IndexStringType>[] = [
+  [0, 'Undefined'],
+  { value: [10, 'TerraEmsBoxV1'], availability: { hardwareVariants: ['Terra'] } },
+  { value: [11, 'TerraEmsBoxV1.5'], availability: { hardwareVariants: ['Terra'] } },
+  { value: [12, 'TerraEmsBoxV2'], availability: { hardwareVariants: ['Terra'] } },
+  { value: [20, 'TerraHub'], availability: { hardwareVariants: ['Terra'] } },
+  { value: [50, 'BlokkNNV3'], availability: { hardwareVariants: ['BlokkV3'] } }
+];
 
 // Bisher `components.MainType` in catalog.ts: kein eigenständiges Equipment,
 // sondern ein einzelnes, automatisch erkanntes Feld. Wird hier als loser
@@ -12,6 +24,18 @@ export const MainType = TypeString({ required: true, hint: 'Main Unit type \n - 
 export const MainConfig: ComponentDefinition = {
   key: 'MainConfig',
   category: 'main-config',
+  // Lokale Regel: "noch nicht konfiguriert" ist unabhängig vom Hardware-Variant-
+  // Abgleich (der läuft generisch/zentral in spec/rules.ts über die Availability
+  // der einzelnen controlCabinetTypes-Werte).
+  validate: (instance: any) =>
+  {
+    const cabinetType: IndexStringType = instance?.MainControlCabinetType ?? [0, 'Undefined'];
+    if (cabinetType[0] === 0)
+    {
+      return [{ message: 'MainControlCabinetType not configured', path: ['MainControlCabinetType'] }];
+    }
+    return [];
+  },
   fields: {
     InverterCount: TypeNumber({ required: true, hint: 'Number of installed inverters  \n - automatically calculated -', min: 0, max: 25, int: true, readOnly: true }),
     BatteryCount: TypeNumber({ required: true, hint: 'Number of installed battery systems \n - automatically calculated -', min: 0, max: 25, int: true, readOnly: true }),

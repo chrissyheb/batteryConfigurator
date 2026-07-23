@@ -1,11 +1,27 @@
-import { TypeString, TypeUuid, TypeIPv4, TypeNumber, TypeNumberUnit } from '@/core/field-types';
+import { TypeString, TypeUuid, TypeIPv4, TypeNumber, TypeNumberUnit, EnumOption } from '@/core/field-types';
 import type { ComponentDefinition } from '@/registry/types';
 
-export const inverterTypes = ['InverterTerra', 'InverterKaco'] as const;
-export const batteryTypes = ['BatteryTerra', 'BatteryPylontechM1xBms'] as const;
+// Terra/Blokk-abhängige Wertelisten: jeder Wert ist nur für die angegebene(n)
+// HardwareVariant(en) (siehe components/global/spec.ts -> hardwareVariants)
+// gültig. spec/rules.ts prüft das zentral gegen den aktuellen VersionContext
+// (siehe core/versioning.ts), statt hier Terra/Blokk hart zu verdrahten.
+export const inverterTypes: EnumOption<string>[] = [
+  { value: 'InverterTerra', availability: { hardwareVariants: ['Terra'] } },
+  { value: 'InverterKaco', availability: { hardwareVariants: ['BlokkV3'] } }
+];
+export const batteryTypes: EnumOption<string>[] = [
+  { value: 'BatteryTerra', availability: { hardwareVariants: ['Terra'] } },
+  { value: 'BatteryPylontechM1xBms', availability: { hardwareVariants: ['BlokkV3'] } }
+];
 export const modbusTypes = ['(not available)', 'BatteryInverterModbus'] as const;
-export const inverterHardwareTypes = ['SofarTerra', 'Kaco'] as const;
-export const batteryHardwareTypes = ['SofarTerra', 'PylontechM1C'] as const;
+export const inverterHardwareTypes: EnumOption<string>[] = [
+  { value: 'SofarTerra', availability: { hardwareVariants: ['Terra'] } },
+  { value: 'Kaco', availability: { hardwareVariants: ['BlokkV3'] } }
+];
+export const batteryHardwareTypes: EnumOption<string>[] = [
+  { value: 'SofarTerra', availability: { hardwareVariants: ['Terra'] } },
+  { value: 'PylontechM1C', availability: { hardwareVariants: ['BlokkV3'] } }
+];
 
 export const BatteryInverterInverter: ComponentDefinition = {
   key: 'BatteryInverterInverter',

@@ -7,6 +7,7 @@
 
 import { z, ZodObject } from 'zod';
 import { isAvailable, type VersionContext } from './versioning';
+import { enumOptionValue } from './field-types';
 
 function fieldSchema(f: any, ctx: VersionContext, cfg: any): z.ZodTypeAny
 {
@@ -28,15 +29,21 @@ function buildBaseFieldSchema(f: any): z.ZodTypeAny
   }
   if (f?.enum)
   {
-    // f.enum ist jetzt eine direkte string[]-Referenz (siehe core/field-types.ts)
-    return z.enum(f.enum as [string, ...string[]]);
+    // f.enum ist eine direkte Referenz (siehe core/field-types.ts), deren Einträge
+    // entweder der Wert selbst oder { value, availability } sind - fürs Schema
+    // zählt nur der flache Wert, Availability wird hier bewusst NICHT gefiltert
+    // (Schema bleibt permissiv, damit ältere/andere Configs weiter parsen; die
+    // eigentliche Verfügbarkeitsprüfung passiert in UI-Dropdowns und Cross-Rules).
+    const flat = (f.enum as any[]).map((o) => enumOptionValue(o));
+    return z.enum(flat as [string, ...string[]]);
   }
   if (f?.enumRef)
   {
-    // f.enumRef ist jetzt eine direkte Referenz: entweder Array (IndexStringType[]/string[])
-    // oder eine "Hardware -> Modelle"-Map, deren Top-Level-Keys die erlaubten Werte sind.
+    // f.enumRef ist jetzt eine direkte Referenz: entweder Array (IndexStringType[]/string[],
+    // ggf. mit { value, availability }-Einträgen) oder eine "Hardware -> Modelle"-Map,
+    // deren Top-Level-Keys die erlaubten Werte sind.
     const obj = f.enumRef;
-    const flat = Array.isArray(obj) ? obj : Object.keys(obj);
+    const flat = Array.isArray(obj) ? obj.map((o: any) => enumOptionValue(o)) : Object.keys(obj);
     switch (f?.type)
     {
       case 'indexString':

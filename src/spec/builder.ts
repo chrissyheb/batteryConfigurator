@@ -4,7 +4,7 @@ import {
   components,
   emsComponentTypes, emsConfigTypes, mainComponentTypes, mainConfigTypes
 } from '@/registry';
-import { ui } from '@/core/field-types';
+import { ui, availableEnumValues } from '@/core/field-types';
 import { groupSchema, isZodObject } from '@/core/schema-builder';
 import { getVersionContext, type VersionContext } from '@/core/versioning';
 import { applyCrossRules, applyCardinality } from './rules';
@@ -128,29 +128,35 @@ export const getMainTypes = (): readonly string[] =>
   return mainTypes;
 };
 
-export const getMainControlCabinetTypes = (): IndexStringType[] =>
+// Diese fünf Getter sind Terra/Blokk-abhängig (siehe components/battery-inverter/spec.ts
+// bzw. components/main-config/spec.ts) und filtern daher auf die im übergebenen
+// VersionContext tatsächlich verfügbaren Werte - für UI-Dropdowns gedacht.
+// spec/rules.ts prüft Cross-Rules dagegen direkt gegen die ungefilterten Listen
+// (siehe findEnumOptionAvailability), da dort auch ein aktuell NICHT verfügbarer
+// gewählter Wert erkannt werden muss.
+export const getMainControlCabinetTypes = (ctx: VersionContext, cfg?: any): IndexStringType[] =>
 {
-  return controlCabinetTypes;
+  return availableEnumValues(controlCabinetTypes, ctx, cfg);
 };
 
 
-export const getInverterTypes = (): readonly string[] =>
+export const getInverterTypes = (ctx: VersionContext, cfg?: any): string[] =>
 {
-  return inverterTypes;
+  return availableEnumValues(inverterTypes, ctx, cfg);
 };
-export const getInverterHardwareTypes = (): readonly string[] =>
+export const getInverterHardwareTypes = (ctx: VersionContext, cfg?: any): string[] =>
 {
-  return inverterHardwareTypes;
+  return availableEnumValues(inverterHardwareTypes, ctx, cfg);
 };
 
 
-export const getBatteryTypes = (): readonly string[] =>
+export const getBatteryTypes = (ctx: VersionContext, cfg?: any): string[] =>
 {
-  return batteryTypes;
+  return availableEnumValues(batteryTypes, ctx, cfg);
 };
-export const getBatteryHardwareTypes = (): readonly string[] =>
+export const getBatteryHardwareTypes = (ctx: VersionContext, cfg?: any): string[] =>
 {
-  return batteryHardwareTypes;
+  return availableEnumValues(batteryHardwareTypes, ctx, cfg);
 };
 
 

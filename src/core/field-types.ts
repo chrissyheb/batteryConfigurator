@@ -6,7 +6,7 @@
 // mehr per String-Lookup in einer zentralen enums.ts - jede Wertliste lebt
 // direkt bei der components/<name>/spec.ts, die sie definiert.
 
-import type { AvailabilitySpec } from './versioning';
+import { isAvailable, type AvailabilitySpec, type VersionContext } from './versioning';
 
 export type IntegerString = string;
 export type UUID = string;
@@ -16,10 +16,52 @@ export const ui = { typeFirst: true } as const;
 
 export type IndexStringType = [number, string];
 
-/** Erlaubte Werte für TypeString.enumRef: entweder eine flache Liste, oder eine
- *  "Hardware -> Modelle"-Map (z.B. smartmeterHardwareToTypes), deren Top-Level-Keys
- *  die eigentlichen erlaubten Werte des Feldes sind. */
-export type StringEnumRef = readonly string[] | Record<string, readonly string[]>;
+/**
+ * Ein Enum-Wert einer Options-Liste (z.B. inverterTypes, controlCabinetTypes):
+ * entweder direkt der erlaubte Wert, oder - wenn er nur unter bestimmter
+ * Version/HardwareVariant gültig ist - als { value, availability } annotiert.
+ * Bestehende reine string[]/IndexStringType[]-Listen bleiben dadurch unverändert
+ * gültig (jedes T ist auch ein EnumOption<T>) - keine Migration nötig, solange
+ * eine Liste keine versions-/varianten-abhängigen Werte enthält.
+ */
+export type EnumOption<T> = T | { value: T; availability?: AvailabilitySpec };
+
+function isRichEnumOption(o: any): o is { value: any; availability?: AvailabilitySpec }
+{
+  return o !== null && typeof o === 'object' && !Array.isArray(o) && 'value' in o;
+}
+
+export function enumOptionValue<T>(o: EnumOption<T>): T
+{
+  return isRichEnumOption(o) ? (o.value as T) : (o as T);
+}
+
+export function enumOptionAvailability<T>(o: EnumOption<T>): AvailabilitySpec | undefined
+{
+  return isRichEnumOption(o) ? o.availability : undefined;
+}
+
+/** Liefert aus einer Enum-Options-Liste nur die im aktuellen VersionContext
+ *  verfügbaren Werte, flach (ohne Wrapper) - gedacht für UI-Dropdowns. */
+export function availableEnumValues<T>(options: readonly EnumOption<T>[], ctx: VersionContext, cfg?: any): T[]
+{
+  return options.filter((o) => isAvailable(enumOptionAvailability(o), ctx, cfg)).map((o) => enumOptionValue(o));
+}
+
+/** Sucht die Availability-Angabe für einen konkreten (bereits gewählten) Wert
+ *  innerhalb einer Enum-Options-Liste - für Cross-Rules (siehe spec/rules.ts). */
+export function findEnumOptionAvailability<T>(options: readonly EnumOption<T>[], value: T): AvailabilitySpec | undefined
+{
+  const target = JSON.stringify(value);
+  const found = options.find((o) => JSON.stringify(enumOptionValue(o)) === target);
+  return found ? enumOptionAvailability(found) : undefined;
+}
+
+/** Erlaubte Werte für TypeString.enumRef: entweder eine flache Liste (optional mit
+ *  versions-/varianten-abhängigen Einträgen), oder eine "Hardware -> Modelle"-Map
+ *  (z.B. smartmeterHardwareToTypes), deren Top-Level-Keys die eigentlichen
+ *  erlaubten Werte des Feldes sind. */
+export type StringEnumRef = readonly EnumOption<string>[] | Record<string, readonly string[]>;
 
 type BaseType<T extends 'number' | 'string' | 'bool' | 'indexString' | 'ipv4' | 'uuid'> = {
   type: T;
@@ -44,7 +86,7 @@ export function TypeNumber(
 
 export type TypeStringDef = BaseType<'string'> & {
   enumRef?: StringEnumRef,
-  enum?: readonly string[],
+  enum?: readonly EnumOption<string>[],
   plcVariableName?: boolean
 };
 export function TypeString(
@@ -73,7 +115,7 @@ export function TypeBool(
 };
 
 export type TypeIndexStringDef = BaseType<'indexString'> & {
-  enumRef?: readonly IndexStringType[]
+  enumRef?: readonly EnumOption<IndexStringType>[]
 };
 export function TypeIndexString(
   opts: Omit<TypeIndexStringDef, 'type'> & { type?: never }
