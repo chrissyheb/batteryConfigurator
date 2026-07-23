@@ -242,12 +242,11 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
 export function applyCardinality(config: any, add: (i: Issue) => void): void
 {
   const emsRippleControlDiContactType:IndexStringType = config?.Units?.Ems?.Config?.RippleControl?.DiContactType ?? getEmsRippleControlDiContactTypes()[0];
-  const emsRippleControlDefaultMaxPowerRate = config?.Units?.Ems?.Config?.RippleControl?.DefaultMaxPowerRate ?? 1;
   if (emsRippleControlDiContactType[0] === 0){
     add({ message: 'Warning: Ripple Control not configured / disabled', path: ['Units','Ems','Config','RippleControl','DiContactType'] });
   }
-  else if ((emsRippleControlDefaultMaxPowerRate !== 0) && (emsRippleControlDiContactType[1] === 'NormallyOpen')) {
-    add({ message: 'Warning: Ripple Control is not wirebreak proof \n -> Set DefaultMaxPowerRate = 0', path: ['Units','Ems','Config','RippleControl','DefaultMaxPowerRate'] });
+  else if (emsRippleControlDiContactType[0] === 4){
+    add({ message: 'Warning: Ripple Control is not wirebreak-proof', path: ['Units','Ems','Config','RippleControl','DiContactType'] });
   }
 
   const emsEq = config?.Units?.Ems?.Equipment ?? {};

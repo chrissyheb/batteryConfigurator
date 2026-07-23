@@ -99,6 +99,12 @@ export const getEmsRippleControlDiContactTypes =(): IndexStringType[] =>
   return enums.ems.rippleControlElectricalContactTypes;
 };
 
+export const getEmsRippleControlPowerLimitDirections =(): IndexStringType[] =>
+{
+  return enums.ems.rippleControlPowerLimitDirections;
+};
+
+
 
 
 export const getMainTypes = (): readonly string[] =>

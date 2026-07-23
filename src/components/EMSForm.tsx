@@ -2,7 +2,7 @@
 import React from 'react';
 import { useEffect } from 'react';
 import { SelectField, TextField, GuidField, NumberField, CheckField } from './Fields';
-import { PathType, emsEquipmentKeys, emsConfigKeys, createByKey, getEmsSmartmeterHardwares, getEmsSmartmeterModels, getEmsSmartmeterUseCaseTypes, getEmsSmartmeterPowerSignTypes, getEmsRippleControlDiContactTypes } from '@/spec/builder';
+import { PathType, emsEquipmentKeys, emsConfigKeys, createByKey, getEmsSmartmeterHardwares, getEmsSmartmeterModels, getEmsSmartmeterUseCaseTypes, getEmsSmartmeterPowerSignTypes, getEmsRippleControlDiContactTypes, getEmsRippleControlPowerLimitDirections } from '@/spec/builder';
 import { indexStringToString, stringToIndexString } from '@/utils/helper';
 import { components } from '@/spec/catalog';
 import { JSONValue } from '@/app/store';
@@ -115,9 +115,20 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
           value={indexStringToString([getOrCfg(['Units','Ems','Config','RippleControl','DiContactType'], [0,''])])[0]}
           onChange={(v: string) => { setInCfg(['Units','Ems','Config','RippleControl','DiContactType'], stringToIndexString(v)); }}
         />
+        <SelectField
+          path={['Units','Ems','Config','RippleControl','PowerLimitDirection']}
+          defLink={components.EmsConfig.fields.RippleControl.group.PowerLimitDirection}
+          options={indexStringToString(getEmsRippleControlPowerLimitDirections())}
+          value={indexStringToString([getOrCfg(['Units','Ems','Config','RippleControl','PowerLimitDirection'], [0,''])])[0]}
+          onChange={(v: string) => { setInCfg(['Units','Ems','Config','RippleControl','PowerLimitDirection'], stringToIndexString(v)); }}
+        />
         <CheckField 
-          path={['Units','Ems','Config','RippleControl','ForceBatterySystemDischargePowerReduction']}
-          defLink={components.EmsConfig.fields.RippleControl.group.ForceBatterySystemDischargePowerReduction}
+          path={['Units','Ems','Config','RippleControl','ForceBessPowerReduction']}
+          defLink={components.EmsConfig.fields.RippleControl.group.ForceBessPowerReduction}
+        />
+        <CheckField 
+          path={['Units','Ems','Config','RippleControl','LimitToZeroOnMultipleSelection']}
+          defLink={components.EmsConfig.fields.RippleControl.group.LimitToZeroOnMultipleSelection}
         />
         <NumberField 
           path={['Units','Ems','Config','RippleControl','NominalPowerPV']}
@@ -126,10 +137,6 @@ export default function EMSForm(props: { cfg: any; setCfg: (c: any) => void; set
         <NumberField 
           path={['Units','Ems','Config','RippleControl','NominalPowerProductionTotal']}
           defLink={components.EmsConfig.fields.RippleControl.group.NominalPowerProductionTotal}
-        />
-        <NumberField 
-          path={['Units','Ems','Config','RippleControl','DefaultMaxPowerRate']}
-          defLink={components.EmsConfig.fields.RippleControl.group.DefaultMaxPowerRate}
         />
         <NumberField 
           label="MaxPowerRates"
