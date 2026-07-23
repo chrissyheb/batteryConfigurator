@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { SelectField, TextField, NumberField } from './Fields';
+import { SelectField, TextField, NumberField, CheckField } from './Fields';
 import { components } from '@/spec/catalog';
 import { getBatteryBalancingModes, getExternalControlOperationModes } from '@/spec/builder';
 import { errorAt } from '@/utils/errors';
@@ -64,6 +64,10 @@ export default function SystemForm(props: { cfg: any; setCfg: (c: any) => void; 
           options={indexStringToString(getExternalControlOperationModes())}
           value={indexStringToString([getOrCfg(['System', 'ExternalControl', 'FallbackMode'], [0,''])])[0]}
           onChange={(v: string) => { setInCfg(['System', 'ExternalControl', 'FallbackMode'], stringToIndexString(v)); }}
+        />
+        <CheckField 
+          path={['System', 'ExternalControl', 'EmsEzaCommunicationRequired']}
+          defLink={components.System.fields.ExternalControl.group.EmsEzaCommunicationRequired}
         />
       </Collapsible>
     </Collapsible>

@@ -160,7 +160,8 @@ const cSystem = {
     },
     ExternalControl: {
       group: {
-        FallbackMode:  TypeIndexString({ required: true, hint: 'Fallback operation mode if connection to external control unit (BEAAM, Master-BESS, external EMS) is lost', enumRef: ['system', 'externalControlOperationModes'] })
+        FallbackMode:  TypeIndexString({ required: true, hint: 'Fallback operation mode if connection to external control unit (BEAAM, Master-BESS, external EMS) is lost', enumRef: ['system', 'externalControlOperationModes'] }),
+        EmsEzaCommunicationRequired:  TypeBool({ required: true, hint: 'Choose whether an active communication from an EZA controller is mandatory for operation or not'}),
       }
     }
   },
@@ -174,7 +175,8 @@ const cSystem = {
       ForcedMaxGridChargePowerPerInverter: "5kW"
     },
     ExternalControl: {
-      FallbackMode: [ 0, "Standard"]
+      FallbackMode: [ 0, "Standard"],
+      EmsEzaCommunicationRequired: false
     }
   }
 };
