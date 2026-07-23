@@ -16,6 +16,10 @@ export type ComponentCategory =
   | 'main-equipment'
   | 'main-config';
 
+/** Pfad relativ zur Komponenten-Instanz, z.B. ['HardwareType'] oder ['RippleControl','DiContactType']. */
+export type ValidationPath = Array<string | number>;
+export type ValidationIssue = { message: string; path: ValidationPath };
+
 export interface ComponentDefinition<TFields = any, TDefaults = any> {
   /** Eindeutiger Schlüssel, entspricht dem bisherigen components.<Key> aus catalog.ts */
   key: string;
@@ -26,6 +30,17 @@ export interface ComponentDefinition<TFields = any, TDefaults = any> {
   defaults?: TDefaults;
   /** Optional: die gesamte Komponente ist nur unter bestimmter Version/HardwareVariant wählbar */
   availability?: AvailabilitySpec;
+  /**
+   * Optional: lokale Validierung, die ausschließlich von den Feldern DIESER
+   * Komponenten-Instanz abhängt (z.B. HardwareType/HardwareModel-Konsistenz).
+   * Zurückgegebene Pfade sind relativ zur Instanz - der Aufrufer (spec/rules.ts)
+   * stellt den vollen Pfad (inkl. Listenindex) voran.
+   * Cross-Component- oder listenweite Regeln (Duplikate, Cardinality,
+   * Terra/Blokk-Konsistenz über mehrere Komponenten) gehören NICHT hierher,
+   * sondern bleiben zentral in spec/rules.ts, da sie keiner einzelnen
+   * Komponente eindeutig zuordenbar sind.
+   */
+  validate?: (instance: any) => ValidationIssue[];
 }
 
 const registry = new Map<string, ComponentDefinition>();

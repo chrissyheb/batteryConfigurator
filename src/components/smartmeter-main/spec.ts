@@ -9,6 +9,22 @@ export const smartmeterHardwareToTypes = {
 export const SmartmeterMain: ComponentDefinition = {
   key: 'SmartmeterMain',
   category: 'main-equipment',
+  // Lokale Regel: betrifft ausschließlich HardwareType/HardwareModel/
+  // CurrentTransformerPrimaryCurrent dieser einen Instanz.
+  validate: (instance: any) =>
+  {
+    const hwType = instance?.HardwareType ?? '';
+    const hwModel = instance?.HardwareModel ?? '';
+    if (hwType === 'Beckhoff' && hwModel === 'El34x3')
+    {
+      const current = instance?.CurrentTransformerPrimaryCurrent ?? '';
+      if (current === '' || current === '0A' || current === '0.0A')
+      {
+        return [{ message: 'SmartmeterMain CurrentTransformerPrimaryCurrent must be > 0A', path: ['CurrentTransformerPrimaryCurrent'] }];
+      }
+    }
+    return [];
+  },
   fields: {
     Type: { const: 'SmartmeterMain', required: true },
     Name: TypeString({ required: true, plcVariableName: true, hint: 'Component name in TwinCAT code \n - no spaces permitted -' }),

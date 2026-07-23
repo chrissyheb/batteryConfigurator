@@ -7,6 +7,21 @@ export const rippleControlPowerLimitDirections: IndexStringType[] = [[0, 'Bidire
 export const EmsConfig: ComponentDefinition = {
   key: 'EmsConfig',
   category: 'ems-config',
+  // Lokale Regel: Warnung hängt ausschließlich vom RippleControl.DiContactType
+  // dieser Instanz ab.
+  validate: (instance: any) =>
+  {
+    const dct: IndexStringType = instance?.RippleControl?.DiContactType ?? rippleControlElectricalContactTypes[0];
+    if (dct[0] === 0)
+    {
+      return [{ message: 'Warning: Ripple Control not configured / disabled', path: ['RippleControl', 'DiContactType'] }];
+    }
+    if (dct[0] === 4)
+    {
+      return [{ message: 'Warning: Ripple Control is not wirebreak-proof', path: ['RippleControl', 'DiContactType'] }];
+    }
+    return [];
+  },
   fields: {
     SmartmeterCount: TypeNumber({ required: true, hint: 'Number of used Smartmeters \n - automatically calculated -', min: 0, int: true, readOnly: true }),
     SystemsInParallelCount: TypeNumber({ required: true, hint: 'Number of parallel systems within Main/Support combination \n - automatically calculated -', min: 1, int: true, readOnly: true }),

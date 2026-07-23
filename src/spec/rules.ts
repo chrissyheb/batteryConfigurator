@@ -1,6 +1,5 @@
 
-import { PathType, getEmsRippleControlDiContactTypes, getMainControlCabinetTypes, getEmsSmartmeterModels } from '@/spec/builder';
-import type { IndexStringType } from '@/core/field-types';
+import { PathType, getMainControlCabinetTypes } from '@/spec/builder';
 import { components } from '@/registry';
 import { getVersionContext, isAvailable } from '@/core/versioning';
 
@@ -24,33 +23,8 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
       return;
     }
 
-    const type = e?.HardwareType;
-    const model = e?.HardwareModel;
-
-    if (!type)
-    {
-      add({ message: 'HardwareType required', path: ['Units', 'Ems', 'Equipment', 'Smartmeter', idx, 'HardwareType'] });
-      return;
-    }
-
-    const allowed = getEmsSmartmeterModels(type);
-
-    if (allowed.length === 0)
-    {
-      add({ message: 'Invalid HardwareType', path: ['Units', 'Ems', 'Equipment', 'Smartmeter', idx, 'HardwareType'] });
-      return;
-    }
-
-    if (!model)
-    {
-      add({ message: 'HardwareModel required', path: ['Units', 'Ems', 'Equipment', 'Smartmeter', idx, 'HardwareModel'] });
-      return;
-    }
-
-    if (!allowed.includes(model))
-    {
-      add({ message: 'HardwareModel not valid for HardwareType', path: ['Units', 'Ems', 'Equipment', 'Smartmeter', idx, 'HardwareModel'] });
-    }
+    const localIssues = components.Smartmeter.validate?.(e) ?? [];
+    localIssues.forEach((li) => add({ message: li.message, path: ['Units', 'Ems', 'Equipment', 'Smartmeter', idx, ...li.path] }));
   });
 
 
@@ -73,16 +47,8 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
 
   // Main smartmeter Transformer current for Beckhoff smartmeters
   const smMain = config?.Units?.Main?.Equipment?.SmartmeterMain ?? {};
-  const smMainHwType = smMain?.HardwareType ?? '';
-  const smMainHwModel = smMain?.HardwareModel ?? '';
-  if (smMainHwType === 'Beckhoff' && smMainHwModel === 'El34x3')
-  {
-    const current = smMain?.CurrentTransformerPrimaryCurrent ?? '';
-    if (current === '' || current === '0A' || current === '0.0A')
-    {
-      add({ message: 'SmartmeterMain CurrentTransformerPrimaryCurrent must be > 0A', path: ['Units', 'Main', 'Equipment', 'SmartmeterMain', 'CurrentTransformerPrimaryCurrent'] });
-    }
-  }
+  const smMainIssues = components.SmartmeterMain.validate?.(smMain) ?? [];
+  smMainIssues.forEach((li) => add({ message: li.message, path: ['Units', 'Main', 'Equipment', 'SmartmeterMain', ...li.path] }));
 
   // Main/HV Terra/Blokk cross rules
   const hv = config?.Global?.ModularPlc?.HardwareVariant;
@@ -241,13 +207,9 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
 
 export function applyCardinality(config: any, add: (i: Issue) => void): void
 {
-  const emsRippleControlDiContactType: IndexStringType = config?.Units?.Ems?.Config?.RippleControl?.DiContactType ?? getEmsRippleControlDiContactTypes()[0];
-  if (emsRippleControlDiContactType[0] === 0) {
-    add({ message: 'Warning: Ripple Control not configured / disabled', path: ['Units', 'Ems', 'Config', 'RippleControl', 'DiContactType'] });
-  }
-  else if (emsRippleControlDiContactType[0] === 4) {
-    add({ message: 'Warning: Ripple Control is not wirebreak-proof', path: ['Units', 'Ems', 'Config', 'RippleControl', 'DiContactType'] });
-  }
+  const emsConfig = config?.Units?.Ems?.Config ?? {};
+  const emsConfigIssues = components.EmsConfig.validate?.(emsConfig) ?? [];
+  emsConfigIssues.forEach((li) => add({ message: li.message, path: ['Units', 'Ems', 'Config', ...li.path] }));
 
   const emsEq = config?.Units?.Ems?.Equipment ?? {};
   const smCount = emsEq.Smartmeter?.length ?? emsEq.emsEqSmartmeter?.length ?? 0;

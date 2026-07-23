@@ -16,6 +16,36 @@ export const smartmeterPowerSignTypes: IndexStringType[] = [[0, 'Positive'], [1,
 export const Smartmeter: ComponentDefinition = {
   key: 'Smartmeter',
   category: 'ems-equipment',
+  // Lokale Regel: HardwareType/HardwareModel-Abhängigkeit betrifft ausschließlich
+  // die Felder dieser Instanz - gehört daher hier hin statt zentral in spec/rules.ts.
+  validate: (instance: any) =>
+  {
+    const type = instance?.HardwareType;
+    const model = instance?.HardwareModel;
+
+    if (!type)
+    {
+      return [{ message: 'HardwareType required', path: ['HardwareType'] }];
+    }
+
+    const allowed = (smartmeterHardwareToTypes as Record<string, readonly string[]>)[type];
+    if (!Array.isArray(allowed) || allowed.length === 0)
+    {
+      return [{ message: 'Invalid HardwareType', path: ['HardwareType'] }];
+    }
+
+    if (!model)
+    {
+      return [{ message: 'HardwareModel required', path: ['HardwareModel'] }];
+    }
+
+    if (!allowed.includes(model))
+    {
+      return [{ message: 'HardwareModel not valid for HardwareType', path: ['HardwareModel'] }];
+    }
+
+    return [];
+  },
   fields: {
     Type: { const: 'Smartmeter', required: true },
     Name: TypeString({ required: true, plcVariableName: true, hint: 'Component name in TwinCAT code \n - no spaces permitted -' }),
