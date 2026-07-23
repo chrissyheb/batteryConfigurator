@@ -1,6 +1,5 @@
 
-import { PathType, getEmsRippleControlDiContactTypes, getMainControlCabinetTypes } from '@/spec/builder';
-import { enums } from './enums';
+import { PathType, getEmsRippleControlDiContactTypes, getMainControlCabinetTypes, getEmsSmartmeterModels } from '@/spec/builder';
 import type { IndexStringType } from '@/core/field-types';
 import { components } from '@/registry';
 import { getVersionContext, isAvailable } from '@/core/versioning';
@@ -34,9 +33,9 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
       return;
     }
 
-    const allowed = (enums.ems.smartmeterHardwareToTypes as any)[type] as readonly string[] | undefined;
+    const allowed = getEmsSmartmeterModels(type);
 
-    if (!Array.isArray(allowed) || allowed.length === 0)
+    if (allowed.length === 0)
     {
       add({ message: 'Invalid HardwareType', path: ['Units', 'Ems', 'Equipment', 'Smartmeter', idx, 'HardwareType'] });
       return;

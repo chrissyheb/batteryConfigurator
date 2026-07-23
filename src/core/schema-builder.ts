@@ -6,7 +6,6 @@
 // Formular noch der Import älterer/anderer Configs daran scheitert.
 
 import { z, ZodObject } from 'zod';
-import { enums } from '@/spec/enums';
 import { isAvailable, type VersionContext } from './versioning';
 
 function fieldSchema(f: any, ctx: VersionContext, cfg: any): z.ZodTypeAny
@@ -29,13 +28,14 @@ function buildBaseFieldSchema(f: any): z.ZodTypeAny
   }
   if (f?.enum)
   {
-    const obj = (enums as any)[f.enum];
-    return z.enum(obj as [string, ...string[]]);
+    // f.enum ist jetzt eine direkte string[]-Referenz (siehe core/field-types.ts)
+    return z.enum(f.enum as [string, ...string[]]);
   }
   if (f?.enumRef)
   {
-    const [domain, key] = f.enumRef as [string, string];
-    const obj = (enums as any)[domain][key];
+    // f.enumRef ist jetzt eine direkte Referenz: entweder Array (IndexStringType[]/string[])
+    // oder eine "Hardware -> Modelle"-Map, deren Top-Level-Keys die erlaubten Werte sind.
+    const obj = f.enumRef;
     const flat = Array.isArray(obj) ? obj : Object.keys(obj);
     switch (f?.type)
     {

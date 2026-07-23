@@ -1,6 +1,5 @@
 import { v4 as uuid } from 'uuid';
 import { z, ZodIssue } from 'zod';
-import { enums } from './enums';
 import {
   components,
   emsComponentTypes, emsConfigTypes, mainComponentTypes, mainConfigTypes
@@ -12,18 +11,29 @@ import { applyCrossRules, applyCardinality } from './rules';
 import { TupleToRecord } from '@/utils/helper';
 import type { IndexStringType } from '@/core/field-types';
 
-export type EmsHardwareKey = keyof typeof enums.ems.smartmeterHardwareToTypes;
-export type MainHardwareKey = keyof typeof enums.main.smartmeterHardwareToTypes;
+// Jede Wertliste lebt direkt bei der components/<name>/spec.ts, die sie
+// definiert (kein zentrales spec/enums.ts mehr) - Erweiterung/Änderung
+// betrifft damit nur noch eine einzige Datei.
+import { libVersion, hardwareVariants } from '@/components/global/spec';
+import { batteryBalancingModes, externalControlOperationModes } from '@/components/system/spec';
+import { smartmeterHardwareToTypes as emsSmartmeterHardwareToTypes, smartmeterUseCaseTypes, smartmeterPowerSignTypes } from '@/components/smartmeter-ems/spec';
+import { rippleControlElectricalContactTypes, rippleControlPowerLimitDirections } from '@/components/ems-config/spec';
+import { smartmeterHardwareToTypes as mainSmartmeterHardwareToTypes } from '@/components/smartmeter-main/spec';
+import { mainTypes, controlCabinetTypes } from '@/components/main-config/spec';
+import { inverterTypes, batteryTypes, modbusTypes, inverterHardwareTypes, batteryHardwareTypes } from '@/components/battery-inverter/spec';
+
+export type EmsHardwareKey = keyof typeof emsSmartmeterHardwareToTypes;
+export type MainHardwareKey = keyof typeof mainSmartmeterHardwareToTypes;
 
 export type PathType = Array<string | number>;
 
 export const getLibraryVersion = (): readonly string[] =>
 {
-  return enums.global.libVersion;
+  return libVersion;
 };
 export const getHardwareVariants = (): readonly string[] =>
 {
-  return enums.global.hardwareVariant;
+  return hardwareVariants;
 };
 
 export type componentType = keyof typeof components;
@@ -47,11 +57,11 @@ export const getEmsComponents = (): readonly string[] =>
 
 export const getBatteryBalancingModes = (): IndexStringType[] =>
 {
-  return enums.system.batteryBalancingModes;
+  return batteryBalancingModes;
 }
 export const getExternalControlOperationModes = (): IndexStringType[] =>
 {
-  return enums.system.externalControlOperationModes;
+  return externalControlOperationModes;
 }
 
 export const getMainComponents = (): readonly string[] =>
@@ -61,11 +71,11 @@ export const getMainComponents = (): readonly string[] =>
 
 export const getEmsSmartmeterHardwares = (): EmsHardwareKey[] =>
 {
-  return Object.keys(enums.ems.smartmeterHardwareToTypes) as EmsHardwareKey[];
+  return Object.keys(emsSmartmeterHardwareToTypes) as EmsHardwareKey[];
 };
 export const getEmsSmartmeterModels = (hw: string): string[] =>
 {
-  const map = enums.ems.smartmeterHardwareToTypes as Record<string, readonly string[]>;
+  const map = emsSmartmeterHardwareToTypes as Record<string, readonly string[]>;
   const list = map[hw];
   if (Array.isArray(list))
   {
@@ -77,11 +87,11 @@ export const getEmsSmartmeterModels = (hw: string): string[] =>
 
 export const getMainSmartmeterHardwares = (): MainHardwareKey[] =>
 {
-  return Object.keys(enums.main.smartmeterHardwareToTypes) as MainHardwareKey[];
+  return Object.keys(mainSmartmeterHardwareToTypes) as MainHardwareKey[];
 };
 export const getMainSmartmeterModels = (hw: string): string[] =>
 {
-  const map = enums.main.smartmeterHardwareToTypes as Record<string, readonly string[]>;
+  const map = mainSmartmeterHardwareToTypes as Record<string, readonly string[]>;
   const list = map[hw];
   if (Array.isArray(list))
   {
@@ -93,60 +103,60 @@ export const getMainSmartmeterModels = (hw: string): string[] =>
 
 export const getEmsSmartmeterUseCaseTypes = (): IndexStringType[] =>
 {
-  return enums.ems.smartmeterUseCaseTypes;
+  return smartmeterUseCaseTypes;
 };
 
 export const getEmsSmartmeterPowerSignTypes = (): IndexStringType[] =>
 {
-  return enums.ems.smartmeterPowerSignTypes;
+  return smartmeterPowerSignTypes;
 };
 
 export const getEmsRippleControlDiContactTypes = (): IndexStringType[] =>
 {
-  return enums.ems.rippleControlElectricalContactTypes;
+  return rippleControlElectricalContactTypes;
 };
 
 export const getEmsRippleControlPowerLimitDirections = (): IndexStringType[] =>
 {
-  return enums.ems.rippleControlPowerLimitDirections;
+  return rippleControlPowerLimitDirections;
 };
 
 
 
 export const getMainTypes = (): readonly string[] =>
 {
-  return enums.main.types;
+  return mainTypes;
 };
 
 export const getMainControlCabinetTypes = (): IndexStringType[] =>
 {
-  return enums.main.controlCabinetTypes;
+  return controlCabinetTypes;
 };
 
 
 export const getInverterTypes = (): readonly string[] =>
 {
-  return enums.batteryInverter.inverterTypes;
+  return inverterTypes;
 };
 export const getInverterHardwareTypes = (): readonly string[] =>
 {
-  return enums.inverterHardwareTypes;
+  return inverterHardwareTypes;
 };
 
 
 export const getBatteryTypes = (): readonly string[] =>
 {
-  return enums.batteryInverter.batteryTypes;
+  return batteryTypes;
 };
 export const getBatteryHardwareTypes = (): readonly string[] =>
 {
-  return enums.batteryHardwareTypes;
+  return batteryHardwareTypes;
 };
 
 
 export const getModbusTypes = (): readonly string[] =>
 {
-  return enums.batteryInverter.modbusTypes;
+  return modbusTypes;
 };
 
 
@@ -175,7 +185,7 @@ function resolveScalars(key: string, value: unknown, draft: Record<string, unkno
       if (componentKey === 'Smartmeter' && inside === 'HardwareType')
       {
         const hw = String(draft['HardwareType'] ?? '');
-        const list = (enums.ems.smartmeterHardwareToTypes as Record<string, readonly string[]>)[hw] ?? [];
+        const list = (emsSmartmeterHardwareToTypes as Record<string, readonly string[]>)[hw] ?? [];
         return Array.isArray(list) && list.length > 0 ? list[0] : '';
       }
     }
@@ -266,7 +276,7 @@ function buildConfigSchema(ctx: VersionContext, cfg: any): z.ZodTypeAny
         Config: emsConfigZ
       }).strict(),
       Main: z.object({
-        Type: z.enum(enums.main.types),
+        Type: z.enum(mainTypes),
         Equipment: z.object({
           SmartmeterMain: smartmeterMainZ,
           BatteryInverter: z.array(batteryInverterZ).min(1, 'BatteryInverter required'),

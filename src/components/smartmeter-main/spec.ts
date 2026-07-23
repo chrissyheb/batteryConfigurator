@@ -1,6 +1,11 @@
 import { TypeString, TypeUuid, TypeNumberUnit } from '@/core/field-types';
 import type { ComponentDefinition } from '@/registry/types';
 
+export const smartmeterHardwareToTypes = {
+  Virtual: ['Virtual'],
+  Beckhoff: ['El34x3']
+} as const;
+
 export const SmartmeterMain: ComponentDefinition = {
   key: 'SmartmeterMain',
   category: 'main-equipment',
@@ -8,7 +13,7 @@ export const SmartmeterMain: ComponentDefinition = {
     Type: { const: 'SmartmeterMain', required: true },
     Name: TypeString({ required: true, plcVariableName: true, hint: 'Component name in TwinCAT code \n - no spaces permitted -' }),
     DisplayName: TypeString({ required: true, hint: 'Component name in Log files' }),
-    HardwareType: TypeString({ required: true, hint: 'Manufacturer of Smartmeter', enumRef: ['main', 'smartmeterHardwareToTypes'] }),
+    HardwareType: TypeString({ required: true, hint: 'Manufacturer of Smartmeter', enumRef: smartmeterHardwareToTypes }),
     HardwareModel: TypeString({ required: true, hint: 'Hardware model type of Smartmeter' }),
     // BEISPIEL für Versionsgate auf Feldebene: an die tatsächliche Versionshistorie
     // anpassen (oder entfernen), sinceVersion ist rein illustrativ.

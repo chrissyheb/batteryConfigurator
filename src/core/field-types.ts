@@ -1,7 +1,10 @@
 // Generische Feldtyp-Bausteine für Component-Specs.
 // (Bisher Teil von src/spec/catalog.ts – hier bewusst ohne Kenntnis
-// konkreter Geräte/Enums, damit jede components/<name>/spec.ts nur
-// von hier + spec/enums.ts abhängt, nicht umgekehrt.)
+// konkreter Geräte/Enums.)
+//
+// enumRef/enum referenzieren erlaubte Werte DIREKT (Array bzw. Record), nicht
+// mehr per String-Lookup in einer zentralen enums.ts - jede Wertliste lebt
+// direkt bei der components/<name>/spec.ts, die sie definiert.
 
 import type { AvailabilitySpec } from './versioning';
 
@@ -12,6 +15,11 @@ export type IPv4 = string;
 export const ui = { typeFirst: true } as const;
 
 export type IndexStringType = [number, string];
+
+/** Erlaubte Werte für TypeString.enumRef: entweder eine flache Liste, oder eine
+ *  "Hardware -> Modelle"-Map (z.B. smartmeterHardwareToTypes), deren Top-Level-Keys
+ *  die eigentlichen erlaubten Werte des Feldes sind. */
+export type StringEnumRef = readonly string[] | Record<string, readonly string[]>;
 
 type BaseType<T extends 'number' | 'string' | 'bool' | 'indexString' | 'ipv4' | 'uuid'> = {
   type: T;
@@ -35,8 +43,8 @@ export function TypeNumber(
 };
 
 export type TypeStringDef = BaseType<'string'> & {
-  enumRef?: [string, string],
-  enum?: string,
+  enumRef?: StringEnumRef,
+  enum?: readonly string[],
   plcVariableName?: boolean
 };
 export function TypeString(
@@ -65,7 +73,7 @@ export function TypeBool(
 };
 
 export type TypeIndexStringDef = BaseType<'indexString'> & {
-  enumRef?: [string, string]
+  enumRef?: readonly IndexStringType[]
 };
 export function TypeIndexString(
   opts: Omit<TypeIndexStringDef, 'type'> & { type?: never }

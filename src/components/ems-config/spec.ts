@@ -1,5 +1,8 @@
-import { TypeNumber, TypeNumberUnit, TypeBool, TypeIndexString } from '@/core/field-types';
+import { TypeNumber, TypeNumberUnit, TypeBool, TypeIndexString, IndexStringType } from '@/core/field-types';
 import type { ComponentDefinition } from '@/registry/types';
+
+export const rippleControlElectricalContactTypes: IndexStringType[] = [[0, 'Unknown'], [1, 'NormallyClosed'], [3, 'NormallyOpenWirebreakProof'], [4, 'NormallyOpenNotWirebreakProof']];
+export const rippleControlPowerLimitDirections: IndexStringType[] = [[0, 'Bidirectional'], [1, 'ChargeOnly'], [2, 'DischargeOnly']];
 
 export const EmsConfig: ComponentDefinition = {
   key: 'EmsConfig',
@@ -24,8 +27,8 @@ export const EmsConfig: ComponentDefinition = {
     },
     RippleControl: {
       group: {
-        DiContactType: TypeIndexString({ required: true, hint: 'Contact evaluation type \n Normally Closed (NC): limitation by lowest input with 0V (wire break proof) \n Normally Open (NO): limitation by lowest input with 24V\n        - not wirebreak proof: no signal -> limit 100% (=no limit)\n        - wirebreak proof: no signal -> limit 0%', enumRef: ['ems', 'rippleControlElectricalContactTypes'] }),
-        PowerLimitDirection: TypeIndexString({ required: true, hint: 'Direction of power limitation', enumRef: ['ems', 'rippleControlPowerLimitDirections'] }),
+        DiContactType: TypeIndexString({ required: true, hint: 'Contact evaluation type \n Normally Closed (NC): limitation by lowest input with 0V (wire break proof) \n Normally Open (NO): limitation by lowest input with 24V\n        - not wirebreak proof: no signal -> limit 100% (=no limit)\n        - wirebreak proof: no signal -> limit 0%', enumRef: rippleControlElectricalContactTypes }),
+        PowerLimitDirection: TypeIndexString({ required: true, hint: 'Direction of power limitation', enumRef: rippleControlPowerLimitDirections }),
         ForceBessPowerReduction: TypeBool({ required: true, hint: 'TRUE: power at BESS terminals is relevant and has to be reduces according to EVU setpoint \n FALSE: power at grid connection point is relevant' }),
         LimitToZeroOnMultipleSelection: TypeBool({ required: true, hint: 'TRUE: Limit power to 0% if multiple inputs are selected \n FALSE: Limit power to rate of minimal active input ' }),
         NominalPowerPV: TypeNumberUnit({ required: true, hint: 'used to limit PV max power setpoint \n >= 0', min: 0, unit: 'kW' }),

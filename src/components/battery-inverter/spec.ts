@@ -1,17 +1,23 @@
 import { TypeString, TypeUuid, TypeIPv4, TypeNumber, TypeNumberUnit } from '@/core/field-types';
 import type { ComponentDefinition } from '@/registry/types';
 
+export const inverterTypes = ['InverterTerra', 'InverterKaco'] as const;
+export const batteryTypes = ['BatteryTerra', 'BatteryPylontechM1xBms'] as const;
+export const modbusTypes = ['(not available)', 'BatteryInverterModbus'] as const;
+export const inverterHardwareTypes = ['SofarTerra', 'Kaco'] as const;
+export const batteryHardwareTypes = ['SofarTerra', 'PylontechM1C'] as const;
+
 export const BatteryInverterInverter: ComponentDefinition = {
   key: 'BatteryInverterInverter',
   category: 'main-equipment',
   fields: {
     group: {
-      Type: TypeString({ required: true, hint: 'Inverter component type in TwinCAT project', enumRef: ['batteryInverter', 'inverterTypes'] }),
+      Type: TypeString({ required: true, hint: 'Inverter component type in TwinCAT project', enumRef: inverterTypes }),
       Name: TypeString({ required: true, plcVariableName: true, hint: 'Component name in TwinCAT code \n - no spaces permitted -' }),
       Guid: TypeUuid({ required: true, hint: 'GUID of component for TwinCAT project generation/update' }),
       Config: {
         group: {
-          InverterType: TypeString({ required: true, hint: 'Inverter hardware type', enum: 'inverterHardwareTypes' }),
+          InverterType: TypeString({ required: true, hint: 'Inverter hardware type', enum: inverterHardwareTypes }),
           NominalInverterPower: TypeNumberUnit({ required: true, hint: 'Nominal active power of installed Inverter', unit: 'kW', min: 1, max: 125 }),
           IpAddress: TypeIPv4({ required: true, hint: 'IP Address of Inverter' }),
           Port: TypeNumber({ required: true, hint: 'Modbus TCP port for communication with Inverter \n default: 502', min: 1, max: 65535, int: true })
@@ -37,12 +43,12 @@ export const BatteryInverterBattery: ComponentDefinition = {
   category: 'main-equipment',
   fields: {
     group: {
-      Type: TypeString({ required: true, hint: 'Battery component type in TwinCAT project', enumRef: ['batteryInverter', 'batteryTypes'] }),
+      Type: TypeString({ required: true, hint: 'Battery component type in TwinCAT project', enumRef: batteryTypes }),
       Name: TypeString({ required: true, plcVariableName: true, hint: 'Component name in TwinCAT code \n - no spaces permitted -' }),
       Guid: TypeUuid({ required: true, hint: 'GUID of component for TwinCAT project generation/update' }),
       Config: {
         group: {
-          BatteryType: TypeString({ required: true, hint: 'Battery hardware type', enum: 'batteryHardwareTypes' }),
+          BatteryType: TypeString({ required: true, hint: 'Battery hardware type', enum: batteryHardwareTypes }),
           BatteryCabinetCount: TypeNumber({ required: true, hint: 'Number of installed Battery cabinets \n [1..5]', min: 1, max: 5, int: true }),
           BatteryCabinetModuleCount: TypeNumber({ required: true, hint: 'Number of Battery modules within each installed cabinet \n [1..25]', min: 1, max: 25, int: true }),
           IpAddress: TypeIPv4({ required: true, hint: 'IP Address of Battery' }),
@@ -76,7 +82,7 @@ export const BatteryInverterModbus: ComponentDefinition = {
   fields: {
     optional: true,
     group: {
-      Type: TypeString({ required: true, hint: 'Modbus component type in TwinCAT project', enumRef: ['batteryInverter', 'modbusTypes'] }),
+      Type: TypeString({ required: true, hint: 'Modbus component type in TwinCAT project', enumRef: modbusTypes }),
       Name: TypeString({ required: true, plcVariableName: true, hint: 'Component name in TwinCAT code \n - no spaces permitted -' }),
       Guid: TypeUuid({ required: true, hint: 'GUID of component for TwinCAT project generation/update' }),
       Config: {
