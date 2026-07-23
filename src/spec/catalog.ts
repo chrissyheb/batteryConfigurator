@@ -113,9 +113,9 @@ export const enums = {
     controlCabinetTypes: [[0,'Undefined'],[10,'TerraEmsBoxV1'], [11,'TerraEmsBoxV1.5'], [12,'TerraEmsBoxV2'], [20,'TerraHub'], [50,'BlokkNNV3']] as IndexStringType[],
   },
   batteryInverter: {
-    inverterTypes: ['TerraInverter', 'InverterKaco'],
-    batteryTypes: ['TerraBattery', 'BatteryPylontechM1xBms'],
-    modbusTypes: ['(not available)','TerraModbus']
+    inverterTypes: ['InverterTerra', 'InverterKaco'],
+    batteryTypes: ['BatteryTerra', 'BatteryPylontechM1xBms'],
+    modbusTypes: ['(not available)','BatteryInverterModbus']
   },
   inverterHardwareTypes: ['SofarTerra', 'Kaco'],
   batteryHardwareTypes: ['SofarTerra', 'PylontechM1C']
@@ -401,7 +401,7 @@ const cBatteryInverterInverter = {
     }
   },
   defaults:{
-    Type:'TerraInverter',
+    Type:'InverterTerra',
     Name:'Inverter${n0}',
     Guid:'@uuid',
     Config: {
@@ -431,7 +431,7 @@ const cBatteryInverterBattery = {
     }
   },
   defaults: {
-    Type:'TerraBattery',
+    Type:'BatteryTerra',
     Name:'Battery${n0}',
     Guid:'@uuid',
     Config: {
@@ -460,7 +460,7 @@ const cBatteryInverterModbus = {
     }
   },
   defaults: {
-    Type:'TerraModbus',
+    Type:'BatteryInverterModbus',
     Name:'Modbus${n0}',
     Guid:'@uuid',
     Config: {

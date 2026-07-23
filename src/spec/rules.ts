@@ -148,21 +148,21 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
 
     if (isTerraHV)
     {
-      if (inv !== 'TerraInverter')
+      if (inv !== 'InverterTerra')
       {
-        add({ message: 'Terra configured ⇒ TerraInverter required', path: ['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Type'] });
+        add({ message: 'Terra configured ⇒ InverterTerra required', path: ['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Type'] });
       }
       if (invType !== 'SofarTerra')
       {
-        add({ message: 'TerraInverter configured ⇒ InverterType SofarTerra required', path: ['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Config','InverterType'] });
+        add({ message: 'InverterTerra configured ⇒ InverterType SofarTerra required', path: ['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Config','InverterType'] });
       }
-      if (bat !== 'TerraBattery')
+      if (bat !== 'BatteryTerra')
       {
-        add({ message: 'Terra configured ⇒ TerraBattery required', path: ['Units','Main','Equipment','BatteryInverter',idx,'Battery','Type'] });
+        add({ message: 'Terra configured ⇒ BatteryTerra required', path: ['Units','Main','Equipment','BatteryInverter',idx,'Battery','Type'] });
       }
       if (batType !== 'SofarTerra')
       {
-        add({ message: 'TerraBattery configured ⇒ BatteryType SofarTerra required', path: ['Units','Main','Equipment','BatteryInverter',idx,'Battery','Config','BatteryType'] });
+        add({ message: 'BatteryTerra configured ⇒ BatteryType SofarTerra required', path: ['Units','Main','Equipment','BatteryInverter',idx,'Battery','Config','BatteryType'] });
       }
       if (!hasModbus)
       {
@@ -182,17 +182,17 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
     }
     else
     {
-      if (inv === 'TerraInverter')
+      if (inv === 'InverterTerra')
       {
-        add({ message: 'Terra not configured ⇒ TerraInverter not allowed', path: ['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Type'] });
+        add({ message: 'Terra not configured ⇒ InverterTerra not allowed', path: ['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Type'] });
       }
       if (invType === 'SofarTerra')
       {
         add({ message: 'Terra not configured ⇒ InverterType SofarTerra not allowed', path: ['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Config','InverterType'] });
       }
-      if (bat === 'TerraBattery')
+      if (bat === 'BatteryTerra')
       {
-        add({ message: 'Terra not configured ⇒ TerraBattery not allowed', path: ['Units','Main','Equipment','BatteryInverter',idx,'Battery','Type'] });
+        add({ message: 'Terra not configured ⇒ BatteryTerra not allowed', path: ['Units','Main','Equipment','BatteryInverter',idx,'Battery','Type'] });
       }
       if (batType === 'SofarTerra')
       {
