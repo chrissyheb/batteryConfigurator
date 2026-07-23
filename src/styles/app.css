@@ -272,7 +272,7 @@ input[type="number"] {
 
 .card-content {
   overflow: hidden;
-  transition: max-height 0.3s ease;
+  transition: max-height 0.15s ease;
 }
 
 .card-content-inner {

@@ -99,6 +99,8 @@ export function Collapsible({
   const panelId = useId();
   const headerId = `${panelId}-header`;
 
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const contentWrapperRef = useRef<HTMLDivElement | null>(null);
   const innerRef = useRef<HTMLDivElement | null>(null);
   const [maxHeight, setMaxHeight] = useState("0px");
 
@@ -112,7 +114,91 @@ export function Collapsible({
     else setUncontrolledOpen(next);
   };
 
-  const toggle = () => setOpen(!open);
+  // Scrollt die gerade expandierte Card in den sichtbaren Bereich, damit man
+  // nach dem Aufklappen (v.a. der letzten Card einer Liste) nicht manuell
+  // nachscrollen muss.
+  //
+  // Wichtig bei verschachtelten Cards (Card-Stack): wenn z.B. "Battery" tief
+  // innerhalb von BatteryInverterCard -> "Battery & Inverter" -> "Main"
+  // aufgeklappt wird, müssen ALLE umgebenden .card-content-Container per
+  // ResizeObserver (siehe useLayoutEffect unten) erst selbst nachwachsen,
+  // damit sie die neue Card nicht mehr anschneiden - jeder dieser Container
+  // hat seine eigene 0.3s-Transition, die zeitversetzt nacheinander abläuft.
+  // Würden wir nur auf die eigene Card warten, wäre die Zielposition zwar
+  // korrekt berechnet, die Card aber trotzdem noch von einem noch nicht
+  // fertig gewachsenen Eltern-Container (overflow:hidden) abgeschnitten.
+  // Deshalb warten wir hier, bis Größe/Position der Card UND aller
+  // umschließenden .card-content-Container stabil sind, bevor wir einmalig
+  // die nötige Scroll-Korrektur anwenden.
+  const scrollIntoViewAfterExpand = () => {
+    const el = rootRef.current;
+    if (!el) return;
+
+    const getAncestorCardContents = (start: HTMLElement): HTMLElement[] => {
+      const result: HTMLElement[] = [];
+      let node: HTMLElement | null = start.parentElement;
+      while (node) {
+        if (node.classList.contains('card-content')) { result.push(node); }
+        node = node.parentElement;
+      }
+      return result;
+    };
+
+    const getStickyHeaderHeight = (): number => {
+      const header = document.querySelector('header');
+      return header ? header.getBoundingClientRect().height : 0;
+    };
+
+    const applyFinalScroll = () => {
+      const rect = el.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const bottomMargin = 12;
+      const topReserved = getStickyHeaderHeight() + 12; // Platz für den sticky Header oben
+      const availableHeight = viewportHeight - topReserved - bottomMargin;
+
+      let delta = 0;
+      if (rect.height <= availableHeight) {
+        // Card passt komplett in den sichtbaren Bereich
+        if (rect.bottom > viewportHeight - bottomMargin) {
+          delta = rect.bottom - (viewportHeight - bottomMargin);
+        } else if (rect.top < topReserved) {
+          delta = rect.top - topReserved; // negativ -> nach oben korrigieren (Sticky-Header verdeckt sonst die Card)
+        }
+      } else {
+        // Card ist höher als der sichtbare Bereich -> Oberkante direkt unter dem Sticky-Header zeigen
+        delta = rect.top - topReserved;
+      }
+
+      if (Math.abs(delta) > 0.5) { window.scrollBy({ top: delta, behavior: 'smooth' }); }
+    };
+
+    const watched = [el, ...getAncestorCardContents(el)];
+    const maxWaitMs = 900; // Sicherheitsnetz; die eigentliche max-height-Transition ist 0.15s (siehe app.css)
+    const start = performance.now();
+    let lastHeights = watched.map((n) => n.getBoundingClientRect().height);
+    let stableFrames = 0;
+
+    const waitForSettle = () => {
+      const heights = watched.map((n) => n.getBoundingClientRect().height);
+      const changed = heights.some((h, i) => Math.abs(h - lastHeights[i]) > 0.5);
+      lastHeights = heights;
+      stableFrames = changed ? 0 : stableFrames + 1;
+
+      if (stableFrames >= 2 || performance.now() - start > maxWaitMs) {
+        applyFinalScroll();
+        return;
+      }
+      requestAnimationFrame(waitForSettle);
+    };
+
+    requestAnimationFrame(waitForSettle);
+  };
+
+  const toggle = () => {
+    const willOpen = !open;
+    setOpen(willOpen);
+    if (willOpen) { scrollIntoViewAfterExpand(); }
+  };
 
 
   // sorgt dafür, dass Parent (z.B. Stack) bei Änderungen in Child-Collapsibles mitwächst
@@ -145,6 +231,7 @@ export function Collapsible({
             onClick={(e) => {
               e.stopPropagation(); // verhindert Toggle
               setOpen(true);
+              scrollIntoViewAfterExpand();
               onAction?.("add");
             }}
           >
@@ -174,7 +261,7 @@ export function Collapsible({
   const actionNode = renderAction();
 
   return (
-    <div className={className + `${hasErrorUnder(errorPrefixSet, path) ? " has-error" : ""}`}>
+    <div ref={rootRef} className={className + `${hasErrorUnder(errorPrefixSet, path) ? " has-error" : ""}`}>
       <HeadingTag className="card-heading">
         <div className="card-header">
           <button
@@ -206,6 +293,7 @@ export function Collapsible({
 
       {hasChildren &&
         <div
+          ref={contentWrapperRef}
           id={panelId}
           className="card-content"
           role="region"
