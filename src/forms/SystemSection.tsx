@@ -1,75 +1,25 @@
 
 import React from 'react';
-import { SelectField, TextField, NumberField, CheckField } from '@/ui/Fields';
 import { components } from '@/registry';
-import { getBatteryBalancingModes, getExternalControlOperationModes } from '@/spec/builder';
-import { errorAt } from '@/utils/errors';
-import { indexStringToString, stringToIndexString } from '@/utils/helper';
-import { Collapsible } from '@/ui/Cards';
+import { GeneratedForm } from '@/core/form-renderer';
 
+// System hat weder Listen (Smartmeter[], BatteryInverter[], ...) noch
+// Cross-Field-Seiteneffekte (HardwareType -> HardwareModel, Modbus-Toggle) -
+// deshalb als erste Komponente vollständig über den generischen Renderer
+// abgedeckt (siehe core/form-renderer.tsx). Gruppentitel ("Battery Balancing",
+// "External Control") kommen aus components/system/spec.ts (`title` an den
+// jeweiligen group-Knoten).
 export default function SystemSection(props: { cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; errorIndex: any, errorPrefixSet:any })
 {
-  const { setInCfg, getOrCfg, errorIndex } = props;
-
   return (
-    <Collapsible
-      title="System"
-      className="card stack"
+    <GeneratedForm
+      def={components.System}
       path={['System']}
+      title="System"
+      cfg={props.cfg}
+      getOrCfg={props.getOrCfg}
+      setInCfg={props.setInCfg}
       errorPrefixSet={props.errorPrefixSet}
-    >
-      <TextField
-        path={['System', 'SerialNumber']}
-        defLink={components.System.fields.SerialNumber}
-      />
-      <Collapsible
-        title="Battery Balancing"
-        className="card"
-        path={['System', 'BatteryBalancing']}
-        errorPrefixSet={props.errorPrefixSet}
-      >
-        <SelectField
-          path={['System', 'BatteryBalancing', 'PreemptiveMode']}
-          defLink={components.System.fields.BatteryBalancing.group.PreemptiveMode}
-          options={indexStringToString(getBatteryBalancingModes())}
-          value={indexStringToString([getOrCfg(['System', 'BatteryBalancing', 'PreemptiveMode'], [0,''])])[0]}
-          onChange={(v: string) => { setInCfg(['System', 'BatteryBalancing', 'PreemptiveMode'], stringToIndexString(v)); }}
-        />
-        <NumberField
-          path={['System', 'BatteryBalancing', 'PreemptiveDaysToEnable']}
-          defLink={components.System.fields.BatteryBalancing.group.PreemptiveDaysToEnable}
-        />
-        <NumberField
-          path={['System', 'BatteryBalancing', 'PreemptiveMaxGridChargePower']}
-          defLink={components.System.fields.BatteryBalancing.group.PreemptiveMaxGridChargePower}
-        />
-        <NumberField
-          path={['System', 'BatteryBalancing', 'ForcedDaysToEnable']}
-          defLink={components.System.fields.BatteryBalancing.group.ForcedDaysToEnable}
-        />
-        <NumberField
-          path={['System', 'BatteryBalancing', 'ForcedMaxGridChargePowerPerInverter']}
-          defLink={components.System.fields.BatteryBalancing.group.ForcedMaxGridChargePowerPerInverter}
-        />
-      </Collapsible>
-      <Collapsible
-        title="External Control"
-        className="card"
-        path={['System', 'ExternalControl']}
-        errorPrefixSet={props.errorPrefixSet}
-      >
-        <SelectField
-          path={['System', 'ExternalControl', 'FallbackMode']}
-          defLink={components.System.fields.ExternalControl.group.FallbackMode}
-          options={indexStringToString(getExternalControlOperationModes())}
-          value={indexStringToString([getOrCfg(['System', 'ExternalControl', 'FallbackMode'], [0,''])])[0]}
-          onChange={(v: string) => { setInCfg(['System', 'ExternalControl', 'FallbackMode'], stringToIndexString(v)); }}
-        />
-        <CheckField
-          path={['System', 'ExternalControl', 'EmsEzaCommunicationRequired']}
-          defLink={components.System.fields.ExternalControl.group.EmsEzaCommunicationRequired}
-        />
-      </Collapsible>
-    </Collapsible>
+    />
   );
 }

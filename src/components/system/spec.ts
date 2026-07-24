@@ -10,6 +10,7 @@ export const System: ComponentDefinition = {
   fields: {
     SerialNumber: TypeString({ required: true, hint: 'Serial number of the BESS system \n TEMSM-001 \n TE0000000047 \n BK0000000246' }),
     BatteryBalancing: {
+      title: 'Battery Balancing',
       group: {
         PreemptiveMode: TypeIndexString({ required: true, hint: 'Balancing mode used for preemptive balancing', enumRef: batteryBalancingModes }),
         PreemptiveDaysToEnable: TypeNumber({ required: true, hint: 'Preemptive balancing starts number of days after last successful balancing process.\n >= 0 \n 0: preemptive balancing disabled ', min: 0, max: 365, int: true }),
@@ -19,6 +20,7 @@ export const System: ComponentDefinition = {
       }
     },
     ExternalControl: {
+      title: 'External Control',
       group: {
         FallbackMode: TypeIndexString({ required: true, hint: 'Fallback operation mode if connection to external control unit (BEAAM, Master-BESS, external EMS) is lost', enumRef: externalControlOperationModes }),
         EmsEzaCommunicationRequired: TypeBool({ required: true, hint: 'Choose whether an active communication from an EZA controller is mandatory for operation or not' }),
