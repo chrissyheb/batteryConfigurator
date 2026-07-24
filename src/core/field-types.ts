@@ -63,6 +63,18 @@ export function findEnumOptionAvailability<T>(options: readonly EnumOption<T>[],
  *  erlaubten Werte des Feldes sind. */
 export type StringEnumRef = readonly EnumOption<string>[] | Record<string, readonly string[]>;
 
+/**
+ * Minimaler, strukturell kompatibler Ausschnitt von core/form-renderer.tsx's
+ * FormRendererCtx - bewusst hier lokal definiert (statt importiert), damit
+ * field-types.ts (Basis für alle Component-Specs) keine Abhängigkeit zum
+ * Renderer bekommt. Der echte FormRendererCtx erfüllt diese Form immer.
+ */
+export type FieldCtx = {
+  cfg: any;
+  getOrCfg: (path: Array<string | number>, fallback: any) => any;
+  setInCfg: (path: Array<string | number>, value: any) => void;
+};
+
 type BaseType<T extends 'number' | 'string' | 'bool' | 'indexString' | 'ipv4' | 'uuid' | 'array'> = {
   type: T;
   required: boolean;
@@ -70,6 +82,18 @@ type BaseType<T extends 'number' | 'string' | 'bool' | 'indexString' | 'ipv4' | 
   readOnly?: boolean;
   /** Optionale Verfügbarkeits-Bedingung (Version/HardwareVariant/Custom). Ohne Angabe: immer verfügbar. */
   availability?: AvailabilitySpec;
+  /** Dynamisches readOnly abhängig vom restlichen Config-Objekt (z.B.
+   *  CurrentTransformerPrimaryCurrent nur editierbar bei bestimmtem HardwareModel).
+   *  Analog zu AvailabilitySpec.when (core/versioning.ts), aber unabhängig von
+   *  Verfügbarkeit - das Feld bleibt sichtbar, wird aber schreibgeschützt. */
+  readOnlyWhen?: (cfg: any) => boolean;
+  /** Seiteneffekt nach einer Werteänderung dieses Feldes (z.B. HardwareType->
+   *  HardwareModel-Vorbelegung). Der generische Renderer (core/form-renderer.tsx)
+   *  ruft zuerst den normalen setInCfg(path, value) wie gewohnt auf und
+   *  anschließend diesen Hook - `path` ist der volle Pfad DIESES Feldes, sodass
+   *  Geschwisterfelder z.B. über [...path.slice(0,-1), 'AndererName'] adressiert
+   *  werden können. */
+  onChangeEffect?: (value: any, ctx: FieldCtx, path: Array<string | number>) => void;
 };
 
 export type TypeNumberDef = BaseType<'number'> & {
@@ -87,12 +111,60 @@ export function TypeNumber(
 export type TypeStringDef = BaseType<'string'> & {
   enumRef?: StringEnumRef,
   enum?: readonly EnumOption<string>[],
+  /** Dynamische Werteliste abhängig vom restlichen Config-Objekt (z.B.
+   *  HardwareModel-Optionen abhängig vom gewählten HardwareType desselben
+   *  Elements) - Alternative zum statischen `enum`/`enumRef` für Fälle, in
+   *  denen die erlaubten Werte nicht allein aus dem Feld selbst ableitbar sind. */
+  enumFrom?: (ctx: FieldCtx, path: Array<string | number>) => readonly EnumOption<string>[],
   plcVariableName?: boolean
 };
 export function TypeString(
   opts: Omit<TypeStringDef, 'type'> & { type?: never }
 ): TypeStringDef {
   return { type: 'string', ...opts };
+};
+
+/**
+ * Baut ein Paar zusammengehöriger String-Felder aus einer "Key -> Werte[]"-Map
+ * (z.B. HardwareType -> HardwareModel[]), OHNE dass onChangeEffect/enumFrom pro
+ * Vorkommen erneut von Hand geschrieben werden müssen (bisher identisch
+ * dupliziert zwischen components/smartmeter-ems/spec.ts und
+ * components/smartmeter-main/spec.ts):
+ *  - `primaryKey` bietet die Map-Keys als Optionen an und belegt beim Ändern
+ *    automatisch `secondaryKey` mit dem ersten passenden Wert vor (onChangeEffect).
+ *  - `secondaryKey` bietet dynamisch nur die zum aktuell gewählten
+ *    `primaryKey`-Wert passenden Werte an (enumFrom).
+ * Gibt ein Objekt mit beiden Feldern zurück (Keys = primaryKey/secondaryKey),
+ * gedacht zum direkten Hineinspreaden in einen Feldbaum:
+ *   fields: { ..., ...dependentEnumFields(map, {...}), ... }
+ */
+export function dependentEnumFields(
+  map: Record<string, readonly string[]>,
+  opts: { primaryKey: string; primaryHint: string; secondaryKey: string; secondaryHint: string }
+): Record<string, TypeStringDef>
+{
+  const { primaryKey, primaryHint, secondaryKey, secondaryHint } = opts;
+  return {
+    [primaryKey]: TypeString({
+      required: true,
+      hint: primaryHint,
+      enumRef: map,
+      onChangeEffect: (value, ctx, path) =>
+      {
+        const options = map[value as string] ?? [];
+        ctx.setInCfg([...path.slice(0, -1), secondaryKey], options[0] ?? '');
+      }
+    }),
+    [secondaryKey]: TypeString({
+      required: true,
+      hint: secondaryHint,
+      enumFrom: (ctx, path) =>
+      {
+        const primaryValue = ctx.getOrCfg([...path.slice(0, -1), primaryKey], '');
+        return map[primaryValue as string] ?? [];
+      }
+    })
+  };
 };
 
 export type TypeNumberUnitDef = BaseType<'string'> & {

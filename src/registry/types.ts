@@ -41,6 +41,18 @@ export interface ComponentDefinition<TFields = any, TDefaults = any> {
    * Komponente eindeutig zuordenbar sind.
    */
   validate?: (instance: any) => ValidationIssue[];
+  /**
+   * Escape-Hatch für Felder, die sich nicht über die deklarativen Hooks
+   * (readOnlyWhen/onChangeEffect/enumFrom, siehe core/field-types.ts) abbilden
+   * lassen, weil sie z.B. eine ganze Unterkomponente anlegen/löschen statt nur
+   * einen Skalarwert zu schreiben (z.B. der BatteryInverterModbus-Toggle).
+   * Wird vom generischen Renderer (core/form-renderer.tsx -> renderComponentFields)
+   * NUR für die Top-Level-Keys dieser Komponente konsultiert - bevor der
+   * generische Gruppen-/Blatt-Dispatch für diesen Key greift. `ctx` ist
+   * strukturell FormRendererCtx (hier als `any` typisiert, um keine Abhängigkeit
+   * zu core/form-renderer.tsx einzuführen).
+   */
+  fieldOverride?: Record<string, (path: Array<string | number>, ctx: any) => any>;
 }
 
 const registry = new Map<string, ComponentDefinition>();

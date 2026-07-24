@@ -10,6 +10,7 @@ export const SlaveLocalUM: ComponentDefinition = {
     DisplayName: TypeString({ required: true, hint: 'Component name in Log files' }),
     Guid: TypeUuid({ required: true, hint: 'GUID of component for TwinCAT project generation/update' }),
     Config: {
+      flatten: true,
       group: {
         IpAddress: TypeIPv4({ required: true, hint: 'IP Address of local system' })
       }

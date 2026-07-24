@@ -87,7 +87,7 @@ export default function App()
           options={getHardwareVariants()}
         />
       </section>
-      <SystemSection cfg={state} setCfg={set} setInCfg={setIn} getCfg={get} getOrCfg={getOr} errorIndex={errorIndex} errorPrefixSet={errorPrefixSet} />
+      <SystemSection cfg={state} setCfg={set} setInCfg={setIn} getCfg={get} getOrCfg={getOr} delFromCfg={del} errorIndex={errorIndex} errorPrefixSet={errorPrefixSet} />
       <EmsSection cfg={state} setCfg={set} setInCfg={setIn} getCfg={get} getOrCfg={getOr} delFromCfg={del} hasCfg={has} errorIndex={errorIndex} errorPrefixSet={errorPrefixSet} />
       <MainSection cfg={state} setCfg={set} setInCfg={setIn} getCfg={get} getOrCfg={getOr} delFromCfg={del} hasCfg={has} errorIndex={errorIndex} errorPrefixSet={errorPrefixSet} />
 

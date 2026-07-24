@@ -1,4 +1,4 @@
-import { TypeString, TypeUuid, TypeIPv4, TypeNumber, TypeIndexString, IndexStringType } from '@/core/field-types';
+import { TypeString, TypeUuid, TypeIPv4, TypeNumber, TypeIndexString, IndexStringType, dependentEnumFields } from '@/core/field-types';
 import type { ComponentDefinition } from '@/registry/types';
 
 export const smartmeterHardwareToTypes = {
@@ -50,10 +50,22 @@ export const Smartmeter: ComponentDefinition = {
     Type: { const: 'Smartmeter', required: true },
     Name: TypeString({ required: true, plcVariableName: true, hint: 'Component name in TwinCAT code \n - no spaces permitted -' }),
     DisplayName: TypeString({ required: true, hint: 'Component name in Log files' }),
-    HardwareType: TypeString({ required: true, hint: 'Manufacturer of Smartmeter', enumRef: smartmeterHardwareToTypes }),
-    HardwareModel: TypeString({ required: true, hint: 'Hardware model type of Smartmeter' }),
+    // HardwareType->HardwareModel-Kopplung: Auswahl von HardwareType belegt
+    // HardwareModel automatisch mit dem ersten passenden Modell vor,
+    // HardwareModel bietet dynamisch nur die zum aktuell gewählten
+    // HardwareType passenden Modelle an - siehe core/field-types.ts ->
+    // dependentEnumFields (identisches Muster bei SmartmeterMain).
+    ...dependentEnumFields(smartmeterHardwareToTypes, {
+      primaryKey: 'HardwareType',
+      primaryHint: 'Manufacturer of Smartmeter',
+      secondaryKey: 'HardwareModel',
+      secondaryHint: 'Hardware model type of Smartmeter'
+    }),
     Guid: TypeUuid({ required: true, hint: 'GUID of component for TwinCAT project generation/update' }),
+    // `flatten: true`: keine eigene Karte für Config - liegt flach in der
+    // umgebenden Smartmeter-Karte (siehe core/form-renderer.tsx).
     Config: {
+      flatten: true,
       group: {
         Usecase: TypeIndexString({ required: true, hint: 'Smartmeter usecase for power control', enumRef: smartmeterUseCaseTypes }),
         PowerSign: TypeIndexString({ required: true, hint: 'Sign of measuered power: Positive (+ consumption / - feed in) or Negative (- consumption / + feed in)', enumRef: smartmeterPowerSignTypes }),

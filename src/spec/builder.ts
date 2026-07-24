@@ -7,7 +7,8 @@ import {
 import { ui, availableEnumValues } from '@/core/field-types';
 import { groupSchema, isZodObject } from '@/core/schema-builder';
 import { getVersionContext, type VersionContext } from '@/core/versioning';
-import { applyCrossRules, applyCardinality } from './rules';
+import { applyCrossRules, applyCardinality, cardinality } from './rules';
+import { getList } from '@/registry/lists';
 import { TupleToRecord } from '@/utils/helper';
 import type { IndexStringType } from '@/core/field-types';
 
@@ -240,11 +241,17 @@ function buildConfigSchema(ctx: VersionContext, cfg: any): z.ZodTypeAny
   const systemZ = groupSchema(components.System.fields, ctx, cfg);
   const configPowerLimitZ = groupSchema(components.PowerLimitGroup.fields, ctx, cfg);
 
+  // Max-Werte kommen aus registry/lists.ts (dieselbe Zahl, die auch den
+  // Add-Button in <GeneratedList> ausblendet) statt hier ein zweites Mal
+  // hart hinterlegt zu sein.
+  const emsPowerLimitMax = getList('EmsPowerLimitGroups').max ?? 2;
+  const mainPowerLimitMax = getList('MainPowerLimitGroups').max ?? 2;
+
   const emsConfigTmpZ = groupSchema(components.EmsConfig.fields, ctx, cfg);
   const emsConfigZ = (() => {
     if (isZodObject(emsConfigTmpZ)) {
       return emsConfigTmpZ.extend({
-        PowerLimitGroups: z.array(configPowerLimitZ).max(2, 'PowerLimitGroup max. 2')
+        PowerLimitGroups: z.array(configPowerLimitZ).max(emsPowerLimitMax, `PowerLimitGroup max. ${emsPowerLimitMax}`)
       });
     }
     else {
@@ -256,7 +263,7 @@ function buildConfigSchema(ctx: VersionContext, cfg: any): z.ZodTypeAny
   const mainConfigZ = (() => {
     if (isZodObject(mainConfigTmpZ)) {
       return mainConfigTmpZ.extend({
-        PowerLimitGroups: z.array(configPowerLimitZ).max(2, 'PowerLimitGroup max. 2')
+        PowerLimitGroups: z.array(configPowerLimitZ).max(mainPowerLimitMax, `PowerLimitGroup max. ${mainPowerLimitMax}`)
       });
     }
     else {
@@ -285,7 +292,7 @@ function buildConfigSchema(ctx: VersionContext, cfg: any): z.ZodTypeAny
         Type: z.enum(mainTypes),
         Equipment: z.object({
           SmartmeterMain: smartmeterMainZ,
-          BatteryInverter: z.array(batteryInverterZ).min(1, 'BatteryInverter required'),
+          BatteryInverter: z.array(batteryInverterZ).min(cardinality.main.batteryInverterMin, 'BatteryInverter required'),
         }).strict(),
         Config: mainConfigZ,
       }).strict()
