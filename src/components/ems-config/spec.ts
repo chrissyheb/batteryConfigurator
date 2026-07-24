@@ -1,4 +1,4 @@
-import { TypeNumber, TypeNumberUnit, TypeBool, TypeIndexString, IndexStringType } from '@/core/field-types';
+import { TypeNumber, TypeNumberUnit, TypeBool, TypeIndexString, TypeArray, IndexStringType } from '@/core/field-types';
 import type { ComponentDefinition } from '@/registry/types';
 
 export const rippleControlElectricalContactTypes: IndexStringType[] = [[0, 'Unknown'], [1, 'NormallyClosed'], [3, 'NormallyOpenWirebreakProof'], [4, 'NormallyOpenNotWirebreakProof']];
@@ -26,6 +26,7 @@ export const EmsConfig: ComponentDefinition = {
     SmartmeterCount: TypeNumber({ required: true, hint: 'Number of used Smartmeters \n - automatically calculated -', min: 0, int: true, readOnly: true }),
     SystemsInParallelCount: TypeNumber({ required: true, hint: 'Number of parallel systems within Main/Support combination \n - automatically calculated -', min: 1, int: true, readOnly: true }),
     GridConnectionPoint: {
+      title: 'Config - Grid Connection Point',
       group: {
         PowerGridConsumptionLimit: TypeNumberUnit({ required: true, hint: 'Max. permitted consumption power from grid \n if no limit set to max. fuse power \n >= 0', min: 0, unit: 'kW' }),
         PowerGridFeedInLimit: TypeNumberUnit({ required: true, hint: 'Max. permitted feed in power from grid \n if no limit set to max. fuse power \n >= 0', min: 0, unit: 'kW' }),
@@ -33,6 +34,7 @@ export const EmsConfig: ComponentDefinition = {
       }
     },
     MasterSlave: {
+      title: 'Config - Master/Slave',
       group: {
         PowerActiveInstalledTotal: TypeNumberUnit({ required: true, hint: 'Sum of installed inverter active power (total Main/Support combination) \n > 0', min: 0, unit: 'kW' }),
         CapacityInstalledTotal: TypeNumberUnit({ required: true, hint: 'Sum of installed battery capacity (total Main/Support combination) \n > 0', min: 0, unit: 'kWh' }),
@@ -41,6 +43,7 @@ export const EmsConfig: ComponentDefinition = {
       }
     },
     RippleControl: {
+      title: 'Config - Ripple Control',
       group: {
         DiContactType: TypeIndexString({ required: true, hint: 'Contact evaluation type \n Normally Closed (NC): limitation by lowest input with 0V (wire break proof) \n Normally Open (NO): limitation by lowest input with 24V\n        - not wirebreak proof: no signal -> limit 100% (=no limit)\n        - wirebreak proof: no signal -> limit 0%', enumRef: rippleControlElectricalContactTypes }),
         PowerLimitDirection: TypeIndexString({ required: true, hint: 'Direction of power limitation', enumRef: rippleControlPowerLimitDirections }),
@@ -48,10 +51,19 @@ export const EmsConfig: ComponentDefinition = {
         LimitToZeroOnMultipleSelection: TypeBool({ required: true, hint: 'TRUE: Limit power to 0% if multiple inputs are selected \n FALSE: Limit power to rate of minimal active input ' }),
         NominalPowerPV: TypeNumberUnit({ required: true, hint: 'used to limit PV max power setpoint \n >= 0', min: 0, unit: 'kW' }),
         NominalPowerProductionTotal: TypeNumberUnit({ required: true, hint: 'Sum of installed generator power wihtin the whole plant \n used for limitation at grid connection point (ForceBessPowerReduction = FALSE) \n >= 0', min: 0, unit: 'kW' }),
-        MaxPowerRate0: TypeNumber({ required: true, hint: 'Power rates for EVU control \n 0 <= MaxPowerRates <= 1', min: 0, max: 1 }),
-        MaxPowerRate1: TypeNumber({ required: true, hint: 'Power rates for EVU control \n 0 <= MaxPowerRates <= 1', min: 0, max: 1 }),
-        MaxPowerRate2: TypeNumber({ required: true, hint: 'Power rates for EVU control \n 0 <= MaxPowerRates <= 1', min: 0, max: 1 }),
-        MaxPowerRate3: TypeNumber({ required: true, hint: 'Power rates for EVU control \n 0 <= MaxPowerRates <= 1', min: 0, max: 1 }),
+        // Bisher vier separate benannte Felder (MaxPowerRate0..3). In TwinCAT/
+        // beim JSON-Import wird das tatsächlich als Array interpretiert - daher
+        // hier als ein einziges TypeArray-Feld mit fester Länge 4 modelliert
+        // (siehe core/field-types.ts -> TypeArray). Ältere gespeicherte Configs
+        // mit den alten Einzel-Keys werden dadurch bewusst ungültig, bis neu
+        // gespeichert wird (keine automatische Migration).
+        MaxPowerRate: TypeArray({
+          required: true,
+          hint: 'Power rates for EVU control \n 0 <= MaxPowerRates <= 1',
+          label: 'MaxPowerRates',
+          item: TypeNumber({ required: true, hint: 'Power rate for EVU control \n 0 <= MaxPowerRates <= 1', min: 0, max: 1 }),
+          length: 4
+        }),
       }
     }
   },
@@ -77,10 +89,7 @@ export const EmsConfig: ComponentDefinition = {
       LimitToZeroOnMultipleSelection: false,
       NominalPowerPV: '1000000000kW',
       NominalPowerProductionTotal: '1000000000kW',
-      MaxPowerRate0: 1,
-      MaxPowerRate1: 0.6,
-      MaxPowerRate2: 0.3,
-      MaxPowerRate3: 0,
+      MaxPowerRate: [1, 0.6, 0.3, 0],
     }
   }
 };
