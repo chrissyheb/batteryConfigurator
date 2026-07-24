@@ -63,7 +63,7 @@ export function findEnumOptionAvailability<T>(options: readonly EnumOption<T>[],
  *  erlaubten Werte des Feldes sind. */
 export type StringEnumRef = readonly EnumOption<string>[] | Record<string, readonly string[]>;
 
-type BaseType<T extends 'number' | 'string' | 'bool' | 'indexString' | 'ipv4' | 'uuid'> = {
+type BaseType<T extends 'number' | 'string' | 'bool' | 'indexString' | 'ipv4' | 'uuid' | 'array'> = {
   type: T;
   required: boolean;
   hint: string;
@@ -135,6 +135,42 @@ export function TypeUuid(
   opts: Omit<TypeUuidDef, 'type'> & { type?: never }
 ): TypeUuidDef {
   return { type: 'uuid', ...opts };
+};
+
+/** Erlaubte Item-Typen für TypeArray - jeder "einfache" Grundtyp außer Array
+ *  selbst (kein Array aus Arrays). */
+export type ArrayItemDef = TypeNumberDef | TypeStringDef | TypeNumberUnitDef | TypeBoolDef | TypeIndexStringDef | TypeIPv4Def | TypeUuidDef;
+
+/**
+ * Generisches Array eines einzelnen Grundtyps (siehe ArrayItemDef) - z.B. eine
+ * feste Liste von Zahlen (RippleControl.MaxPowerRate). Anders als die
+ * Equipment-Listen (Smartmeter[], BatteryInverter[], siehe registry/) ist das
+ * hier ein Array aus reinen Skalarwerten OHNE Add/Remove-UI, meist mit fester
+ * Länge (`length`) - kein Ersatz für die Listen-Metadatenschicht, sondern ein
+ * eigenständiger, einfacherer Feldtyp für "N Werte desselben Grundtyps
+ * zusammengehörig speichern/anzeigen".
+ *
+ * Wird sowohl im Schema (core/schema-builder.ts, `z.array(itemSchema)`) als
+ * auch beim generischen Rendern (core/form-renderer.tsx) einheitlich über
+ * `item` aufgelöst - der Item-Typ entscheidet, welche Validierung bzw. welche
+ * UI-Feld-Komponente pro Element verwendet wird.
+ */
+export type TypeArrayDef = BaseType<'array'> & {
+  item: ArrayItemDef;
+  /** Feste Länge (z.B. 4 für MaxPowerRate0..3). Vorrangig vor min/maxLength. */
+  length?: number;
+  /** Nur relevant ohne `length`: variable Länge - aktuell ohne Add/Remove-UI,
+   *  Länge richtet sich dann nach dem tatsächlich gespeicherten Array. */
+  minLength?: number;
+  maxLength?: number;
+  /** Optionale Anzeige-Beschriftung für die kompakte Zeilendarstellung
+   *  (z.B. "MaxPowerRates"), sonst wird der Feldname verwendet. */
+  label?: string;
+};
+export function TypeArray(
+  opts: Omit<TypeArrayDef, 'type'> & { type?: never }
+): TypeArrayDef {
+  return { type: 'array', ...opts };
 };
 
 export type NumberParameters = { type: string, min: number, max: number, int: boolean, required: boolean };

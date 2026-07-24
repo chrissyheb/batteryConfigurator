@@ -4,9 +4,10 @@
 //
 // Läuft nach demselben Muster wie core/schema-builder.ts (das denselben Baum
 // bereits rekursiv für Zod-Schemas abläuft): pro Knoten wird geprüft, ob es
-// ein "group"-Knoten (-> verschachtelte Collapsible) oder ein Blatt-Feld
-// (TypeString/TypeNumber/TypeBool/TypeIndexString/TypeIPv4/TypeUuid) ist, und
-// Availability (core/versioning.ts) wird pro Knoten ausgewertet, um nicht
+// ein "group"-Knoten (-> verschachtelte Collapsible), ein Blatt-Feld
+// (TypeString/TypeNumber/TypeBool/TypeIndexString/TypeIPv4/TypeUuid) oder ein
+// TypeArray (festes/variables Array eines Grundtyps, z.B. MaxPowerRate) ist,
+// und Availability (core/versioning.ts) wird pro Knoten ausgewertet, um nicht
 // verfügbare Felder/Gruppen einfach nicht zu rendern.
 //
 // Aktueller Umfang (Phase 5, erster Schritt - siehe SystemSection.tsx):
@@ -53,6 +54,39 @@ function renderLeaf(path: PathType, f: any, ctx: FormRendererCtx): React.ReactNo
 
   const key = path.join('.');
 
+  if (f?.type === 'array') {
+    // Generisches Array eines einzelnen Grundtyps (siehe core/field-types.ts
+    // -> TypeArray). Länge kommt vorrangig aus `length` (fest, z.B. MaxPowerRate
+    // mit 4 Elementen); ohne `length` richtet sie sich nach dem tatsächlich
+    // gespeicherten Array (kein Add/Remove hier - das ist die separate
+    // Listen-Metadatenschicht für Equipment-Arrays, nicht dieser Feldtyp).
+    const item = f.item;
+    const stored = ctx.getOrCfg(path, []);
+    const length = typeof f.length === 'number' ? f.length : (Array.isArray(stored) ? stored.length : 0);
+    const indices = Array.from({ length }, (_, i) => i);
+
+    // Kompakte Ein-Zeilen-Darstellung existiert bisher nur für Zahlen (über das
+    // bereits vorhandene NumberField-`items`-Feature, siehe ui/Fields.tsx).
+    // Für andere Item-Typen gibt es noch keine kompakte Variante - generischer,
+    // korrekter Fallback ist dann eine Reihe einzelner Felder untereinander
+    // (jedes über denselben renderLeaf-Pfad wie jedes andere Feld).
+    if (item?.type === 'number' || typeof item?.unit === 'string') {
+      return (
+        <NumberField
+          key={key}
+          label={f.label ?? String(path[path.length - 1])}
+          items={indices.map((i) => ({ path: [...path, i], defLink: item }))}
+        />
+      );
+    }
+
+    return (
+      <React.Fragment key={key}>
+        {indices.map((i) => renderLeaf([...path, i], item, ctx))}
+      </React.Fragment>
+    );
+  }
+
   if (f?.type === 'bool') {
     return <CheckField key={key} path={path} defLink={f} />;
   }
@@ -97,6 +131,16 @@ function renderLeaf(path: PathType, f: any, ctx: FormRendererCtx): React.ReactNo
 
   // Default: TypeString (ohne enum) und TypeIPv4 - beide als einfaches Textfeld.
   return <TextField key={key} path={path} defLink={f} />;
+}
+
+/** Rendert einen einzelnen Knoten (Gruppe -> eigene Collapsible-Karte, oder
+ *  Blatt-Feld). Exportiert, damit forms/*.tsx einzelne Gruppen (z.B. ein
+ *  "Config - X"-Unterkarte) gezielt generisch rendern kann, ohne gleich die
+ *  gesamte Komponente über GeneratedForm abzudecken (z.B. wenn eine Section
+ *  mehrere Komponenten/Listen zu einem Layout kombiniert - siehe EmsSection/
+ *  MainSection). */
+export function renderFieldNode(path: PathType, node: any, ctx: FormRendererCtx): React.ReactNode {
+  return renderNode(path, node, ctx);
 }
 
 function renderNode(path: PathType, node: any, ctx: FormRendererCtx): React.ReactNode {

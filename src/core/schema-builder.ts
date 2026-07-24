@@ -64,6 +64,25 @@ function buildBaseFieldSchema(f: any): z.ZodTypeAny
   }
   switch (f?.type)
   {
+    case 'array':
+    {
+      // Generisches Array eines einzelnen Grundtyps (siehe core/field-types.ts
+      // -> TypeArray). Item-Validierung wird durch denselben Builder erzeugt
+      // (rekursiver Aufruf), Länge über `length` (fest) oder min/maxLength.
+      const itemSchema = buildBaseFieldSchema(f.item);
+      let arr = z.array(itemSchema);
+      if (typeof f?.length === 'number')
+      {
+        arr = arr.length(f.length);
+      }
+      else
+      {
+        if (typeof f?.minLength === 'number') { arr = arr.min(f.minLength); }
+        if (typeof f?.maxLength === 'number') { arr = arr.max(f.maxLength); }
+      }
+      return arr;
+    }
+
     case 'uuid':
     {
       return z.string().uuid();

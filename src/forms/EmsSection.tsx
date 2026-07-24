@@ -2,15 +2,31 @@
 import React from 'react';
 import { useEffect } from 'react';
 import { SelectField, TextField, GuidField, NumberField, CheckField } from '@/ui/Fields';
-import { PathType, emsEquipmentKeys, emsConfigKeys, createByKey, getEmsSmartmeterHardwares, getEmsSmartmeterModels, getEmsSmartmeterUseCaseTypes, getEmsSmartmeterPowerSignTypes, getEmsRippleControlDiContactTypes, getEmsRippleControlPowerLimitDirections } from '@/spec/builder';
-import { indexStringToString, stringToIndexString } from '@/utils/helper';
+import { PathType, emsEquipmentKeys, emsConfigKeys, createByKey, getEmsSmartmeterHardwares, getEmsSmartmeterModels } from '@/spec/builder';
 import { components } from '@/registry';
 import { JSONValue } from '@/app/store';
 import { Collapsible } from '@/ui/Cards';
+import { renderFieldTree, renderFieldNode, type FormRendererCtx } from '@/core/form-renderer';
 
+// Ems hat keine einzelne "Ems"-ComponentDefinition, die Config+Equipment
+// vereint (das Layout kombiniert EmsConfig-Gruppen mit mehreren Equipment-
+// Listen) - deshalb kein GeneratedForm für die ganze Section, sondern
+// gezielter Einsatz von renderFieldNode/renderFieldTree für die Teile ohne
+// Listen/Seiteneffekte. Listen-Mechanik (add/remove/Titel/Cardinality),
+// Smartmeter-HardwareType->HardwareModel-Kopplung und die RippleControl-
+// MaxPowerRate-Sondergruppierung bleiben bewusst hand-geschrieben (siehe
+// core/form-renderer.tsx Kommentar zum aktuellen Funktionsumfang).
 export default function EmsSection(props: { cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; delFromCfg:(p: any) => void; hasCfg:(p: any) => boolean; errorIndex: any, errorPrefixSet:any })
 {
   const { cfg, setInCfg, getOrCfg, delFromCfg,  errorIndex } = props;
+
+  const ctx: FormRendererCtx = { cfg: props.cfg, getOrCfg: props.getOrCfg, setInCfg: props.setInCfg, errorPrefixSet: props.errorPrefixSet };
+
+  // Nur Felder mit echtem Sonderfall werden explizit ausgenommen - der Rest
+  // (inkl. künftig neu hinzugefügter Felder) wird automatisch generisch gerendert.
+  const { HardwareType: _smHardwareType, HardwareModel: _smHardwareModel, Config: smartmeterConfig, ...smartmeterRest } = components.Smartmeter.fields;
+  const { Config: slaveLocalConfig, ...slaveLocalRest } = components.SlaveLocalUM.fields;
+  const { Config: slaveRemoteConfig, ...slaveRemoteRest } = components.SlaveRemoteUM.fields;
 
   let systemsInParallelCount: number = 0;
 
@@ -57,109 +73,14 @@ export default function EmsSection(props: { cfg: any; setCfg: (c: any) => void; 
       path={['Units','Ems']}
       errorPrefixSet={props.errorPrefixSet}
     >
-      <Collapsible
-        title="Config - Grid Connection Point"
-        className="card"
-        path={['Units','Ems','Config','GridConnectionPoint']}
-        errorPrefixSet={props.errorPrefixSet}
-      >
-        <NumberField
-          path={['Units','Ems','Config','GridConnectionPoint','PowerGridConsumptionLimit']}
-          defLink={components.EmsConfig.fields.GridConnectionPoint.group.PowerGridConsumptionLimit}
-        />
-        <NumberField
-          path={['Units','Ems','Config','GridConnectionPoint','PowerGridFeedInLimit']}
-          defLink={components.EmsConfig.fields.GridConnectionPoint.group.PowerGridFeedInLimit}
-        />
-        <NumberField
-          path={['Units','Ems','Config','GridConnectionPoint','PowerGridConsumptionOffset']}
-          defLink={components.EmsConfig.fields.GridConnectionPoint.group.PowerGridConsumptionOffset}
-        />
-      </Collapsible>
+      {renderFieldNode(['Units','Ems','Config','GridConnectionPoint'], components.EmsConfig.fields.GridConnectionPoint, ctx)}
 
-      <Collapsible
-        title="Config - Master/Slave"
-        className="card"
-        path={['Units','Ems','Config','MasterSlave']}
-        errorPrefixSet={props.errorPrefixSet}
-      >
-        <NumberField
-          path={['Units','Ems','Config','MasterSlave','PowerActiveInstalledTotal']}
-          defLink={components.EmsConfig.fields.MasterSlave.group.PowerActiveInstalledTotal}
-        />
-        <NumberField
-          path={['Units','Ems','Config','MasterSlave','CapacityInstalledTotal']}
-          defLink={components.EmsConfig.fields.MasterSlave.group.CapacityInstalledTotal}
-        />
-        <NumberField
-          path={['Units','Ems','Config','MasterSlave','PowerChargeLimitTotal']}
-          defLink={components.EmsConfig.fields.MasterSlave.group.PowerChargeLimitTotal}
-        />
-        <NumberField
-          path={['Units','Ems','Config','MasterSlave','PowerDischargeLimitTotal']}
-          defLink={components.EmsConfig.fields.MasterSlave.group.PowerDischargeLimitTotal}
-        />
-      </Collapsible>
+      {renderFieldNode(['Units','Ems','Config','MasterSlave'], components.EmsConfig.fields.MasterSlave, ctx)}
 
-
-      <Collapsible
-        title="Config - Ripple Control"
-        className="card"
-        path={['Units','Ems','Config','RippleControl']}
-        errorPrefixSet={props.errorPrefixSet}
-      >
-        <SelectField
-          path={['Units','Ems','Config','RippleControl','DiContactType']}
-          defLink={components.EmsConfig.fields.RippleControl.group.DiContactType}
-          options={indexStringToString(getEmsRippleControlDiContactTypes())}
-          value={indexStringToString([getOrCfg(['Units','Ems','Config','RippleControl','DiContactType'], [0,''])])[0]}
-          onChange={(v: string) => { setInCfg(['Units','Ems','Config','RippleControl','DiContactType'], stringToIndexString(v)); }}
-        />
-        <SelectField
-          path={['Units','Ems','Config','RippleControl','PowerLimitDirection']}
-          defLink={components.EmsConfig.fields.RippleControl.group.PowerLimitDirection}
-          options={indexStringToString(getEmsRippleControlPowerLimitDirections())}
-          value={indexStringToString([getOrCfg(['Units','Ems','Config','RippleControl','PowerLimitDirection'], [0,''])])[0]}
-          onChange={(v: string) => { setInCfg(['Units','Ems','Config','RippleControl','PowerLimitDirection'], stringToIndexString(v)); }}
-        />
-        <CheckField
-          path={['Units','Ems','Config','RippleControl','ForceBessPowerReduction']}
-          defLink={components.EmsConfig.fields.RippleControl.group.ForceBessPowerReduction}
-        />
-        <CheckField
-          path={['Units','Ems','Config','RippleControl','LimitToZeroOnMultipleSelection']}
-          defLink={components.EmsConfig.fields.RippleControl.group.LimitToZeroOnMultipleSelection}
-        />
-        <NumberField
-          path={['Units','Ems','Config','RippleControl','NominalPowerPV']}
-          defLink={components.EmsConfig.fields.RippleControl.group.NominalPowerPV}
-        />
-        <NumberField
-          path={['Units','Ems','Config','RippleControl','NominalPowerProductionTotal']}
-          defLink={components.EmsConfig.fields.RippleControl.group.NominalPowerProductionTotal}
-        />
-        <NumberField
-          label="MaxPowerRates"
-          items={[
-            {
-              path:['Units','Ems','Config','RippleControl','MaxPowerRate0'],
-              defLink: components.EmsConfig.fields.RippleControl.group.MaxPowerRate0
-            },
-            {
-              path:['Units','Ems','Config','RippleControl','MaxPowerRate1'],
-              defLink:components.EmsConfig.fields.RippleControl.group.MaxPowerRate1
-            },
-            {
-              path:['Units','Ems','Config','RippleControl','MaxPowerRate2'],
-              defLink:components.EmsConfig.fields.RippleControl.group.MaxPowerRate2
-            },
-            {
-              path:['Units','Ems','Config','RippleControl','MaxPowerRate3'],
-              defLink:components.EmsConfig.fields.RippleControl.group.MaxPowerRate3
-            }
-          ]}
-        />
-      </Collapsible>
+      {/* RippleControl ist jetzt vollständig generisch (MaxPowerRate ist seit
+          TypeArray ein einziges Feld statt vier Einzelwerten - kein Sonderfall
+          mehr, siehe core/field-types.ts -> TypeArray). */}
+      {renderFieldNode(['Units','Ems','Config','RippleControl'], components.EmsConfig.fields.RippleControl, ctx)}
 
       <Collapsible
         title="Config - Power Limit Groups"
@@ -171,6 +92,7 @@ export default function EmsSection(props: { cfg: any; setCfg: (c: any) => void; 
       >
         {getOrCfg(['Units','Ems','Config','PowerLimitGroups'], []).map((e: any, i: number) =>
         {
+          const itemPath: PathType = ['Units','Ems','Config','PowerLimitGroups',i];
           return (
             <Collapsible
               key={i}
@@ -178,25 +100,10 @@ export default function EmsSection(props: { cfg: any; setCfg: (c: any) => void; 
               className="card"
               actionType="delete"
               onAction={() => removeElement(['Units','Ems','Config','PowerLimitGroups'],i)}
-              path={['Units','Ems','Config','PowerLimitGroups',i]}
+              path={itemPath}
               errorPrefixSet={props.errorPrefixSet}
             >
-              <CheckField
-                path={['Units','Ems','Config','PowerLimitGroups',i,'Active']}
-                defLink={components.PowerLimitGroup.fields.Active}
-              />
-              <NumberField
-                path={['Units','Ems','Config','PowerLimitGroups',i,'PowerActiveLimit']}
-                defLink={components.PowerLimitGroup.fields.PowerActiveLimit}
-              />
-              <NumberField
-                path={['Units','Ems','Config','PowerLimitGroups',i,'FallbackPowerLimitCharge']}
-                defLink={components.PowerLimitGroup.fields.FallbackPowerLimitCharge}
-              />
-              <NumberField
-                path={['Units','Ems','Config','PowerLimitGroups',i,'FallbackPowerLimitDischarge']}
-                defLink={components.PowerLimitGroup.fields.FallbackPowerLimitDischarge}
-              />
+              {renderFieldTree(itemPath, components.PowerLimitGroup.fields, ctx)}
             </Collapsible>
           );
         })}
@@ -216,6 +123,7 @@ export default function EmsSection(props: { cfg: any; setCfg: (c: any) => void; 
         />
         {getOrCfg(['Units','Ems','Equipment','Smartmeter'], []).map((e: any, i: number) =>
         {
+          const itemPath: PathType = ['Units','Ems','Equipment','Smartmeter',i];
           return (
             <Collapsible
               key={i}
@@ -223,17 +131,13 @@ export default function EmsSection(props: { cfg: any; setCfg: (c: any) => void; 
               className="card"
               actionType="delete"
               onAction={() => removeElement(['Units','Ems','Equipment','Smartmeter'],i)}
-              path={['Units','Ems','Equipment','Smartmeter',i]}
+              path={itemPath}
               errorPrefixSet={props.errorPrefixSet}
             >
-              <TextField
-                path={['Units','Ems','Equipment','Smartmeter',i,'Name']}
-                defLink={components.Smartmeter.fields.Name}
-              />
-              <TextField
-                path={['Units','Ems','Equipment','Smartmeter',i,'DisplayName']}
-                defLink={components.Smartmeter.fields.DisplayName}
-              />
+              {renderFieldTree(itemPath, smartmeterRest, ctx)}
+              {/* HardwareType/HardwareModel bleiben hand-geschrieben: Auswahl von
+                  HardwareType belegt HardwareModel automatisch mit dem ersten
+                  passenden Modell vor (Seiteneffekt, nicht generisch ableitbar). */}
               <SelectField
                 path={['Units','Ems','Equipment','Smartmeter',i,'HardwareType']}
                 defLink={components.Smartmeter.fields.HardwareType}
@@ -250,32 +154,7 @@ export default function EmsSection(props: { cfg: any; setCfg: (c: any) => void; 
                 defLink={components.Smartmeter.fields.HardwareModel}
                 options={getEmsSmartmeterModels(getOrCfg(['Units','Ems','Equipment','Smartmeter',i,'HardwareType'], ''))}
               />
-              <GuidField
-                path={['Units','Ems','Equipment','Smartmeter',i,'Guid']}
-                defLink={components.Smartmeter.fields.Guid}
-              />
-              <SelectField
-                path={['Units','Ems','Equipment','Smartmeter',i,'Config','Usecase']}
-                defLink={components.Smartmeter.fields.Config.group.Usecase}
-                options={indexStringToString(getEmsSmartmeterUseCaseTypes())}
-                value={indexStringToString([getOrCfg(['Units','Ems','Equipment','Smartmeter',i,'Config','Usecase'], [0,''])])[0]}
-                onChange={(v: string) => { setInCfg(['Units','Ems','Equipment','Smartmeter',i,'Config','Usecase'], stringToIndexString(v)); }}
-              />
-              <SelectField
-                path={['Units','Ems','Equipment','Smartmeter',i,'Config','PowerSign']}
-                defLink={components.Smartmeter.fields.Config.group.PowerSign}
-                options={indexStringToString(getEmsSmartmeterPowerSignTypes())}
-                value={indexStringToString([getOrCfg(['Units','Ems','Equipment','Smartmeter',i,'Config','PowerSign'], [0,''])])[0]}
-                onChange={(v: string) => { setInCfg(['Units','Ems','Equipment','Smartmeter',i,'Config','PowerSign'], stringToIndexString(v)); }}
-              />
-              <TextField
-                path={['Units','Ems','Equipment','Smartmeter',i,'Config','IpAddress']}
-                defLink={components.Smartmeter.fields.Config.group.IpAddress}
-              />
-              <NumberField
-                path={['Units','Ems','Equipment','Smartmeter',i,'Config','Port']}
-                defLink={components.Smartmeter.fields.Config.group.Port}
-              />
+              {renderFieldTree([...itemPath, 'Config'], smartmeterConfig.group, ctx)}
             </Collapsible>
           );
         })}
@@ -296,6 +175,7 @@ export default function EmsSection(props: { cfg: any; setCfg: (c: any) => void; 
         />
         {getOrCfg(['Units','Ems','Equipment','LocalRemoteSystems'], []).map((e: any, i: number) =>
         {
+          const itemPath: PathType = ['Units','Ems','Equipment','LocalRemoteSystems',i];
           if (e.Type === 'SlaveLocalUM')
           {
             return (
@@ -303,25 +183,11 @@ export default function EmsSection(props: { cfg: any; setCfg: (c: any) => void; 
                 key={i}
                 title={(getOrCfg(['Units','Ems','Equipment',"LocalRemoteSystems",i,'Type'], 'Unkown Local System') === 'SlaveLocalUM' ? 'Local System' : 'Unknown Local System') + ' (' + getOrCfg(['Units','Ems','Equipment','LocalRemoteSystems',i,'DisplayName'], '') + ')'}
                 className="card"
-                path={['Units','Ems','Equipment','LocalRemoteSystems',i]}
+                path={itemPath}
                 errorPrefixSet={props.errorPrefixSet}
               >
-                <TextField
-                  path={['Units','Ems','Equipment','LocalRemoteSystems',i,'Name']}
-                  defLink={components.SlaveLocalUM.fields.Name}
-                />
-                <TextField
-                  path={['Units','Ems','Equipment','LocalRemoteSystems',i,'DisplayName']}
-                  defLink={components.SlaveLocalUM.fields.DisplayName}
-                />
-                <GuidField
-                  path={['Units','Ems','Equipment','LocalRemoteSystems',i,'Guid']}
-                  defLink={components.SlaveLocalUM.fields.Guid}
-                />
-                <TextField
-                  path={['Units','Ems','Equipment','LocalRemoteSystems',i,'Config','IpAddress']}
-                  defLink={components.SlaveLocalUM.fields.Config.group.IpAddress}
-                />
+                {renderFieldTree(itemPath, slaveLocalRest, ctx)}
+                {renderFieldTree([...itemPath, 'Config'], slaveLocalConfig.group, ctx)}
               </Collapsible>
             );
           }
@@ -334,25 +200,11 @@ export default function EmsSection(props: { cfg: any; setCfg: (c: any) => void; 
                 className="card"
                 actionType="delete"
                 onAction={() => removeElement(['Units','Ems','Equipment','LocalRemoteSystems'],i)}
-                path={['Units','Ems','Equipment','LocalRemoteSystems',i]}
+                path={itemPath}
                 errorPrefixSet={props.errorPrefixSet}
               >
-                <TextField
-                  path={['Units','Ems','Equipment','LocalRemoteSystems',i,'Name']}
-                  defLink={components.SlaveRemoteUM.fields.Name}
-                />
-                <TextField
-                  path={['Units','Ems','Equipment','LocalRemoteSystems',i,'DisplayName']}
-                  defLink={components.SlaveRemoteUM.fields.DisplayName}
-                />
-                <GuidField
-                  path={['Units','Ems','Equipment','LocalRemoteSystems',i,'Guid']}
-                  defLink={components.SlaveRemoteUM.fields.Guid}
-                />
-                <TextField
-                  path={['Units','Ems','Equipment','LocalRemoteSystems',i,'Config','IpAddress']}
-                  defLink={components.SlaveRemoteUM.fields.Config.group.IpAddress}
-                />
+                {renderFieldTree(itemPath, slaveRemoteRest, ctx)}
+                {renderFieldTree([...itemPath, 'Config'], slaveRemoteConfig.group, ctx)}
               </Collapsible>
             );
           }

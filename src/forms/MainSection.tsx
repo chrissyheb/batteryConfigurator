@@ -2,18 +2,31 @@
 import React from 'react';
 import { useEffect } from 'react';
 import { SelectField, TextField, GuidField, CheckField, NumberField } from '@/ui/Fields';
-import { PathType, createByKey, getInverterTypes, getBatteryTypes, getModbusTypes, getMainSmartmeterHardwares, getMainSmartmeterModels, getInverterHardwareTypes, getBatteryHardwareTypes, mainEquipmentKeys, mainConfigKeys, getMainControlCabinetTypes } from '@/spec/builder';
-import { indexStringToString, stringToIndexString } from '@/utils/helper';
+import { PathType, createByKey, getModbusTypes, getMainSmartmeterHardwares, getMainSmartmeterModels, mainEquipmentKeys, mainConfigKeys } from '@/spec/builder';
 import { components } from '@/registry';
 import { getVersionContext, isAvailable } from '@/core/versioning';
 import { JSONValue } from '@/app/store';
 import { Collapsible } from '@/ui/Cards';
+import { renderFieldTree, type FormRendererCtx } from '@/core/form-renderer';
 
 function BatteryInverterCard(props: { idx: number; count: number; cfg: any; setCfg: (c: any) => void; setInCfg:(p: any, v: any) => void; getCfg: (p: any) => any; getOrCfg:(p: any, v: any) => any; delFromCfg:(p: any) => void; hasCfg:(p: any) => boolean; errorIndex: any, errorPrefixSet:any })
 {
   const { idx, count, cfg, setCfg, setInCfg, getOrCfg, delFromCfg } = props;
 
+  const itemPath: PathType = ['Units','Main','Equipment','BatteryInverter',idx];
+  const ctx: FormRendererCtx = { cfg, getOrCfg, setInCfg, errorPrefixSet: props.errorPrefixSet };
+
   const modbusAvailable = getOrCfg(['Units','Main','Equipment','BatteryInverter',idx,'Modbus'], false);
+
+  // Nur die Felder mit echtem Sonderfall (Index: an Listenindex gekoppelt;
+  // Config: separat geflacht statt als eigene Karte) werden explizit
+  // herausgenommen - der Rest wird per Object-Rest automatisch mitgerendert.
+  // So tauchen neu hinzugefügte Felder (z.B. ein neues DisplayName) automatisch
+  // im Formular auf, ohne dass diese Datei nochmal angefasst werden muss.
+  const { Index: _biIndex, Inverter: _biInverter, Battery: _biBattery, Modbus: _biModbus, ...batteryInverterRest } = components.BatteryInverter.fields;
+  const { Config: inverterConfig, ...inverterRest } = components.BatteryInverterInverter.fields.group;
+  const { Config: batteryConfig, ...batteryRest } = components.BatteryInverterBattery.fields.group;
+  const { Type: _modbusType, Config: modbusConfig, ...modbusRest } = components.BatteryInverterModbus.fields.group;
 
   // Versionierung: Modbus ist als Komponente nur für bestimmte HardwareVariants
   // verfügbar (siehe components/battery-inverter/spec.ts -> BatteryInverterModbus.availability).
@@ -34,106 +47,50 @@ function BatteryInverterCard(props: { idx: number; count: number; cfg: any; setC
       className="card stack"
       actionType={(count === 1) ? undefined : "delete"}
       onAction={() => removeElement(['Units','Main','Equipment','BatteryInverter'],idx)}
-      path={['Units','Main','Equipment','BatteryInverter',idx]}
+      path={itemPath}
       errorPrefixSet={props.errorPrefixSet}
     >
-      <TextField
-        path={['Units','Main','Equipment','BatteryInverter',idx,'Name']}
-        defLink={components.BatteryInverter.fields.Name}
-      />
+      {renderFieldTree(itemPath, batteryInverterRest, ctx)}
+      {/* Index ist an den Listenindex gekoppelt (nicht an einen gespeicherten
+          Wert) - deshalb weiterhin die explizite `value`-Übersteuerung. */}
       <NumberField
         value={idx}
         path={['Units','Main','Equipment','BatteryInverter',idx,'Index']}
         defLink={components.BatteryInverter.fields.Index}
       />
 
+      {/* Inverter/Battery: generisch bis auf das Flatten der jeweiligen
+          "Config"-Untergruppe (die hat in der bestehenden UI keine eigene
+          Karte, sondern liegt flach in der Inverter/Battery-Karte). */}
       <Collapsible
         title="Inverter"
         className="card"
-        path={['Units','Main','Equipment','BatteryInverter',idx,'Inverter']}
+        path={[...itemPath,'Inverter']}
         errorPrefixSet={props.errorPrefixSet}
       >
-        <SelectField
-          path={['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Type']}
-          defLink={components.BatteryInverterInverter.fields.group.Type}
-          options={getInverterTypes(versionCtx, cfg)}
-        />
-        <TextField
-          path={['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Name']}
-          defLink={components.BatteryInverterInverter.fields.group.Name}
-        />
-        <GuidField
-          path={['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Guid']}
-          defLink={components.BatteryInverterInverter.fields.group.Guid}
-        />
-        <SelectField
-          path={['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Config','InverterType']}
-          defLink={components.BatteryInverterInverter.fields.group.Config.group.InverterType}
-          options={getInverterHardwareTypes(versionCtx, cfg)}
-        />
-        <NumberField
-          path={['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Config','NominalInverterPower']}
-          defLink={components.BatteryInverterInverter.fields.group.Config.group.NominalInverterPower}
-        />
-        <TextField
-          path={['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Config','IpAddress']}
-          defLink={components.BatteryInverterInverter.fields.group.Config.group.IpAddress}
-        />
-        <NumberField
-          path={['Units','Main','Equipment','BatteryInverter',idx,'Inverter','Config','Port']}
-          defLink={components.BatteryInverterInverter.fields.group.Config.group.Port}
-        />
+        {renderFieldTree([...itemPath,'Inverter'], inverterRest, ctx)}
+        {renderFieldTree([...itemPath,'Inverter','Config'], inverterConfig.group, ctx)}
       </Collapsible>
 
       <Collapsible
         title="Battery"
         className="card"
-        path={['Units','Main','Equipment','BatteryInverter',idx,'Battery']}
+        path={[...itemPath,'Battery']}
         errorPrefixSet={props.errorPrefixSet}
       >
-        <SelectField
-          path={['Units','Main','Equipment','BatteryInverter',idx,'Battery','Type']}
-          defLink={components.BatteryInverterBattery.fields.group.Type}
-          options={getBatteryTypes(versionCtx, cfg)}
-        />
-        <TextField
-          path={['Units','Main','Equipment','BatteryInverter',idx,'Battery','Name']}
-          defLink={components.BatteryInverterBattery.fields.group.Name}
-        />
-        <GuidField
-          path={['Units','Main','Equipment','BatteryInverter',idx,'Battery','Guid']}
-          defLink={components.BatteryInverterBattery.fields.group.Guid}
-        />
-        <SelectField
-          path={['Units','Main','Equipment','BatteryInverter',idx,'Battery','Config','BatteryType']}
-          defLink={components.BatteryInverterBattery.fields.group.Config.group.BatteryType}
-          options={getBatteryHardwareTypes(versionCtx, cfg)}
-        />
-        <NumberField
-          path={['Units','Main','Equipment','BatteryInverter',idx,'Battery','Config','BatteryCabinetCount']}
-          defLink={components.BatteryInverterBattery.fields.group.Config.group.BatteryCabinetCount}
-        />
-        <NumberField
-          path={['Units','Main','Equipment','BatteryInverter',idx,'Battery','Config','BatteryCabinetModuleCount']}
-          defLink={components.BatteryInverterBattery.fields.group.Config.group.BatteryCabinetModuleCount}
-        />
-        <TextField
-          path={['Units','Main','Equipment','BatteryInverter',idx,'Battery','Config','IpAddress']}
-          defLink={components.BatteryInverterBattery.fields.group.Config.group.IpAddress}
-        />
-        <NumberField
-          path={['Units','Main','Equipment','BatteryInverter',idx,'Battery','Config','Port']}
-          defLink={components.BatteryInverterBattery.fields.group.Config.group.Port}
-        />
+        {renderFieldTree([...itemPath,'Battery'], batteryRest, ctx)}
+        {renderFieldTree([...itemPath,'Battery','Config'], batteryConfig.group, ctx)}
       </Collapsible>
 
       {modbusComponentAvailable && (
         <Collapsible
           title="Modbus"
           className="card"
-          path={['Units','Main','Equipment','BatteryInverter',idx,'Modbus']}
+          path={[...itemPath,'Modbus']}
           errorPrefixSet={props.errorPrefixSet}
         >
+          {/* Toggle bleibt hand-geschrieben: legt/löscht die ganze Modbus-
+              Unterkomponente (Seiteneffekt über das eigentliche Feld hinaus). */}
           <SelectField
             path={['Units','Main','Equipment','BatteryInverter',idx,'Modbus','Type']}
               defLink={components.BatteryInverterModbus.fields.group.Type}
@@ -147,22 +104,8 @@ function BatteryInverterCard(props: { idx: number; count: number; cfg: any; setC
             }
           />
           {modbusAvailable && (<>
-            <TextField
-              path={['Units','Main','Equipment','BatteryInverter',idx,'Modbus','Name']}
-              defLink={components.BatteryInverterModbus.fields.group.Name}
-            />
-            <GuidField
-              path={['Units','Main','Equipment','BatteryInverter',idx,'Modbus','Guid']}
-              defLink={components.BatteryInverterModbus.fields.group.Guid}
-            />
-            <TextField
-              path={['Units','Main','Equipment','BatteryInverter',idx,'Modbus','Config','IpAddress']}
-              defLink={components.BatteryInverterModbus.fields.group.Config.group.IpAddress}
-            />
-            <NumberField
-              path={['Units','Main','Equipment','BatteryInverter',idx,'Modbus','Config','Port']}
-              defLink={components.BatteryInverterModbus.fields.group.Config.group.Port}
-            />
+            {renderFieldTree([...itemPath,'Modbus'], modbusRest, ctx)}
+            {renderFieldTree([...itemPath,'Modbus','Config'], modbusConfig.group, ctx)}
           </>)}
         </Collapsible>
       )}
@@ -175,10 +118,18 @@ export default function MainSection(props: { cfg: any; setCfg: (c: any) => void;
 {
   const { cfg, setCfg, setInCfg, getCfg, getOrCfg, delFromCfg, hasCfg, errorIndex, errorPrefixSet } = props;
 
+  const ctx: FormRendererCtx = { cfg, getOrCfg, setInCfg, errorPrefixSet };
+
   const versionCtx = getVersionContext(cfg);
   // Versionierungs-Beispiel auf Feldebene (siehe components/smartmeter-main/spec.ts):
   // CurrentTransformerPrimaryCurrent ist illustrativ an eine PLC-Lib-Version gebunden.
+  // (Die Availability-Prüfung übernimmt beim generischen Rendern core/form-renderer.tsx
+  // automatisch - hier nur noch für das dynamische readOnly unten benötigt.)
   const currentTransformerAvailable = isAvailable(components.SmartmeterMain.fields.CurrentTransformerPrimaryCurrent.availability, versionCtx, cfg);
+
+  // Nur die Felder mit echtem Sonderfall werden explizit ausgenommen - der Rest
+  // (inkl. künftig neu hinzugefügter Felder) wird automatisch generisch gerendert.
+  const { HardwareType: _smHardwareType, HardwareModel: _smHardwareModel, CurrentTransformerPrimaryCurrent: _smCurrentTransformer, ...smartmeterMainRest } = components.SmartmeterMain.fields;
 
   function addElement(path: PathType, type: mainEquipmentKeys|mainConfigKeys): void
   {
@@ -232,43 +183,7 @@ export default function MainSection(props: { cfg: any; setCfg: (c: any) => void;
         path={['Units','Main','Config']}
         errorPrefixSet={props.errorPrefixSet}
       >
-        <TextField
-          path={['Units','Main','Config','IpAddressInternal']}
-          defLink={components.MainConfig.fields.IpAddressInternal}
-        />
-        <SelectField
-          path={['Units','Main','Config','MainControlCabinetType']}
-          defLink={components.MainConfig.fields.MainControlCabinetType}
-          options={indexStringToString(getMainControlCabinetTypes(versionCtx, cfg))}
-          value={indexStringToString([getOrCfg(['Units','Main','Config','MainControlCabinetType'], getMainControlCabinetTypes(versionCtx, cfg)[0])])[0]}
-          onChange={(v: string) => { setInCfg(['Units','Main','Config','MainControlCabinetType'], stringToIndexString(v)); }}
-        />
-        <CheckField
-          path={['Units','Main','Config','PowerSwitchMainAvailable']}
-          defLink={components.MainConfig.fields.PowerSwitchMainAvailable}
-        />
-        <CheckField
-          path={['Units','Main','Config','SafetyRelayAvailable']}
-          defLink={components.MainConfig.fields.SafetyRelayAvailable}
-        />
-        <NumberField
-          path={['Units','Main','Config','PowerChargeLimitLocal']}
-          defLink={components.MainConfig.fields.PowerChargeLimitLocal}
-        />
-        <NumberField
-          path={['Units','Main','Config','PowerDischargeLimitLocal']}
-          defLink={components.MainConfig.fields.PowerDischargeLimitLocal}
-        />
-        <NumberField
-          readOnly
-          path={['Units','Main','Config','InverterCount']}
-          defLink={components.MainConfig.fields.InverterCount}
-        />
-        <NumberField
-          readOnly
-          path={['Units','Main','Config','BatteryCount']}
-          defLink={components.MainConfig.fields.BatteryCount}
-        />
+        {renderFieldTree(['Units','Main','Config'], components.MainConfig.fields, ctx)}
       </Collapsible>
 
       <Collapsible
@@ -281,6 +196,7 @@ export default function MainSection(props: { cfg: any; setCfg: (c: any) => void;
       >
         { getOrCfg(['Units','Main','Config','PowerLimitGroups'], []).map((e: any, i: number) =>
         {
+          const itemPath: PathType = ['Units','Main','Config','PowerLimitGroups',i];
           return (
             <Collapsible
               key={i}
@@ -288,25 +204,10 @@ export default function MainSection(props: { cfg: any; setCfg: (c: any) => void;
               className="card"
               actionType="delete"
               onAction={() => removeElement(['Units','Main','Config','PowerLimitGroups'],i)}
-              path={['Units','Main','Config','PowerLimitGroups',i]}
+              path={itemPath}
               errorPrefixSet={props.errorPrefixSet}
             >
-              <CheckField
-                path={['Units','Main','Config','PowerLimitGroups',i,'Active']}
-                defLink={components.PowerLimitGroup.fields.Active}
-              />
-              <NumberField
-                path={['Units','Main','Config','PowerLimitGroups',i,'PowerActiveLimit']}
-                defLink={components.PowerLimitGroup.fields.PowerActiveLimit}
-              />
-              <NumberField
-                path={['Units','Main','Config','PowerLimitGroups',i,'FallbackPowerLimitCharge']}
-                defLink={components.PowerLimitGroup.fields.FallbackPowerLimitCharge}
-              />
-              <NumberField
-                path={['Units','Main','Config','PowerLimitGroups',i,'FallbackPowerLimitDischarge']}
-                defLink={components.PowerLimitGroup.fields.FallbackPowerLimitDischarge}
-              />
+              {renderFieldTree(itemPath, components.PowerLimitGroup.fields, ctx)}
             </Collapsible>
           );
         })}
@@ -318,14 +219,9 @@ export default function MainSection(props: { cfg: any; setCfg: (c: any) => void;
         path={['Units','Main','Equipment','SmartmeterMain']}
         errorPrefixSet={props.errorPrefixSet}
       >
-        <TextField
-          path={['Units','Main','Equipment','SmartmeterMain','Name']}
-          defLink={components.SmartmeterMain.fields.Name}
-        />
-        <TextField
-          path={['Units','Main','Equipment','SmartmeterMain','DisplayName']}
-          defLink={components.SmartmeterMain.fields.DisplayName}
-        />
+        {renderFieldTree(['Units','Main','Equipment','SmartmeterMain'], smartmeterMainRest, ctx)}
+        {/* HardwareType/HardwareModel bleiben hand-geschrieben (Seiteneffekt:
+            HardwareType-Wahl belegt HardwareModel automatisch vor). */}
         <SelectField
           path={['Units','Main','Equipment','SmartmeterMain','HardwareType']}
           defLink={components.SmartmeterMain.fields.HardwareType}
@@ -342,6 +238,10 @@ export default function MainSection(props: { cfg: any; setCfg: (c: any) => void;
           defLink={components.SmartmeterMain.fields.HardwareModel}
           options={getMainSmartmeterModels(getCfg(['Units','Main','Equipment','SmartmeterMain','HardwareType']))}
         />
+        {/* Dynamisches readOnly (abhängig vom aktuell gewählten HardwareModel) ist
+            nicht generisch ableitbar - bleibt hand-geschrieben. Availability
+            (sinceVersion) selbst würde der generische Renderer bereits automatisch
+            berücksichtigen. */}
         {currentTransformerAvailable && (
           <NumberField
             path={['Units','Main','Equipment','SmartmeterMain','CurrentTransformerPrimaryCurrent']}
@@ -349,10 +249,6 @@ export default function MainSection(props: { cfg: any; setCfg: (c: any) => void;
             readOnly={getOrCfg(['Units','Main','Equipment','SmartmeterMain','HardwareModel'], 'Virtual') !== 'El34x3'}
           />
         )}
-        <GuidField
-          path={['Units','Main','Equipment','SmartmeterMain','Guid']}
-          defLink={components.SmartmeterMain.fields.Guid}
-        />
       </Collapsible>
 
       <Collapsible
