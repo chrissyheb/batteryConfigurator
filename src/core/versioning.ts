@@ -17,8 +17,19 @@ export type AvailabilitySpec = {
   untilVersion?: string;
   /** Nur für diese HardwareVariant(en) verfügbar, z.B. ['Terra']. */
   hardwareVariants?: string[];
-  /** Freie Zusatzbedingung, z.B. abhängig von einem anderen Feld im Config-Objekt. */
-  when?: (cfg: any) => boolean;
+  /**
+   * Freie Zusatzbedingung, z.B. abhängig von einem anderen Feld im Config-Objekt.
+   * `path` ist der volle Pfad des Feldes/der Gruppe, für die gerade die
+   * Verfügbarkeit geprüft wird (z.B. [...,'CurrentTransformerPrimaryCurrent']) -
+   * damit lässt sich ein Geschwisterfeld relativ adressieren (siehe
+   * components/smartmeter-ems/spec.ts), was auch innerhalb einer Liste
+   * (unterschiedlicher Index je Instanz) funktioniert. Beim Schema-Bau
+   * (core/schema-builder.ts) gibt es KEINEN Instanz-Pfad (eine Schema-Form gilt
+   * für alle Listen-Items gleichermaßen) - `path` ist dort undefined; `when`
+   * sollte sich in diesem Fall auf ein konservatives Verhalten zurückziehen
+   * (siehe Beispiel in smartmeter-ems/spec.ts).
+   */
+  when?: (cfg: any, path?: Array<string | number>) => boolean;
 };
 
 /**
@@ -44,7 +55,7 @@ export function compareVersions(a: string, b: string): number
  * VersionContext (und optional dem restlichen Config-Objekt) verfügbar ist.
  * Ohne AvailabilitySpec ist alles immer verfügbar (rückwärtskompatibel).
  */
-export function isAvailable(avail: AvailabilitySpec | undefined, ctx: VersionContext, cfg?: any): boolean
+export function isAvailable(avail: AvailabilitySpec | undefined, ctx: VersionContext, cfg?: any, path?: Array<string | number>): boolean
 {
   if (!avail) { return true; }
 
@@ -60,7 +71,7 @@ export function isAvailable(avail: AvailabilitySpec | undefined, ctx: VersionCon
   {
     return false;
   }
-  if (avail.when && !avail.when(cfg))
+  if (avail.when && !avail.when(cfg, path))
   {
     return false;
   }

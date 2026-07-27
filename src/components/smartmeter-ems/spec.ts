@@ -1,5 +1,5 @@
-import { TypeString, TypeUuid, TypeIPv4, TypeNumber, TypeIndexString, IndexStringType, dependentEnumFields } from '@/core/field-types';
-import type { ComponentDefinition } from '@/registry/types';
+import { TypeString, TypeUuid, TypeIPv4, TypeNumber, TypeNumberUnit, TypeIndexString, IndexStringType, dependentEnumFields } from '@/core/field-types';
+import type { ComponentDefinition, ValidationIssue } from '@/registry/types';
 
 export const smartmeterHardwareToTypes = {
   CarloGavazzi: ['EM24'],
@@ -13,11 +13,100 @@ export const smartmeterHardwareToTypes = {
 export const smartmeterUseCaseTypes: IndexStringType[] = [[0, 'Undefined'], [2, 'GridConnectionPointControl'], [3, 'PowerLimitationGroupEms1'], [4, 'PowerLimitationGroupEms2'], [5, 'PowerLimitationGroupMain1'], [6, 'PowerLimitationGroupMain2']];
 export const smartmeterPowerSignTypes: IndexStringType[] = [[0, 'Positive'], [1, 'Negative']];
 
+/**
+ * Felder, die JEDE Smartmeter-Variante teilt (Ems-Listen-Item UND
+ * Main-Singleton, siehe components/smartmeter-main/spec.ts): Type(const)/
+ * Name/DisplayName/HardwareType+HardwareModel. `hardwareMap` erlaubt
+ * SmartmeterMain, nur eine Teilmenge der hier verfügbaren Hardware-Typen
+ * anzubieten. Guid/Config/CurrentTransformerPrimaryCurrent bewusst NICHT hier
+ * drin - deren Reihenfolge/Vorhandensein unterscheidet sich leicht zwischen
+ * den beiden Verwendern, siehe jeweils dort.
+ */
+export function smartmeterCommonFields(typeConst: string, hardwareMap: Record<string, readonly string[]>)
+{
+  return {
+    Type: { const: typeConst, required: true },
+    Name: TypeString({ required: true, plcVariableName: true, hint: 'Component name in TwinCAT code \n - no spaces permitted -' }),
+    DisplayName: TypeString({ required: true, hint: 'Component name in Log files' }),
+    ...dependentEnumFields(hardwareMap, {
+      primaryKey: 'HardwareType',
+      primaryHint: 'Manufacturer of Smartmeter',
+      secondaryKey: 'HardwareModel',
+      secondaryHint: 'Hardware model type of Smartmeter'
+    })
+  };
+}
+
+/** Liest ein Geschwisterfeld relativ zum übergebenen Feld-Pfad (z.B. für
+ *  `path` = [...,'CurrentTransformerPrimaryCurrent'] das `HardwareType` am
+ *  selben Element) - bewusst hier lokal statt eines allgemeinen App-weiten
+ *  Pfad-Utilities importiert, damit diese Spec-Datei keine Abhängigkeit zu
+ *  app/store.ts bekommt. */
+function siblingValue(cfg: any, path: Array<string | number> | undefined, siblingKey: string): any
+{
+  if (!path || path.length === 0) { return undefined; }
+  const siblingPath = [...path.slice(0, -1), siblingKey];
+  let cur: any = cfg;
+  for (const key of siblingPath)
+  {
+    if (cur == null) { return undefined; }
+    cur = cur[key as any];
+  }
+  return cur;
+}
+
+/**
+ * CurrentTransformerPrimaryCurrent ist ein Beckhoff-spezifischer Parameter
+ * (Stromwandler-Kalibrierung für das EL34x3-Terminal) - hängt am HardwareType
+ * 'Beckhoff', nicht an "ist SmartmeterMain". Gilt daher potenziell für JEDE
+ * Smartmeter-Instanz mit HardwareType Beckhoff (Ems-Liste UND Main-Singleton),
+ * deshalb hier eine gemeinsame Feld-Definition statt an SmartmeterMain gebunden
+ * (siehe components/smartmeter-main/spec.ts, wo dasselbe Feld wiederverwendet wird).
+ */
+export const currentTransformerPrimaryCurrentField = TypeNumberUnit({
+  required: false,
+  hint: 'Nominal transformer primary current for BLOKK/TERRA power Measurement with Beckhoff EL34x3 \n >= 0',
+  min: 0,
+  unit: 'A',
+  availability: {
+    sinceVersion: '0.0.7',
+    // `path` fehlt beim Schema-Bau (core/schema-builder.ts baut EINE Form für
+    // alle Listen-Items) - in dem Fall bewusst konservativ "verfügbar"
+    // (unverändert zur bisherigen, nur versionsabhängigen Prüfung), damit sich
+    // am Zod-Schema nichts ändert. Die UI (core/form-renderer.tsx) hat immer
+    // einen echten Instanz-Pfad und blendet das Feld dort korrekt nur für
+    // HardwareType 'Beckhoff' ein.
+    when: (cfg, path) => (path ? siblingValue(cfg, path, 'HardwareType') === 'Beckhoff' : true)
+  }
+});
+
+/**
+ * Gilt für jede Smartmeter-Instanz (Ems-Liste UND Main), die
+ * currentTransformerPrimaryCurrentField verwendet: bei HardwareType Beckhoff
+ * (Modell El34x3) muss ein Stromwandler-Primärstrom > 0A hinterlegt sein.
+ */
+export function validateCurrentTransformer(instance: any): ValidationIssue[]
+{
+  const hwType = instance?.HardwareType ?? '';
+  const hwModel = instance?.HardwareModel ?? '';
+  if (hwType === 'Beckhoff' && hwModel === 'El34x3')
+  {
+    const current = instance?.CurrentTransformerPrimaryCurrent ?? '';
+    if (current === '' || current === '0A' || current === '0.0A')
+    {
+      return [{ message: 'CurrentTransformerPrimaryCurrent must be > 0A', path: ['CurrentTransformerPrimaryCurrent'] }];
+    }
+  }
+  return [];
+}
+
 export const Smartmeter: ComponentDefinition = {
   key: 'Smartmeter',
   category: 'ems-equipment',
   // Lokale Regel: HardwareType/HardwareModel-Abhängigkeit betrifft ausschließlich
   // die Felder dieser Instanz - gehört daher hier hin statt zentral in spec/rules.ts.
+  // CurrentTransformerPrimaryCurrent-Prüfung ist mit SmartmeterMain geteilt
+  // (siehe validateCurrentTransformer oben).
   validate: (instance: any) =>
   {
     const type = instance?.HardwareType;
@@ -44,23 +133,11 @@ export const Smartmeter: ComponentDefinition = {
       return [{ message: 'HardwareModel not valid for HardwareType', path: ['HardwareModel'] }];
     }
 
-    return [];
+    return validateCurrentTransformer(instance);
   },
   fields: {
-    Type: { const: 'Smartmeter', required: true },
-    Name: TypeString({ required: true, plcVariableName: true, hint: 'Component name in TwinCAT code \n - no spaces permitted -' }),
-    DisplayName: TypeString({ required: true, hint: 'Component name in Log files' }),
-    // HardwareType->HardwareModel-Kopplung: Auswahl von HardwareType belegt
-    // HardwareModel automatisch mit dem ersten passenden Modell vor,
-    // HardwareModel bietet dynamisch nur die zum aktuell gewählten
-    // HardwareType passenden Modelle an - siehe core/field-types.ts ->
-    // dependentEnumFields (identisches Muster bei SmartmeterMain).
-    ...dependentEnumFields(smartmeterHardwareToTypes, {
-      primaryKey: 'HardwareType',
-      primaryHint: 'Manufacturer of Smartmeter',
-      secondaryKey: 'HardwareModel',
-      secondaryHint: 'Hardware model type of Smartmeter'
-    }),
+    ...smartmeterCommonFields('Smartmeter', smartmeterHardwareToTypes),
+    CurrentTransformerPrimaryCurrent: currentTransformerPrimaryCurrentField,
     Guid: TypeUuid({ required: true, hint: 'GUID of component for TwinCAT project generation/update' }),
     // `flatten: true`: keine eigene Karte für Config - liegt flach in der
     // umgebenden Smartmeter-Karte (siehe core/form-renderer.tsx).
@@ -80,6 +157,7 @@ export const Smartmeter: ComponentDefinition = {
     DisplayName: 'Smartmeter ${n}',
     HardwareType: 'Phoenix',
     HardwareModel: '@firstModelOf(HardwareType)',
+    CurrentTransformerPrimaryCurrent: '0A',
     Guid: '@uuid',
     Config: {
       Usecase: [0, 'Undefined'],

@@ -184,7 +184,7 @@ export const BatteryInverter: ComponentDefinition = {
       const idx = path[path.length - 2];
       const hasModbus = !!ctx.getOrCfg(path, undefined);
       const versionCtx = getVersionContext(ctx.cfg);
-      if (!isAvailable(BatteryInverterModbus.availability, versionCtx, ctx.cfg)) { return null; }
+      if (!isAvailable(BatteryInverterModbus.availability, versionCtx, ctx.cfg, path)) { return null; }
 
       const { Type: _modbusType, Config: modbusConfig, ...modbusRest } = BatteryInverterModbus.fields.group;
 

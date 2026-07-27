@@ -70,7 +70,7 @@ function renderLeaf(path: PathType, f: any, ctx: FormRendererCtx): React.ReactNo
   if (f?.const !== undefined) { return null; }
 
   const versionCtx = getVersionContext(ctx.cfg);
-  if (!isAvailable(f?.availability, versionCtx, ctx.cfg)) { return null; }
+  if (!isAvailable(f?.availability, versionCtx, ctx.cfg, path)) { return null; }
 
   const key = path.join('.');
 
@@ -182,7 +182,7 @@ export function renderFieldNode(path: PathType, node: any, ctx: FormRendererCtx)
 function renderNode(path: PathType, node: any, ctx: FormRendererCtx): React.ReactNode {
   if (isGroupNode(node)) {
     const versionCtx = getVersionContext(ctx.cfg);
-    if (!isAvailable(node.availability, versionCtx, ctx.cfg)) { return null; }
+    if (!isAvailable(node.availability, versionCtx, ctx.cfg, path)) { return null; }
 
     if (node.flatten) {
       return <React.Fragment key={path.join('.')}>{renderFieldTree(path, node.group, ctx)}</React.Fragment>;

@@ -1,54 +1,32 @@
-import { TypeString, TypeUuid, TypeNumberUnit, dependentEnumFields } from '@/core/field-types';
+import { TypeUuid } from '@/core/field-types';
 import type { ComponentDefinition } from '@/registry/types';
+import {
+  smartmeterHardwareToTypes as emsSmartmeterHardwareToTypes,
+  smartmeterCommonFields,
+  currentTransformerPrimaryCurrentField,
+  validateCurrentTransformer
+} from '@/components/smartmeter-ems/spec';
 
-export const smartmeterHardwareToTypes = {
-  Virtual: ['Virtual'],
-  Beckhoff: ['El34x3']
-} as const;
+// SmartmeterMain kann nur eine Teilmenge der Ems-Smartmeter-Hardware nutzen
+// (kein Modbus-Netzwerkgerät, sondern die eingebaute PLC-Messung) - als
+// abgeleitete Teilmenge der Ems-Map (statt eigenständig dupliziert), damit
+// beide zwangsläufig synchron bleiben, falls sich z.B. die Beckhoff-Modelle
+// dort mal ändern.
+const mainHardwareKeys = ['Virtual', 'Beckhoff'] as const;
+export const smartmeterHardwareToTypes = Object.fromEntries(
+  mainHardwareKeys.map((k) => [k, emsSmartmeterHardwareToTypes[k]])
+) as Pick<typeof emsSmartmeterHardwareToTypes, typeof mainHardwareKeys[number]>;
 
 export const SmartmeterMain: ComponentDefinition = {
   key: 'SmartmeterMain',
   category: 'main-equipment',
-  // Lokale Regel: betrifft ausschließlich HardwareType/HardwareModel/
-  // CurrentTransformerPrimaryCurrent dieser einen Instanz.
-  validate: (instance: any) =>
-  {
-    const hwType = instance?.HardwareType ?? '';
-    const hwModel = instance?.HardwareModel ?? '';
-    if (hwType === 'Beckhoff' && hwModel === 'El34x3')
-    {
-      const current = instance?.CurrentTransformerPrimaryCurrent ?? '';
-      if (current === '' || current === '0A' || current === '0.0A')
-      {
-        return [{ message: 'SmartmeterMain CurrentTransformerPrimaryCurrent must be > 0A', path: ['CurrentTransformerPrimaryCurrent'] }];
-      }
-    }
-    return [];
-  },
+  // CurrentTransformerPrimaryCurrent ist kein SmartmeterMain-spezifisches Feld
+  // (hängt an HardwareType Beckhoff, siehe components/smartmeter-ems/spec.ts),
+  // deshalb hier dieselbe geteilte Prüfung wie bei Smartmeter (ems).
+  validate: validateCurrentTransformer,
   fields: {
-    Type: { const: 'SmartmeterMain', required: true },
-    Name: TypeString({ required: true, plcVariableName: true, hint: 'Component name in TwinCAT code \n - no spaces permitted -' }),
-    DisplayName: TypeString({ required: true, hint: 'Component name in Log files' }),
-    // HardwareType->HardwareModel-Kopplung wie bei Smartmeter (ems) - siehe
-    // core/field-types.ts -> dependentEnumFields.
-    ...dependentEnumFields(smartmeterHardwareToTypes, {
-      primaryKey: 'HardwareType',
-      primaryHint: 'Manufacturer of Smartmeter',
-      secondaryKey: 'HardwareModel',
-      secondaryHint: 'Hardware model type of Smartmeter'
-    }),
-    // BEISPIEL für Versionsgate auf Feldebene: an die tatsächliche Versionshistorie
-    // anpassen (oder entfernen), sinceVersion ist rein illustrativ.
-    // Dynamisches readOnly (nur editierbar bei HardwareModel 'El34x3') war
-    // bisher hand-geschrieben in forms/MainSection.tsx - jetzt deklarativ hier.
-    CurrentTransformerPrimaryCurrent: TypeNumberUnit({
-      required: false,
-      hint: 'Nominal transformer primary current for BLOKK/TERRA power Measurement with Beckhoff EL34x3 \n >= 0',
-      min: 0,
-      unit: 'A',
-      availability: { sinceVersion: '0.0.7' },
-      readOnlyWhen: (cfg) => (cfg?.Units?.Main?.Equipment?.SmartmeterMain?.HardwareModel ?? 'Virtual') !== 'El34x3'
-    }),
+    ...smartmeterCommonFields('SmartmeterMain', smartmeterHardwareToTypes),
+    CurrentTransformerPrimaryCurrent: currentTransformerPrimaryCurrentField,
     Guid: TypeUuid({ required: true, hint: 'GUID of component for TwinCAT project generation/update' })
   },
   defaults: {

@@ -17,7 +17,7 @@ import { controlCabinetTypes } from '@/components/main-config/spec';
 function checkHardwareVariantValue<T>(list: readonly EnumOption<T>[], value: T, path: PathType, label: string, add: (i: Issue) => void, versionCtx: VersionContext, config: any): void
 {
   const avail = findEnumOptionAvailability(list, value);
-  if (avail && !isAvailable(avail, versionCtx, config))
+  if (avail && !isAvailable(avail, versionCtx, config, path))
   {
     const displayValue = Array.isArray(value) ? (value as any)[1] : value;
     add({ message: `${label} '${displayValue}' requires HardwareVariant ${JSON.stringify(avail.hardwareVariants ?? [])} (current: '${versionCtx.hardwareVariant}')`, path });
