@@ -244,7 +244,7 @@ export function SelectField(props: any)
   const pathDefined: boolean = (path !== null && path !== undefined && Array.isArray(path) && path.length > 0);
   const v:string = value ?? gFun().getOr(path ?? [], '');
   const err = error ?? (pathDefined ? errorAt(gFun().errorIndex, path) : 'path not defined');
-  const l = label ?? pathDefined ? path.at(-1) : 'UnknownComponent';
+  const l = label ?? (pathDefined ? path.at(-1) : 'UnknownComponent');
   const ro = readOnly ?? defLink?.readOnly ?? false
   const hint = defLink?.hint ?? '';
 
@@ -285,7 +285,7 @@ export function CheckField(props: any)
   const pathDefined: boolean = path ? true : false;
   const v:boolean = checked ?? gFun().getOr(path ?? [], false);
   const err = error ?? (pathDefined ? errorAt(gFun().errorIndex, path) : 'path not defined');
-  const l = label ?? pathDefined ? path.at(-1) : 'UnknownComponent';
+  const l = label ?? (pathDefined ? path.at(-1) : 'UnknownComponent');
   const ro = readOnly ?? defLink?.readOnly ?? false
   const hint = defLink?.hint ?? '';
 
@@ -329,7 +329,7 @@ export function TextField(props: any)
   const pathDefined: boolean = path ? true : false;
   const v:string = value ?? gFun().getOr(path ?? [], '');
   const err =  error ?? (pathDefined ? errorAt(gFun().errorIndex, path) : 'path not defined');
-  const l = label ?? pathDefined ? path.at(-1) : 'UnknownComponent';
+  const l = label ?? (pathDefined ? path.at(-1) : 'UnknownComponent');
   const ro = readOnly ?? defLink?.readOnly ?? false
   const hint = defLink?.hint ?? 'Bla';
   const plcVar = defLink?.plcVariableName ?? false;
@@ -371,7 +371,7 @@ export function GuidField(props: any)
   const pathDefined: boolean = path ? true : false;
   const v:string = value ?? gFun().getOr(path ?? [], '');
   const err =  error ?? (pathDefined ? errorAt(gFun().errorIndex, path) : 'path not defined');
-  const l = label ?? pathDefined ? path.at(-1) : 'UnknownComponent';
+  const l = label ?? (pathDefined ? path.at(-1) : 'UnknownComponent');
   const ro = readOnly ?? defLink?.readOnly ?? false
   const hint = defLink?.hint ?? '';
 
