@@ -75,7 +75,7 @@ export type FieldCtx = {
   setInCfg: (path: Array<string | number>, value: any) => void;
 };
 
-type BaseType<T extends 'number' | 'string' | 'bool' | 'indexString' | 'ipv4' | 'uuid' | 'array'> = {
+type BaseType<T extends 'number' | 'string' | 'bool' | 'indexString' | 'ipv4' | 'uuid' | 'array' | 'numberWithUnit'> = {
   type: T;
   required: boolean;
   hint: string;
@@ -167,7 +167,7 @@ export function dependentEnumFields(
   };
 };
 
-export type TypeNumberUnitDef = BaseType<'string'> & {
+export type TypeNumberUnitDef = BaseType<'numberWithUnit'> & {
   unit?: string, // unit for number
   min?: number, // min limit of value
   max?: number, // max limit of value
@@ -176,7 +176,7 @@ export type TypeNumberUnitDef = BaseType<'string'> & {
 export function TypeNumberUnit(
   opts: Omit<TypeNumberUnitDef, 'type'> & { type?: never }
 ): TypeNumberUnitDef {
-  return { type: 'string', ...opts };
+  return { type: 'numberWithUnit', ...opts };
 };
 
 export type TypeBoolDef = BaseType<'bool'>;

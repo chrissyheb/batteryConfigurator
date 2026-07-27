@@ -158,7 +158,7 @@ function renderLeaf(path: PathType, f: any, ctx: FormRendererCtx): React.ReactNo
     return <SelectField key={key} path={path} defLink={f} options={options} readOnly={dynamicReadOnly} onChange={onChange} />;
   }
 
-  // TypeNumber hat type:'number'; TypeNumberUnit trägt type:'string' + ein
+  // TypeNumber hat type:'number'; TypeNumberUnit trägt type:'numberWithUnit' + ein
   // `unit`-Property (siehe core/field-types.ts) - NumberField entscheidet
   // selbst anhand von `unit`, ob es einen String mit Einheit parst.
   if (f?.type === 'number' || typeof f?.unit === 'string') {
