@@ -23,7 +23,7 @@ export function clearVariableName(str: string): string
   cleaned = cleaned.replace(/^[0-9]+/, "");
 
   // First character to uppercase, if not '_'
-  if (cleaned[0] !== '_') {
+  if (cleaned.length > 0 && cleaned[0] !== '_') {
     cleaned = cleaned[0].toUpperCase() + cleaned.slice(1);
   }
 
