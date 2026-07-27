@@ -2,7 +2,7 @@ import React from 'react';
 import { TypeString, TypeUuid, TypeIPv4, TypeNumber, TypeNumberUnit, EnumOption } from '@/core/field-types';
 import type { ComponentDefinition } from '@/registry/types';
 import { Collapsible } from '@/ui/Cards';
-import { SelectField, NumberField } from '@/ui/Fields';
+import { SelectField } from '@/ui/Fields';
 import { getVersionContext, isAvailable } from '@/core/versioning';
 import { createByKey } from '@/spec/builder';
 
@@ -134,19 +134,16 @@ export const BatteryInverterModbus: ComponentDefinition = {
   }
 };
 
-// Eigene Konstante (statt inline im fields-Baum), damit fieldOverride.Index
-// (s.u.) unten denselben Feld-Spec (hint/min/max/readOnly) als defLink
-// wiederverwenden kann, ohne auf `BatteryInverter.fields.Index` verweisen zu
-// müssen (das Objekt existiert zu dem Zeitpunkt noch nicht - Selbstbezug).
-const batteryInverterIndexField = TypeNumber({ required: true, hint: 'Index of BatteryInverter component \n - automatically calculated -', min: 0, max: 14, int: true, readOnly: true });
-
 export const BatteryInverter: ComponentDefinition = {
   key: 'BatteryInverter',
   category: 'main-equipment',
   fields: {
     Type: { const: 'BatteryInverter', required: true },
     Name: TypeString({ required: true, plcVariableName: true, hint: 'Component name in TwinCAT code \n - no spaces permitted -' }),
-    Index: batteryInverterIndexField,
+    // Wert wird nicht hier gepflegt, sondern von GeneratedList automatisch auf
+    // die aktuelle Listenposition nachgeführt (siehe registry/lists.ts ->
+    // MainBatteryInverter.indexField, core/form-renderer.tsx -> GeneratedList).
+    Index: TypeNumber({ required: true, hint: 'Index of BatteryInverter component \n - automatically calculated -', min: 0, max: 14, int: true, readOnly: true }),
     Inverter: BatteryInverterInverter.fields,
     Battery: BatteryInverterBattery.fields,
     Modbus: BatteryInverterModbus.fields
@@ -168,17 +165,6 @@ export const BatteryInverter: ComponentDefinition = {
   // `ctx.renderFieldTree` wird injiziert statt core/form-renderer.tsx direkt zu
   // importieren (vermeidet einen Zyklus registry -> component spec -> form-renderer).
   fieldOverride: {
-    // Index ist an den Listenindex gekoppelt (nicht an den gespeicherten Wert,
-    // der bei jedem neuen Item mit 0 startet) - deshalb weiterhin eine
-    // explizite `value`-Übersteuerung, jetzt als fieldOverride statt
-    // hand-geschrieben in forms/MainSection.tsx. `path` ist
-    // [...itemPath,'Index'] - der Listenindex steht daher an
-    // `path[path.length-2]`.
-    Index: (path, ctx) => React.createElement(NumberField, {
-      path,
-      defLink: batteryInverterIndexField,
-      value: path[path.length - 2] as number
-    }),
     Modbus: (path, ctx) =>
     {
       const idx = path[path.length - 2];

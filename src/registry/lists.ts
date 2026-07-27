@@ -53,6 +53,12 @@ export type ListDefinition = {
    *  in mehrere Config-Felder gespiegelt wird (BatteryCount UND InverterCount
    *  spiegeln beide Units.Main.Equipment.BatteryInverter.length). */
   countFields?: Array<Array<string | number>>;
+  /** Feldname innerhalb jeder Instanz dieser Liste, der automatisch auf die
+   *  aktuelle Position der Instanz innerhalb der Liste nachgeführt wird (z.B.
+   *  BatteryInverter[].Index) - ersetzt eine rein UI-seitige Anzeige-Übersteuerung
+   *  (fieldOverride), bei der der Listenindex nie tatsächlich in die Config
+   *  geschrieben wurde. */
+  indexField?: string;
 };
 
 const registry = new Map<string, ListDefinition>();
@@ -145,5 +151,6 @@ registerList({
   // dieselbe Listenlänge (kein Fehler, siehe forms/MainSection.tsx vor dieser
   // Generalisierung - dort wurden beide bereits identisch aus derselben Länge
   // gesetzt).
-  countFields: [['Units', 'Main', 'Config', 'BatteryCount'], ['Units', 'Main', 'Config', 'InverterCount']]
+  countFields: [['Units', 'Main', 'Config', 'BatteryCount'], ['Units', 'Main', 'Config', 'InverterCount']],
+  indexField: 'Index'
 });

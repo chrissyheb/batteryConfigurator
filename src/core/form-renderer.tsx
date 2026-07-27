@@ -284,6 +284,20 @@ export function GeneratedList(props: GeneratedListProps): React.ReactElement {
     });
   }, [items.length]);
 
+  // Führt `indexField` (siehe registry/lists.ts) auf die tatsächliche Position
+  // jeder Instanz innerhalb der Liste nach - u.a. nötig, weil ein Löschen in
+  // der Mitte der Liste die Position aller nachfolgenden Instanzen verschiebt,
+  // ihr gespeicherter Indexwert aber sonst auf dem Anlage-Default stehen bliebe.
+  useEffect(() => {
+    if (!def.indexField) { return; }
+    items.forEach((_item, i) => {
+      const fieldPath = [...def.path, i, def.indexField as string];
+      if (ctx.getOrCfg(fieldPath, undefined) !== i) {
+        ctx.setInCfg(fieldPath, i);
+      }
+    });
+  }, [items.length, def.indexField]);
+
   const relevantCount = items.filter((it) => it?.Type === def.addComponentKey).length;
   const atMax = typeof def.max === 'number' && relevantCount >= def.max;
 
