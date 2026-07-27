@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useStore, useConfigAccessors } from './store';
 import { SelectField, TextField, setGlobalProps } from '@/ui/Fields';
 import { getInitialConfig, getLibraryVersion, getHardwareVariants, PathType } from '@/spec/builder';
@@ -21,14 +21,20 @@ export default function App()
   const onExport = (): void => { exportJSON(state, 'config.json'); };
 
   const fileRef = useRef<HTMLInputElement>(null);
+  const [importError, setImportError] = useState<string | null>(null);
   const onImport = async (file: File): Promise<void> =>
   {
-    console.log('Import start')
-    clearLocal();
-    const cfg = await importJSON(file);
-    console.log('Import: data read')
-    set(cfg);
-    console.log('Import done')
+    try
+    {
+      const cfg = await importJSON(file);
+      clearLocal();
+      set(cfg);
+      setImportError(null);
+    }
+    catch (e)
+    {
+      setImportError(e instanceof Error ? e.message : 'Import fehlgeschlagen: ungültige Datei');
+    }
   };
 
   const onReset = (): void =>
@@ -59,6 +65,15 @@ export default function App()
           />
         </div>
       </header>
+
+      {importError && (
+        <div className="row">
+          <div className="error-panel">
+            <strong>Import Fehler</strong>
+            <div>{importError}</div>
+          </div>
+        </div>
+      )}
 
       {!isValid && (
         <div className="row">

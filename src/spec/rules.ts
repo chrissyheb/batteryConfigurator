@@ -87,7 +87,7 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
   const MainControlCabinetType: IndexStringType = mainConfig?.MainControlCabinetType ?? [0, 'Undefined'];
   checkHardwareVariantValue(controlCabinetTypes, MainControlCabinetType, ['Units', 'Main', 'Config', 'MainControlCabinetType'], 'MainControlCabinetType', add, versionCtx, config);
 
-  const eqBI = main.Equipment.BatteryInverter || [];
+  const eqBI = main.Equipment?.BatteryInverter || [];
   const biList = eqBI.filter((e: any) => { return e?.Type === 'BatteryInverter'; });
   const countBatteryInverterIPs = new Map<string, number>();
   const countModbusIPs = new Map<string, number>();

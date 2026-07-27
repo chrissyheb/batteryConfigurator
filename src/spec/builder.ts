@@ -316,6 +316,24 @@ export function validate(cfg: any): { issues: ZodIssue[] }
   return { issues };
 }
 
+/**
+ * Minimaler Form-Check für von außen kommende Configs (Import, localStorage) -
+ * schützt vor einem Absturz in der Cross-Rule-Validierung (spec/rules.ts),
+ * falls z.B. eine fremde/beschädigte Datei importiert oder ein alter
+ * localStorage-Stand aus einer inkompatiblen Konfigurator-Version geladen
+ * wird (dort fehlt teils der schützende Optional-Chain, siehe applyCrossRules).
+ * Prüft bewusst nur grob auf die beiden Root-Container, nicht das volle
+ * Schema - strukturell unvollständige, aber grundsätzlich unserer Config
+ * ähnelnde Objekte sollen weiterhin als normale Validierungsfehler auftauchen
+ * (siehe validate()), nicht als Absturz.
+ */
+export function isPlausibleConfig(cfg: unknown): boolean
+{
+  if (!cfg || typeof cfg !== 'object' || Array.isArray(cfg)) { return false; }
+  const c = cfg as Record<string, unknown>;
+  return typeof c.Global === 'object' && c.Global !== null && typeof c.Units === 'object' && c.Units !== null;
+}
+
 export function getInitialConfig(): any
 {
   const globalEq: any = createByKey('Global', { n: 1 });

@@ -1,4 +1,6 @@
 
+import { isPlausibleConfig } from '@/spec/builder';
+
 export function exportJSON(cfg: any, name: string = 'config.json'): void
 {
   const pretty = JSON.stringify(cfg, null, 4);
@@ -15,6 +17,9 @@ export async function importJSON(file: File): Promise<any>
 {
   const text = await file.text();
   const json = JSON.parse(text);
-  console.log('Import:', file, json);
+  if (!isPlausibleConfig(json))
+  {
+    throw new Error('Datei ist kein gültiges BatteryConfigurator-Config-JSON (Global/Units fehlen)');
+  }
   return json;
 }
