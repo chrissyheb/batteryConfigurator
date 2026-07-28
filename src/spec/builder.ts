@@ -359,7 +359,10 @@ export function getInitialConfig(): any
         Config: emsConfig
       },
       Main: {
-        Type: 'Terra',
+        // Muss immer Global.ModularPlc.HardwareVariant entsprechen (siehe
+        // App.tsx, das dies auch bei jeder späteren Änderung nachführt) -
+        // hier direkt abgeleitet statt ein zweites Mal unabhängig hartkodiert.
+        Type: globalEq.ModularPlc.HardwareVariant,
         Equipment: {
           SmartmeterMain: mainEqSmartmeter,
           BatteryInverter: mainEqBatteryInverter

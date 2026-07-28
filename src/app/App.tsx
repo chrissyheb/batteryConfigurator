@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useStore, useConfigAccessors } from './store';
 import { SelectField, TextField, setGlobalProps } from '@/ui/Fields';
 import { getInitialConfig, getLibraryVersion, getHardwareVariants, PathType } from '@/spec/builder';
@@ -17,6 +17,19 @@ export default function App()
   const { state, dispatch, errorIndex, errorPrefixSet, issues, isValid, flatIssues, addIssue } = useStore();
 
   const {get, getOr, setIn, set, has, patch, del } = useConfigAccessors(state, dispatch);
+
+  // Units.Main.Type ist kein unabhängig wählbares Feld, sondern muss immer dem
+  // gewählten Global.ModularPlc.HardwareVariant entsprechen (Terra<->Terra,
+  // Blokk<->Blokk - beide Listen verwenden bewusst dieselben Bezeichner, siehe
+  // components/global/spec.ts -> hardwareVariants und
+  // components/main-config/spec.ts -> mainTypes). Wird hier zentral
+  // nachgeführt statt als eigenes, redundantes Dropdown angeboten.
+  const hardwareVariant = getOr(['Global', 'ModularPlc', 'HardwareVariant'], '');
+  useEffect(() => {
+    if (hardwareVariant && getOr(['Units', 'Main', 'Type'], undefined) !== hardwareVariant) {
+      setIn(['Units', 'Main', 'Type'], hardwareVariant);
+    }
+  }, [hardwareVariant]);
 
   const onExport = (): void => { exportJSON(state, 'config.json'); };
 
