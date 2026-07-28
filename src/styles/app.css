@@ -344,6 +344,21 @@ input[type="number"] {
   background: rgba(0,0,0,0.06);
 }
 
+/* Visuell versteckt, aber weiterhin im Accessibility-Tree (z.B. als Ziel von
+   aria-describedby) - bewusst nicht display:none/visibility:hidden, das würde
+   den Text für Screenreader ebenfalls entfernen. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .icon-button.danger:hover {
   background: rgba(220, 38, 38, 0.15);
   color: rgb(220, 38, 38);

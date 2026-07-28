@@ -271,7 +271,7 @@ export function Collapsible({
             onClick={toggle}
             aria-expanded={open}
             aria-controls={panelId}
-            aria-label={open ? `${title} expand` : `${title} collapse`}
+            aria-label={open ? `${title} collapse` : `${title} expand`}
             title={open ? "collapse" : "expand"}
             style={{ visibility: hasChildren ? "visible" : "hidden" }}
           >
