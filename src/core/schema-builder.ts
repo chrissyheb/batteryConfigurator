@@ -105,7 +105,6 @@ function buildBaseFieldSchema(f: any): z.ZodTypeAny
     {
       let s = z.number().finite();
 
-      if (f?.int) s = s.int();
       if (typeof f?.min === 'number') s = s.min(f.min);
       if (typeof f?.max === 'number') s = s.max(f.max);
       if (typeof f?.int === 'boolean' && f.int === true) { s = s.int(); }
@@ -157,43 +156,25 @@ function buildBaseFieldSchema(f: any): z.ZodTypeAny
 
 export function groupSchema(g: any, ctx: VersionContext, cfg: any): z.ZodTypeAny
 {
-  if (Array.isArray(g))
+  const shape: Record<string, z.ZodTypeAny> = {};
+  for (const [k, spec] of Object.entries<any>(g))
   {
-    const shape: Record<string, z.ZodTypeAny> = {};
-    g.forEach((k, spec) => {
-      const s: any = k;
-      shape[k] = groupSchema(s, ctx, cfg);
-    });
-    return z.object(shape).strict();
-  }
-  else
-  {
-    const shape: Record<string, z.ZodTypeAny> = {};
-    for (const [k, spec] of Object.entries<any>(g))
+    const s: any = spec;
+    if (s.group)
     {
-      const s: any = spec;
-      if (Array.isArray(s))
-      {
-        s.forEach((element) => {
-          shape[k] = groupSchema(element, ctx, cfg);
-        });
-      }
-      else if (s.group)
-      {
-        const inner = groupSchema(s.group, ctx, cfg);
-        shape[k] = s.optional ? inner.optional() : inner;
-      }
-      else
-      {
-        let zod = fieldSchema(s, ctx, cfg);
-        if (s.optional) {
-          zod = zod.optional();
-        }
-        shape[k] = zod;
-      }
+      const inner = groupSchema(s.group, ctx, cfg);
+      shape[k] = s.optional ? inner.optional() : inner;
     }
-    return z.object(shape).strict();
+    else
+    {
+      let zod = fieldSchema(s, ctx, cfg);
+      if (s.optional) {
+        zod = zod.optional();
+      }
+      shape[k] = zod;
+    }
   }
+  return z.object(shape).strict();
 }
 
 export function isZodObject(s: z.ZodTypeAny): s is ZodObject<any>

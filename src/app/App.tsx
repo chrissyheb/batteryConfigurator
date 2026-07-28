@@ -9,7 +9,7 @@ import EmsSection from '@/forms/EmsSection';
 import MainSection from '@/forms/MainSection';
 import { exportJSON, importJSON } from '@/utils/io';
 import { clearLocal } from '@/utils/storage';
-import { formatPath, errorAt } from '@/utils/errors';
+import { formatPath } from '@/utils/errors';
 import { components } from '@/registry';
 
 export default function App()

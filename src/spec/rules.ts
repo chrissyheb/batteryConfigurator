@@ -218,7 +218,7 @@ export function applyCardinality(config: any, add: (i: Issue) => void): void
   emsConfigIssues.forEach((li) => add({ message: li.message, path: ['Units', 'Ems', 'Config', ...li.path] }));
 
   const emsEq = config?.Units?.Ems?.Equipment ?? {};
-  const smCount = emsEq.Smartmeter?.length ?? emsEq.emsEqSmartmeter?.length ?? 0;
+  const smCount = emsEq.Smartmeter?.length ?? 0;
   if (smCount > cardinality.ems.smartmeterMax)
   {
     add({ message: `Smartmeter max. ${cardinality.ems.smartmeterMax}`, path: ['Units', 'Ems', 'Equipment', 'Smartmeter', cardinality.ems.smartmeterMax, 'Name'] });
@@ -234,11 +234,7 @@ export function applyCardinality(config: any, add: (i: Issue) => void): void
     add({ message: `Max. ${cardinality.ems.slaveRemoteMax} RemoteSystems permitted`, path: ['Units', 'Ems', 'Equipment', 'RemoteSystems', cardinality.ems.slaveRemoteMax, 'Name'] });
   }
 
-  const mainEq = config?.Units?.Main?.Equipment ?? {};
-  const biCount = mainEq.BatteryInverter?.filter((e: any) => { return e?.Type === 'BatteryInverter'; }).length;
-  if (biCount < cardinality.main.batteryInverterMin)
-  {
-    //add({ message: 'At least one BatteryInverter required', path: ['Units','Main','Equipment','BatteryInverter'] });
-  }
-
+  // Mindestanzahl BatteryInverter wird bereits über das Zod-Schema erzwungen
+  // (spec/builder.ts -> buildConfigSchema: z.array(batteryInverterZ).min(...)) -
+  // hier keine zusätzliche, redundante Prüfung nötig.
 }

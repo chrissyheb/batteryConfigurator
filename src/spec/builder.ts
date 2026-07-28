@@ -4,27 +4,18 @@ import {
   components,
   emsComponentTypes, emsConfigTypes, mainComponentTypes, mainConfigTypes
 } from '@/registry';
-import { ui, availableEnumValues } from '@/core/field-types';
 import { groupSchema, isZodObject } from '@/core/schema-builder';
 import { getVersionContext, type VersionContext } from '@/core/versioning';
 import { applyCrossRules, applyCardinality, cardinality } from './rules';
 import { getList } from '@/registry/lists';
 import { TupleToRecord } from '@/utils/helper';
-import type { IndexStringType } from '@/core/field-types';
 
 // Jede Wertliste lebt direkt bei der components/<name>/spec.ts, die sie
 // definiert (kein zentrales spec/enums.ts mehr) - Erweiterung/Änderung
 // betrifft damit nur noch eine einzige Datei.
 import { libVersion, hardwareVariants } from '@/components/global/spec';
-import { batteryBalancingModes, externalControlOperationModes } from '@/components/system/spec';
-import { smartmeterHardwareToTypes as emsSmartmeterHardwareToTypes, smartmeterUseCaseTypes, smartmeterPowerSignTypes } from '@/components/smartmeter-ems/spec';
-import { rippleControlElectricalContactTypes, rippleControlPowerLimitDirections } from '@/components/ems-config/spec';
-import { smartmeterHardwareToTypes as mainSmartmeterHardwareToTypes } from '@/components/smartmeter-main/spec';
-import { mainTypes, controlCabinetTypes } from '@/components/main-config/spec';
-import { inverterTypes, batteryTypes, modbusTypes, inverterHardwareTypes, batteryHardwareTypes } from '@/components/battery-inverter/spec';
-
-export type EmsHardwareKey = keyof typeof emsSmartmeterHardwareToTypes;
-export type MainHardwareKey = keyof typeof mainSmartmeterHardwareToTypes;
+import { smartmeterHardwareToTypes as emsSmartmeterHardwareToTypes } from '@/components/smartmeter-ems/spec';
+import { mainTypes } from '@/components/main-config/spec';
 
 export type PathType = Array<string | number>;
 
@@ -51,135 +42,12 @@ export type mainConfigType = keyof typeof mainConfigTypes;
 export type mainConfigLists = TupleToRecord<typeof mainConfigTypes, any[]>;
 export type mainConfigKeys = keyof mainConfigLists;
 
-export const getEmsComponents = (): readonly string[] =>
-{
-  return emsComponentTypes;
-};
-
-export const getBatteryBalancingModes = (): IndexStringType[] =>
-{
-  return batteryBalancingModes;
-}
-export const getExternalControlOperationModes = (): IndexStringType[] =>
-{
-  return externalControlOperationModes;
-}
-
-export const getMainComponents = (): readonly string[] =>
-{
-  return mainComponentTypes;
-};
-
-export const getEmsSmartmeterHardwares = (): EmsHardwareKey[] =>
-{
-  return Object.keys(emsSmartmeterHardwareToTypes) as EmsHardwareKey[];
-};
-export const getEmsSmartmeterModels = (hw: string): string[] =>
-{
-  const map = emsSmartmeterHardwareToTypes as Record<string, readonly string[]>;
-  const list = map[hw];
-  if (Array.isArray(list))
-  {
-    return [...list];
-  }
-  return [];
-};
-
-
-export const getMainSmartmeterHardwares = (): MainHardwareKey[] =>
-{
-  return Object.keys(mainSmartmeterHardwareToTypes) as MainHardwareKey[];
-};
-export const getMainSmartmeterModels = (hw: string): string[] =>
-{
-  const map = mainSmartmeterHardwareToTypes as Record<string, readonly string[]>;
-  const list = map[hw];
-  if (Array.isArray(list))
-  {
-    return [...list];
-  }
-  return [];
-};
-
-
-export const getEmsSmartmeterUseCaseTypes = (): IndexStringType[] =>
-{
-  return smartmeterUseCaseTypes;
-};
-
-export const getEmsSmartmeterPowerSignTypes = (): IndexStringType[] =>
-{
-  return smartmeterPowerSignTypes;
-};
-
-export const getEmsRippleControlDiContactTypes = (): IndexStringType[] =>
-{
-  return rippleControlElectricalContactTypes;
-};
-
-export const getEmsRippleControlPowerLimitDirections = (): IndexStringType[] =>
-{
-  return rippleControlPowerLimitDirections;
-};
-
-
-
-export const getMainTypes = (): readonly string[] =>
-{
-  return mainTypes;
-};
-
-// Diese fünf Getter sind Terra/Blokk-abhängig (siehe components/battery-inverter/spec.ts
-// bzw. components/main-config/spec.ts) und filtern daher auf die im übergebenen
-// VersionContext tatsächlich verfügbaren Werte - für UI-Dropdowns gedacht.
-// spec/rules.ts prüft Cross-Rules dagegen direkt gegen die ungefilterten Listen
-// (siehe findEnumOptionAvailability), da dort auch ein aktuell NICHT verfügbarer
-// gewählter Wert erkannt werden muss.
-export const getMainControlCabinetTypes = (ctx: VersionContext, cfg?: any): IndexStringType[] =>
-{
-  return availableEnumValues(controlCabinetTypes, ctx, cfg);
-};
-
-
-export const getInverterTypes = (ctx: VersionContext, cfg?: any): string[] =>
-{
-  return availableEnumValues(inverterTypes, ctx, cfg);
-};
-export const getInverterHardwareTypes = (ctx: VersionContext, cfg?: any): string[] =>
-{
-  return availableEnumValues(inverterHardwareTypes, ctx, cfg);
-};
-
-
-export const getBatteryTypes = (ctx: VersionContext, cfg?: any): string[] =>
-{
-  return availableEnumValues(batteryTypes, ctx, cfg);
-};
-export const getBatteryHardwareTypes = (ctx: VersionContext, cfg?: any): string[] =>
-{
-  return availableEnumValues(batteryHardwareTypes, ctx, cfg);
-};
-
-
-export const getModbusTypes = (): readonly string[] =>
-{
-  return modbusTypes;
-};
-
-
-export const getUiMeta = () =>
-{
-  return ui;
-};
-
-
-
 // Defaults Resolver
 type CreateCtx = { n: number };
 
 function isPlainObject(v: unknown): v is Record<string, unknown> { return typeof v === 'object' && v !== null && !Array.isArray(v); }
 
-function resolveScalars(key: string, value: unknown, draft: Record<string, unknown>, ctx: CreateCtx, componentKey: componentType): unknown
+function resolveScalars(value: unknown, draft: Record<string, unknown>, ctx: CreateCtx, componentKey: componentType): unknown
 {
   if (typeof value === 'string')
   {
@@ -208,7 +76,7 @@ function deepResolveDefaults(defs: Record<string, unknown>, ctx: CreateCtx, comp
   {
     const v = (defs as any)[k];
     if (isPlainObject(v)) { out[k] = deepResolveDefaults(v as Record<string, unknown>, ctx, componentKey); }
-    else { out[k] = resolveScalars(k, v, out, ctx, componentKey); }
+    else { out[k] = resolveScalars(v, out, ctx, componentKey); }
   }
   return out;
 }
@@ -219,13 +87,6 @@ export function createByKey(componentKey: componentType, ctx: CreateCtx): any
   if (!spec?.defaults) { throw new Error(`No defaults for component ${String(componentKey)}`); }
   return deepResolveDefaults(spec.defaults as Record<string, unknown>, ctx, componentKey);
 }
-
-export function nextIndexForType(list: any[], type: string): number
-{
-  return list.length + 1;
-}
-
-
 
 // Zod schema & validate
 // Das Schema wird pro validate()-Aufruf frisch aus der Registry gebaut, weil

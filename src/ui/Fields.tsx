@@ -94,7 +94,7 @@ function TooltipPortal({ anchorRef, visible, children }: TooltipProps) {
 
     setPos({
       top: rect.top - 8,   // Abstand nach oben
-      left: (rect.left + rect.right) * 0.5,     // links ausrichten
+      left: (rect.left + rect.right) * 0.5,     // horizontal zentriert
     });
   }, [visible]);
 

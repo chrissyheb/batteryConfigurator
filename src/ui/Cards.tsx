@@ -100,7 +100,6 @@ export function Collapsible({
   const headerId = `${panelId}-header`;
 
   const rootRef = useRef<HTMLDivElement | null>(null);
-  const contentWrapperRef = useRef<HTMLDivElement | null>(null);
   const innerRef = useRef<HTMLDivElement | null>(null);
   const [maxHeight, setMaxHeight] = useState("0px");
 
@@ -293,7 +292,6 @@ export function Collapsible({
 
       {hasChildren &&
         <div
-          ref={contentWrapperRef}
           id={panelId}
           className="card-content"
           role="region"
