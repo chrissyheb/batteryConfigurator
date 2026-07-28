@@ -134,6 +134,7 @@ export const BatteryInverter: ComponentDefinition = {
   fields: {
     Type: { const: 'BatteryInverter', required: true },
     Name: TypeString({ required: true, hint: 'Component name (used in TwinCAT project & log files)' }),
+    Guid: TypeUuid({ required: true, hint: 'GUID of component for TwinCAT project generation/update' }),
     Index: TypeNumber({ required: true, hint: 'Index of BatteryInverter component \n - automatically calculated -', min: 0, max: 14, int: true, readOnly: true }),
     Inverter: BatteryInverterInverter.fields,
     Battery: BatteryInverterBattery.fields,
@@ -142,6 +143,7 @@ export const BatteryInverter: ComponentDefinition = {
   defaults: {
     Type: 'BatteryInverter',
     Index: 0,
+    Guid: '@uuid',
     Name: 'BatteryInverter${n0}',
     Inverter: BatteryInverterInverter.defaults,
     Battery: BatteryInverterBattery.defaults,
