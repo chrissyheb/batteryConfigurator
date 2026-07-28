@@ -3,7 +3,6 @@ import { TypeString, TypeUuid, TypeIPv4, TypeNumber, TypeNumberUnit, EnumOption 
 import type { ComponentDefinition } from '@/registry/types';
 import { Collapsible } from '@/ui/Cards';
 import { SelectField } from '@/ui/Fields';
-import { getVersionContext, isAvailable } from '@/core/versioning';
 import { createByKey } from '@/spec/builder';
 
 // Terra/Blokk-abhängige Wertelisten: jeder Wert ist nur für die angegebene(n)
@@ -162,9 +161,14 @@ export const BatteryInverter: ComponentDefinition = {
     {
       const idx = path[path.length - 2];
       const hasModbus = !!ctx.getOrCfg(path, undefined);
-      const versionCtx = getVersionContext(ctx.cfg);
-      if (!isAvailable(BatteryInverterModbus.availability, versionCtx, ctx.cfg, path)) { return null; }
 
+      // Die Karte wird bewusst nie ausgeblendet - unabhängig davon, ob Modbus
+      // für den aktuellen HardwareVariant benötigt/erlaubt ist (siehe
+      // BatteryInverterModbus.availability). Nur so bleibt ein vorhandenes
+      // Modbus-Objekt (z.B. nach Wechsel des HardwareVariant oder Import einer
+      // Config mit Modbus) über das Type-Dropdown immer entfernbar, statt dass
+      // spec/rules.ts einen Fehler meldet, den der Nutzer über die UI nicht
+      // beheben könnte.
       const { Type: _modbusType, Config: modbusConfig, ...modbusRest } = BatteryInverterModbus.fields.group;
 
       return React.createElement(Collapsible, {
