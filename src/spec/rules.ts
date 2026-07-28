@@ -29,6 +29,24 @@ export const cardinality = {
   main: { batteryInverterMin: 1 }
 } as const;
 
+type NamedEntry = { name: string | undefined; path: PathType };
+
+/**
+ * Meldet Namens-Duplikate innerhalb einer Liste von Instanzen - bewusst nur
+ * INNERHALB der übergebenen `entries`, nicht global über die ganze Config.
+ * Ems und Main werden daher mit je einem eigenen Aufruf geprüft (siehe
+ * applyCrossRules): derselbe Name darf in Ems UND Main vorkommen, nur
+ * innerhalb derselben Unit nicht doppelt.
+ */
+function flagDuplicateNames(entries: NamedEntry[], add: (i: Issue) => void): void
+{
+  const counts = new Map<string, number>();
+  entries.forEach(({ name }) => { if (name) { counts.set(name, (counts.get(name) ?? 0) + 1); } });
+  entries.forEach(({ name, path }) => {
+    if (name && (counts.get(name) ?? 0) > 1) { add({ message: 'Component name duplicate', path }); }
+  });
+}
+
 export type Issue = { message: string; path: PathType; };
 
 export type CrossErrorMarker = [number, string, boolean];
@@ -66,6 +84,13 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
     });
   }
 
+  // Namens-Duplikate innerhalb der Ems-Unit (Smartmeter[] + LocalRemoteSystems[]
+  // zusammen) - siehe flagDuplicateNames. Main wird weiter unten separat geprüft.
+  flagDuplicateNames([
+    ...emsEq.map((e: any, idx: number): NamedEntry => ({ name: e?.Name, path: ['Units', 'Ems', 'Equipment', 'Smartmeter', idx, 'Name'] })),
+    ...emsSlaves.map((e: any, idx: number): NamedEntry => ({ name: e?.Name, path: ['Units', 'Ems', 'Equipment', 'LocalRemoteSystems', idx, 'Name'] }))
+  ], add);
+
   // Main smartmeter Transformer current for Beckhoff smartmeters
   const smMain = config?.Units?.Main?.Equipment?.SmartmeterMain ?? {};
   const smMainIssues = components.SmartmeterMain.validate?.(smMain) ?? [];
@@ -91,7 +116,12 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
   const biList = eqBI.filter((e: any) => { return e?.Type === 'BatteryInverter'; });
   const countBatteryInverterIPs = new Map<string, number>();
   const countModbusIPs = new Map<string, number>();
-  const countNames = new Map<string, number>();
+  // Namens-Duplikate innerhalb der Main-Unit (SmartmeterMain + alle
+  // BatteryInverter/Battery/Inverter/Modbus-Namen zusammen) - siehe
+  // flagDuplicateNames weiter unten. Derselbe Name in Ems ist kein Konflikt.
+  const mainNameEntries: NamedEntry[] = smMain?.Name
+    ? [{ name: smMain.Name, path: ['Units', 'Main', 'Equipment', 'SmartmeterMain', 'Name'] }]
+    : [];
 
   // Modbus ist nur verfügbar, wenn die Komponente selbst (siehe
   // components/battery-inverter/spec.ts -> BatteryInverterModbus.availability)
@@ -106,18 +136,18 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
     const batType = bi?.Battery?.Config?.BatteryType;
     const hasModbus = !!bi?.Modbus;
 
-    const batInvName: string | undefined = bi?.Name ?? undefined;
-    const invName: string | undefined = bi?.Inverter?.Name ?? undefined;
-    const batName: string | undefined = bi?.Battery?.Name ?? undefined;
-    const modName: string | undefined = bi?.Modbus?.Name ?? undefined;
-
     const invIp: string | undefined = bi?.Inverter?.Config?.IpAddress ?? undefined;
     const batIp: string | undefined = bi?.Battery?.Config?.IpAddress ?? undefined;
     const modIp: string | undefined = bi?.Modbus?.Config?.IpAddress ?? undefined;
 
-    if (batInvName) { countNames.set(batInvName, (countNames.get(batInvName) || 0) + 1); }
-    if (batName) { countNames.set(batName, (countNames.get(batName) || 0) + 1); }
-    if (invName) { countNames.set(invName, (countNames.get(invName) || 0) + 1); }
+    mainNameEntries.push({ name: bi?.Name, path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Name'] });
+    mainNameEntries.push({ name: bi?.Battery?.Name, path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Battery', 'Name'] });
+    mainNameEntries.push({ name: bi?.Inverter?.Name, path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Inverter', 'Name'] });
+    // Modbus-Name zählt unabhängig von modbusAvailable mit - ein vorhandenes
+    // (ggf. für den HardwareVariant nicht erlaubtes) Modbus-Objekt ist
+    // trotzdem eine echte Instanz mit eigenem Namen (siehe fieldOverride.Modbus
+    // in components/battery-inverter/spec.ts, das die Karte nie mehr ausblendet).
+    if (hasModbus) { mainNameEntries.push({ name: bi?.Modbus?.Name, path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Modbus', 'Name'] }); }
 
     // Ist Inverter-/Battery-Typ (jeweils Komponenten-Typ und Hardware-Typ) für
     // den aktuellen HardwareVariant zulässig? Ersetzt die vormals hier vier Mal
@@ -147,7 +177,6 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
         add({ message: 'Modbus IP must match Battery IP', path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Battery', 'Config', 'IpAddress'] });
       }
       if (modIp) { countModbusIPs.set(modIp, (countModbusIPs.get(modIp) || 0) + 1); }
-      if (modName) { countNames.set(modName, (countNames.get(modName) || 0) + 1); }
     }
     else
     {
@@ -161,23 +190,13 @@ export function applyCrossRules(config: any, add: (i: Issue) => void): void
     }
   });
 
+  flagDuplicateNames(mainNameEntries, add);
+
   config.Units?.Main?.Equipment?.BatteryInverter?.map((v: any, idx: number) =>
   {
-    if ((countNames.get(v.Name ?? '') ?? 0) > 1) {
-      add({ message: 'Component name duplicate', path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Name'] });
-    }
-    if ((countNames.get(v.Battery?.Name ?? '') ?? 0) > 1) {
-      add({ message: 'Component name duplicate', path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Battery', 'Name'] });
-    }
-    if ((countNames.get(v.Inverter?.Name ?? '') ?? 0) > 1) {
-      add({ message: 'Component name duplicate', path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Inverter', 'Name'] });
-    }
     if (modbusAvailable) {
       if ((countModbusIPs.get(v.Modbus?.Config?.IpAddress ?? '') ?? 0) > 1) {
         add({ message: 'Modbus IP Address duplicate', path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Modbus', 'Config', 'IpAddress'] });
-      }
-      if ((countNames.get(v.Modbus?.Name ?? '') ?? 0) > 1) {
-        add({ message: 'Component name duplicate', path: ['Units', 'Main', 'Equipment', 'BatteryInverter', idx, 'Modbus', 'Name'] });
       }
     }
     else
