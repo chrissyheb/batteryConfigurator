@@ -303,7 +303,9 @@ export function CheckField(props: any)
       onBlur={() => setTooltipVisible(false)}
     >
       <label>{l}</label>
-      <input type="checkbox" readOnly={ro} checked={v} aria-describedby={hint} onChange={(e) => handleOnChange(e.target.checked, pathDefined, onChange, path)} />
+      {/* HTML ignoriert readOnly bei type="checkbox" (der Nutzer könnte es trotzdem
+          per Klick umschalten) - disabled ist hier das funktionale Äquivalent. */}
+      <input type="checkbox" disabled={ro} checked={v} aria-describedby={hint} onChange={(e) => handleOnChange(e.target.checked, pathDefined, onChange, path)} />
       {err ? <div className="inline-error">{err}</div> : <span />}
       {hint && (
         <TooltipPortal anchorRef={tooltipRef} visible={tooltipVisible}>
