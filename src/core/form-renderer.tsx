@@ -131,12 +131,22 @@ function renderLeaf(path: PathType, f: any, ctx: FormRendererCtx): React.ReactNo
     const rawOptions = availableEnumValues<IndexStringType>(f.enumRef ?? [], versionCtx, ctx.cfg);
     const fallback = rawOptions[0] ?? [0, ''];
     const current = ctx.getOrCfg(path, fallback);
+    // Der gespeicherte Wert kann für den aktuellen HardwareVariant/Version (oder
+    // nach einem externen Import) nicht in `rawOptions` enthalten sein. Ohne ihn
+    // trotzdem als Option zu listen, hat das <select> keine passende <option> -
+    // der Browser zeigt dann irreführend die erste verfügbare Option als
+    // ausgewählt an, obwohl der echte State-Wert abweicht, und ein Klick darauf
+    // löst kein change-Event aus (der Wert wirkt "eingefroren"). Die eigentliche
+    // Ungültigkeit bleibt weiterhin über spec/rules.ts (checkHardwareVariantValue)
+    // als Fehlermeldung sichtbar.
+    const currentListed = rawOptions.some((o) => JSON.stringify(o) === JSON.stringify(current));
+    const listedOptions = currentListed ? rawOptions : [current, ...rawOptions];
     return (
       <SelectField
         key={key}
         path={path}
         defLink={f}
-        options={indexStringToString(rawOptions)}
+        options={indexStringToString(listedOptions)}
         value={indexStringToString([current])[0]}
         readOnly={dynamicReadOnly}
         onChange={(v: string) => {
@@ -155,7 +165,15 @@ function renderLeaf(path: PathType, f: any, ctx: FormRendererCtx): React.ReactNo
     // erlaubten Werte (siehe core/schema-builder.ts).
     const raw = f.enumFrom ? f.enumFrom(ctx, path) : (f.enum ?? f.enumRef);
     const options: string[] = Array.isArray(raw) ? availableEnumValues<string>(raw, versionCtx, ctx.cfg) : Object.keys(raw);
-    return <SelectField key={key} path={path} defLink={f} options={options} readOnly={dynamicReadOnly} onChange={onChange} />;
+    // Siehe Kommentar bei type:'indexString' oben - derselbe Fall (gespeicherter
+    // Wert nicht in der gefilterten Optionsliste) gilt hier für einfache
+    // String-Enums, z.B. BatteryInverterBattery.Type nach Wechsel des
+    // HardwareVariant oder Import einer Config mit veraltetem Wert.
+    const current = ctx.getOrCfg(path, undefined);
+    const listedOptions = (typeof current === 'string' && current !== '' && !options.includes(current))
+      ? [current, ...options]
+      : options;
+    return <SelectField key={key} path={path} defLink={f} options={listedOptions} readOnly={dynamicReadOnly} onChange={onChange} />;
   }
 
   // TypeNumber hat type:'number'; TypeNumberUnit trägt type:'numberWithUnit' + ein

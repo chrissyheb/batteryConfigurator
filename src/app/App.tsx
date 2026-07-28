@@ -79,7 +79,23 @@ export default function App()
         <div className="row">
           <div className="error-panel">
             <strong>Fehler</strong>
-            <ul>{flatIssues.map((er, i) => { return <li key={i}>{er.message}&nbsp;&nbsp;&nbsp;&nbsp;<code>@ {formatPath(er.path as PathType | undefined)}</code></li>; })}</ul>
+            <ul>{flatIssues.map((er, i) => {
+              // "Unknown key" kommt von einem strikten Zod-Objekt, das ein in
+              // der Config vorhandenes, aber nicht (mehr) im Schema definiertes
+              // Feld meldet (z.B. nach Import einer älteren Datei mit
+              // inzwischen entfernten/umbenannten Keys) - dafür gibt es sonst
+              // keinen Bearbeitungsweg im generischen Formular, da nur bekannte
+              // Felder gerendert werden. Direkt hier löschbar machen.
+              const isUnknownKey = er.message === 'Unknown key';
+              return (
+                <li key={i}>
+                  {er.message}&nbsp;&nbsp;&nbsp;&nbsp;<code>@ {formatPath(er.path as PathType | undefined)}</code>
+                  {isUnknownKey && (
+                    <>&nbsp;&nbsp;<button className="ghost" onClick={() => del(er.path as PathType)}>Entfernen</button></>
+                  )}
+                </li>
+              );
+            })}</ul>
           </div>
         </div>
       )}
