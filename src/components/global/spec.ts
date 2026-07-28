@@ -6,7 +6,7 @@ import { compareVersions } from '@/core/versioning';
 // core/versioning.ts (sinceVersion/untilVersion), welche Felder/Komponenten
 // aktuell verfügbar sind.
 export const libVersion = ['3.0.109', '3.0.108', '0.0.7', '0.0.6', '0.0.5'] as const;
-export const hardwareVariants = ['Terra', 'BlokkV3'] as const;
+export const hardwareVariants = ['Terra', 'Blokk'] as const;
 
 // Default ist immer die höchste in libVersion gelistete Version - wird
 // berechnet statt hardcodiert, damit sie bei neuen Einträgen automatisch stimmt.

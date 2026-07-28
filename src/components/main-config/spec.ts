@@ -13,7 +13,7 @@ export const controlCabinetTypes: EnumOption<IndexStringType>[] = [
   { value: [11, 'TerraEmsBoxV1.5'], availability: { hardwareVariants: ['Terra'] } },
   { value: [12, 'TerraEmsBoxV2'], availability: { hardwareVariants: ['Terra'] } },
   { value: [20, 'TerraHub'], availability: { hardwareVariants: ['Terra'] } },
-  { value: [50, 'BlokkNNV3'], availability: { hardwareVariants: ['BlokkV3'] } }
+  { value: [50, 'BlokkNNV3'], availability: { hardwareVariants: ['Blokk'] } }
 ];
 
 // Bisher `components.MainType` in catalog.ts: kein eigenständiges Equipment,

@@ -11,20 +11,20 @@ import { createByKey } from '@/spec/builder';
 // (siehe core/versioning.ts), statt hier Terra/Blokk hart zu verdrahten.
 export const inverterTypes: EnumOption<string>[] = [
   { value: 'InverterTerra', availability: { hardwareVariants: ['Terra'] } },
-  { value: 'InverterKaco', availability: { hardwareVariants: ['BlokkV3'] } }
+  { value: 'InverterKaco', availability: { hardwareVariants: ['Blokk'] } }
 ];
 export const batteryTypes: EnumOption<string>[] = [
   { value: 'BatteryTerra', availability: { hardwareVariants: ['Terra'] } },
-  { value: 'BatteryPylontechM1xBms', availability: { hardwareVariants: ['BlokkV3'] } }
+  { value: 'BatteryPylontechM1xBms', availability: { hardwareVariants: ['Blokk'] } }
 ];
 export const modbusTypes = ['(not available)', 'BatteryInverterModbus'] as const;
 export const inverterHardwareTypes: EnumOption<string>[] = [
   { value: 'SofarTerra', availability: { hardwareVariants: ['Terra'] } },
-  { value: 'Kaco', availability: { hardwareVariants: ['BlokkV3'] } }
+  { value: 'Kaco', availability: { hardwareVariants: ['Blokk'] } }
 ];
 export const batteryHardwareTypes: EnumOption<string>[] = [
   { value: 'SofarTerra', availability: { hardwareVariants: ['Terra'] } },
-  { value: 'PylontechM1C', availability: { hardwareVariants: ['BlokkV3'] } }
+  { value: 'PylontechM1C', availability: { hardwareVariants: ['Blokk'] } }
 ];
 
 export const BatteryInverterInverter: ComponentDefinition = {
