@@ -17,7 +17,7 @@ import { EmsConfig } from '@/components/ems-config/spec';
 import { Smartmeter } from '@/components/smartmeter-ems/spec';
 import { SlaveLocalUM } from '@/components/slave-local-um/spec';
 import { SlaveRemoteUM } from '@/components/slave-remote-um/spec';
-import { MainType, MainConfig } from '@/components/main-config/spec';
+import { MainConfig } from '@/components/main-config/spec';
 import { SmartmeterMain } from '@/components/smartmeter-main/spec';
 import { BatteryInverterInverter, BatteryInverterBattery, BatteryInverterModbus, BatteryInverter } from '@/components/battery-inverter/spec';
 
@@ -34,7 +34,6 @@ export const components = {
   Smartmeter,
   SlaveLocalUM,
   SlaveRemoteUM,
-  MainType,
   MainConfig,
   SmartmeterMain,
   BatteryInverterInverter,

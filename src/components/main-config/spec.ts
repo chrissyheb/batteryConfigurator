@@ -1,4 +1,4 @@
-import { TypeString, TypeNumber, TypeNumberUnit, TypeBool, TypeIndexString, TypeIPv4, IndexStringType, EnumOption } from '@/core/field-types';
+import { TypeNumber, TypeNumberUnit, TypeBool, TypeIndexString, TypeIPv4, IndexStringType, EnumOption } from '@/core/field-types';
 import type { ComponentDefinition } from '@/registry/types';
 
 export const mainTypes = ['Terra', 'Blokk'] as const;
@@ -15,11 +15,6 @@ export const controlCabinetTypes: EnumOption<IndexStringType>[] = [
   { value: [20, 'TerraHub'], availability: { hardwareVariants: ['Terra'] } },
   { value: [50, 'BlokkNNV3'], availability: { hardwareVariants: ['Blokk'] } }
 ];
-
-// Bisher `components.MainType` in catalog.ts: kein eigenständiges Equipment,
-// sondern ein einzelnes, automatisch erkanntes Feld. Wird hier als loser
-// Field-Spec exportiert (kein ComponentDefinition, da keine fields/defaults-Gruppe).
-export const MainType = TypeString({ required: true, hint: 'Main Unit type \n - automatically detected -', enumRef: mainTypes });
 
 export const MainConfig: ComponentDefinition = {
   key: 'MainConfig',
