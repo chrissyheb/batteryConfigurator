@@ -32,7 +32,6 @@ export const SmartmeterMain: ComponentDefinition = {
   defaults: {
     Type: 'SmartmeterMain',
     Name: 'SmartmeterMain',
-    DisplayName: 'SmartmeterMain',
     HardwareType: 'Virtual',
     HardwareModel: 'Virtual',
     CurrentTransformerPrimaryCurrent: '0A',

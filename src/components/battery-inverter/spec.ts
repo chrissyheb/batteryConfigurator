@@ -34,8 +34,7 @@ export const BatteryInverterInverter: ComponentDefinition = {
   fields: {
     group: {
       Type: TypeString({ required: true, hint: 'Inverter component type in TwinCAT project', enumRef: inverterTypes }),
-      Name: TypeString({ required: true, plcVariableName: true, hint: 'Component name in TwinCAT code \n - no spaces permitted -' }),
-      DisplayName: TypeString({ required: true, hint: 'Component name for TwinCAT log files' }),
+      Name: TypeString({ required: true, hint: 'Component name (used in TwinCAT project & log files)' }),
       Guid: TypeUuid({ required: true, hint: 'GUID of component for TwinCAT project generation/update' }),
       Config: {
         flatten: true,
@@ -50,8 +49,7 @@ export const BatteryInverterInverter: ComponentDefinition = {
   },
   defaults: {
     Type: 'InverterTerra',
-    Name: 'Inverter${n0}',
-    DisplayName: 'Inverter ${n0}',
+    Name: 'Inverter ${n0}',
     Guid: '@uuid',
     Config: {
       InverterType: 'SofarTerra',
@@ -68,8 +66,7 @@ export const BatteryInverterBattery: ComponentDefinition = {
   fields: {
     group: {
       Type: TypeString({ required: true, hint: 'Battery component type in TwinCAT project', enumRef: batteryTypes }),
-      Name: TypeString({ required: true, plcVariableName: true, hint: 'Component name in TwinCAT code \n - no spaces permitted -' }),
-      DisplayName: TypeString({ required: true, hint: 'Component name for TwinCAT log files' }),
+      Name: TypeString({ required: true, hint: 'Component name (used in TwinCAT project & log files)' }),
       Guid: TypeUuid({ required: true, hint: 'GUID of component for TwinCAT project generation/update' }),
       Config: {
         flatten: true,
@@ -85,8 +82,7 @@ export const BatteryInverterBattery: ComponentDefinition = {
   },
   defaults: {
     Type: 'BatteryTerra',
-    Name: 'Battery${n0}',
-    DisplayName: 'Battery ${n0}',
+    Name: 'Battery ${n0}',
     Guid: '@uuid',
     Config: {
       BatteryType: 'SofarTerra',
@@ -110,8 +106,7 @@ export const BatteryInverterModbus: ComponentDefinition = {
     optional: true,
     group: {
       Type: TypeString({ required: true, hint: 'Modbus component type in TwinCAT project', enumRef: modbusTypes }),
-      Name: TypeString({ required: true, plcVariableName: true, hint: 'Component name in TwinCAT code \n - no spaces permitted -' }),
-      DisplayName: TypeString({ required: true, hint: 'Component name for TwinCAT log files' }),
+      Name: TypeString({ required: true, hint: 'Component name (used in TwinCAT project & log files)' }),
       Guid: TypeUuid({ required: true, hint: 'GUID of component for TwinCAT project generation/update' }),
       Config: {
         flatten: true,
@@ -124,8 +119,7 @@ export const BatteryInverterModbus: ComponentDefinition = {
   },
   defaults: {
     Type: 'BatteryInverterModbus',
-    Name: 'Modbus${n0}',
-    DisplayName: 'Modbus ${n0}',
+    Name: 'Modbus ${n0}',
     Guid: '@uuid',
     Config: {
       IpAddress: '192.168.137.40',
@@ -139,10 +133,7 @@ export const BatteryInverter: ComponentDefinition = {
   category: 'main-equipment',
   fields: {
     Type: { const: 'BatteryInverter', required: true },
-    Name: TypeString({ required: true, plcVariableName: true, hint: 'Component name in TwinCAT code \n - no spaces permitted -' }),
-    // Wert wird nicht hier gepflegt, sondern von GeneratedList automatisch auf
-    // die aktuelle Listenposition nachgeführt (siehe registry/lists.ts ->
-    // MainBatteryInverter.indexField, core/form-renderer.tsx -> GeneratedList).
+    Name: TypeString({ required: true, hint: 'Component name (used in TwinCAT project & log files)' }),
     Index: TypeNumber({ required: true, hint: 'Index of BatteryInverter component \n - automatically calculated -', min: 0, max: 14, int: true, readOnly: true }),
     Inverter: BatteryInverterInverter.fields,
     Battery: BatteryInverterBattery.fields,

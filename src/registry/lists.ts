@@ -89,7 +89,7 @@ registerList({
   path: ['Units', 'Ems', 'Equipment', 'Smartmeter'],
   items: [{
     component: components.Smartmeter,
-    title: (i) => `${i?.Type ?? 'Unkown Smartmeter'} (${i?.DisplayName ?? ''})`
+    title: (i) => `${i?.Type ?? 'Unkown Smartmeter'} (${i?.Name ?? ''})`
   }],
   addComponentKey: 'Smartmeter',
   max: cardinality.ems.smartmeterMax,
@@ -103,12 +103,12 @@ registerList({
     {
       component: components.SlaveLocalUM,
       deletable: false,
-      title: (i) => `Local System (${i?.DisplayName ?? ''})`
+      title: (i) => `Local System (${i?.Name ?? ''})`
     },
     {
       component: components.SlaveRemoteUM,
       deletable: true,
-      title: (i) => `Remote System (${i?.DisplayName ?? ''})`
+      title: (i) => `Remote System (${i?.Name ?? ''})`
     }
   ],
   addComponentKey: 'SlaveRemoteUM',

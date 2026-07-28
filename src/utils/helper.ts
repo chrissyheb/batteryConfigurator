@@ -12,25 +12,6 @@ export function removeWhitespaces(str: string): string
   return str.replace(/\s+/g, '');
 }
 
-export function clearVariableName(str: string): string
-{
-  if (!str) return "";
-
-  // remove invalid characters
-  let cleaned = str.replace(/[^A-Za-z0-9_]/g, "");
-
-  // remove leading numbers
-  cleaned = cleaned.replace(/^[0-9]+/, "");
-
-  // First character to uppercase, if not '_'
-  if (cleaned.length > 0 && cleaned[0] !== '_') {
-    cleaned = cleaned[0].toUpperCase() + cleaned.slice(1);
-  }
-
-  return cleaned;
-}
-
-
 export function stripUnit(s: unknown): number
 {
   if (s === null || s === undefined) {

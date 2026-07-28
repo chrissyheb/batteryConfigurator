@@ -116,7 +116,6 @@ export type TypeStringDef = BaseType<'string'> & {
    *  Elements) - Alternative zum statischen `enum`/`enumRef` für Fälle, in
    *  denen die erlaubten Werte nicht allein aus dem Feld selbst ableitbar sind. */
   enumFrom?: (ctx: FieldCtx, path: Array<string | number>) => readonly EnumOption<string>[],
-  plcVariableName?: boolean
 };
 export function TypeString(
   opts: Omit<TypeStringDef, 'type'> & { type?: never }

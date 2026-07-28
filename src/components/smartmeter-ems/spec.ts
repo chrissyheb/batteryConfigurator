@@ -16,7 +16,7 @@ export const smartmeterPowerSignTypes: IndexStringType[] = [[0, 'Positive'], [1,
 /**
  * Felder, die JEDE Smartmeter-Variante teilt (Ems-Listen-Item UND
  * Main-Singleton, siehe components/smartmeter-main/spec.ts): Type(const)/
- * Name/DisplayName/HardwareType+HardwareModel. `hardwareMap` erlaubt
+ * Name/HardwareType+HardwareModel. `hardwareMap` erlaubt
  * SmartmeterMain, nur eine Teilmenge der hier verfügbaren Hardware-Typen
  * anzubieten. Guid/Config/CurrentTransformerPrimaryCurrent bewusst NICHT hier
  * drin - deren Reihenfolge/Vorhandensein unterscheidet sich leicht zwischen
@@ -26,8 +26,7 @@ export function smartmeterCommonFields(typeConst: string, hardwareMap: Record<st
 {
   return {
     Type: { const: typeConst, required: true },
-    Name: TypeString({ required: true, plcVariableName: true, hint: 'Component name in TwinCAT code \n - no spaces permitted -' }),
-    DisplayName: TypeString({ required: true, hint: 'Component name in Log files' }),
+    Name: TypeString({ required: true, hint: 'Component name (used in TwinCAT project & log files)' }),
     ...dependentEnumFields(hardwareMap, {
       primaryKey: 'HardwareType',
       primaryHint: 'Manufacturer of Smartmeter',
@@ -153,8 +152,7 @@ export const Smartmeter: ComponentDefinition = {
   },
   defaults: {
     Type: 'Smartmeter',
-    Name: 'Smartmeter${n}',
-    DisplayName: 'Smartmeter ${n}',
+    Name: 'Smartmeter ${n}',
     HardwareType: 'Phoenix',
     HardwareModel: '@firstModelOf(HardwareType)',
     CurrentTransformerPrimaryCurrent: '0A',

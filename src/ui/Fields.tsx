@@ -5,7 +5,7 @@ import { v4 as uuid } from 'uuid';
 import { errorAt, ErrorIndex, SimpleIssue } from '@/utils/errors';
 import { PathType } from '@/spec/builder';
 import { JSONValue } from '@/app/store';
-import { stripUnit, addUnit, clearVariableName } from '@/utils/helper';
+import { stripUnit, addUnit } from '@/utils/helper';
 
 export interface GlobalFns {
   get: (path: PathType) => any;
@@ -332,7 +332,6 @@ export function TextField(props: any)
   const l = label ?? (pathDefined ? path.at(-1) : 'UnknownComponent');
   const ro = readOnly ?? defLink?.readOnly ?? false
   const hint = defLink?.hint ?? 'Bla';
-  const plcVar = defLink?.plcVariableName ?? false;
 
   return (
     <div
@@ -344,7 +343,7 @@ export function TextField(props: any)
       onBlur={() => setTooltipVisible(false)}
     >
       <label>{l}</label>
-      <input value={v} readOnly={ro} aria-describedby={hint} onChange={(e) => handleOnChange(plcVar ? clearVariableName(e.target.value) : e.target.value, pathDefined, onChange, path)} />
+      <input value={v} readOnly={ro} aria-describedby={hint} onChange={(e) => handleOnChange(e.target.value, pathDefined, onChange, path)} />
       {err ? <div className="inline-error">{err}</div> : <span />}
       {hint && (
         <TooltipPortal anchorRef={tooltipRef} visible={tooltipVisible}>

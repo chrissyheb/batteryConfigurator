@@ -6,8 +6,7 @@ export const SlaveRemoteUM: ComponentDefinition = {
   category: 'ems-equipment',
   fields: {
     Type: { const: 'SlaveRemoteUM', required: true },
-    Name: TypeString({ required: true, plcVariableName: true, hint: 'Component name in TwinCAT code \n - no spaces permitted -' }),
-    DisplayName: TypeString({ required: true, hint: 'Component name in Log files' }),
+    Name: TypeString({ required: true, hint: 'Component name (used in TwinCAT project & log files)' }),
     Guid: TypeUuid({ required: true, hint: 'GUID of component for TwinCAT project generation/update' }),
     Config: {
       flatten: true,
@@ -18,8 +17,7 @@ export const SlaveRemoteUM: ComponentDefinition = {
   },
   defaults: {
     Type: 'SlaveRemoteUM',
-    Name: 'RemoteMainUnit${n0}',
-    DisplayName: 'Remote Main Unit ${n0}',
+    Name: 'Remote Main Unit ${n0}',
     Guid: '@uuid',
     Config: {
       IpAddress: '192.168.100.10'

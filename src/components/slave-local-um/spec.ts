@@ -6,8 +6,7 @@ export const SlaveLocalUM: ComponentDefinition = {
   category: 'ems-equipment',
   fields: {
     Type: { const: 'SlaveLocalUM', required: true },
-    Name: TypeString({ required: true, plcVariableName: true, hint: 'Component name in TwinCAT code \n - no spaces permitted -' }),
-    DisplayName: TypeString({ required: true, hint: 'Component name in Log files' }),
+    Name: TypeString({ required: true, hint: 'Component name (used in TwinCAT project & log files)' }),
     Guid: TypeUuid({ required: true, hint: 'GUID of component for TwinCAT project generation/update' }),
     Config: {
       flatten: true,
@@ -18,8 +17,7 @@ export const SlaveLocalUM: ComponentDefinition = {
   },
   defaults: {
     Type: 'SlaveLocalUM',
-    Name: 'LocalMainUnit',
-    DisplayName: 'Local Main Unit',
+    Name: 'Local Main Unit',
     Guid: '@uuid',
     Config: {
       IpAddress: '192.168.100.10'
