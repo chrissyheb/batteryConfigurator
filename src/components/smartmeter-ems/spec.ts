@@ -70,12 +70,16 @@ export const currentTransformerPrimaryCurrentField = TypeNumberUnit({
   availability: {
     sinceVersion: '0.0.7',
     // `path` fehlt beim Schema-Bau (core/schema-builder.ts baut EINE Form für
-    // alle Listen-Items) - in dem Fall bewusst konservativ "verfügbar"
-    // (unverändert zur bisherigen, nur versionsabhängigen Prüfung), damit sich
-    // am Zod-Schema nichts ändert. Die UI (core/form-renderer.tsx) hat immer
-    // einen echten Instanz-Pfad und blendet das Feld dort korrekt nur für
-    // HardwareType 'Beckhoff' ein.
-    when: (cfg, path) => (path ? siblingValue(cfg, path, 'HardwareType') === 'Beckhoff' : true)
+    // alle Listen-Items, unabhängig vom individuellen HardwareType jedes
+    // Items) - in dem Fall bewusst konservativ "NICHT verfügbar", damit das
+    // Feld im Zod-Schema nie hart pflicht wird (sonst würde jede
+    // Nicht-Beckhoff-Instanz, der der Key ganz fehlt - z.B. nach Import einer
+    // älteren Datei -, fälschlich als "Required" gemeldet). Die eigentliche
+    // Pflicht (>0A nur bei Beckhoff/El34x3) prüft weiterhin
+    // validateCurrentTransformer als Cross-Rule mit echten Instanzdaten. Die UI
+    // (core/form-renderer.tsx) hat immer einen echten Instanz-Pfad und blendet
+    // das Feld dort ohnehin korrekt nur für HardwareType 'Beckhoff' ein.
+    when: (cfg, path) => (path ? siblingValue(cfg, path, 'HardwareType') === 'Beckhoff' : false)
   }
 });
 
